@@ -1,6 +1,4 @@
 #TTBase プラグイン仕様書
----
-
   便利だからと常駐ソフトを沢山起動していると、リソース不足やPCの起動時間が大幅にかかったりと、いいことがありません。  
  　そこで、考案されたのがTTBaseです。 プラグインインターフェイスを持っていて、使うプラグインを制限することにより、自分の欲しい機能だけを備えた自分だけのオールインワンソフトができるのです。
 
@@ -18,14 +16,14 @@
 
  以下にプラグイン仕様書の全文を載せます。
 
-----
+---
 
- ##はじめに
+##はじめに  
   　TTBase は、起動するとタスクトレイに常駐するだけのプログラムです。  
   このプログラムを使えるようにするためには、TTBase に読み込まれるプラグ イン（DLL）が不可欠です。  
   　この仕様書をよく読んで、プラグインを開発してください。
 
- ##コンセプト
+##コンセプト  
   　ちょっとした常駐ツールを作りたいとき、通常なら一本アプリを書きますが、そういうツールが多数に渡ると、起動しているプロセスが多い、リソース消費量が多くなる、OS の起動が遅くなるなどのあんまりうれしくない現象が増えてきます。  
  　そこで、一本だけ常駐アプリを作って、そいつが小物 DLL を呼び出したり、自分のプロセスの中で常駐させたりするようにすれば、環境にやさしい常駐アプリが作れるのではないかというアイデアが TTBase の原点になっています。  
   　プラグイン SDK を使えば、小物ツールならあっという間に書くことができますし、タスクトレイに常駐させる作業や、ホットキーやメニューを与える作業を簡略化できますので、自分で小物ツールを書くのにも適しています。  
@@ -33,41 +31,40 @@
 
 ---
 
- ##開発環境
+##開発環境  
   　プラグインインターフェイスは、作成されたダイナミックリンクライブラリ（DLL）に対しての動的ロードを使いますので、処理系を選びません。DLL を作成できる処理系なら、どんなものでも使用できるはずです。  
   　現在、Delphi(5) 用と VC++(6.0),Borland C++ Free(5.5), C++Builder(5) のテンプレートが付属されています。
 
 ---
 
- ##プラグインの種類
-  ###常駐型と一発起動型  
-   　プラグイン情報構造体の PluginType に、ptAlwaysLoad を設定すると、常駐型になります。TTBase が起動している間は常にプラグインがプロセスにロードされます。マウスをフックしたりする場合は、こちらを使ってください。  
-   　ptLoadAtUse を設定すると、一発起動型になります。ユーザーがコマンドを呼ぶか、タイマーによって起動された場合、その都度プラグインは ロードされ、TTBPlugin_Init が呼ばれ、その後 TTBPlugin_Execute が呼ばれ、最後に TTBPlugin_Unload が呼ばれてプロセスからアンロードされます。  
-   　一発起動型の方が、起動時だけメモリにロードされますから、メモリの節約になります。その代わり、コマンド実行が若干遅れます。大きなデータファイルを読まなければならないようなプラグインの場合は、常駐型にするべきでしょう。  
-   　TTBPlugin_WindowsHook を使用する場合は、必ず常駐型にする必要があります。  
-   常駐型を作る場合は、できるだけ WindowsAPI だけを使ったコーディングを行い、ファイルサイズを小さくまとめてください。小さい常駐型と大きい一発起動型の２つのプラグインが連携するように作るのも一つの方法です。
+##プラグインの種類  
+###常駐型と一発起動型  
+　プラグイン情報構造体の PluginType に、ptAlwaysLoad を設定すると、常駐型になります。TTBase が起動している間は常にプラグインがプロセスにロードされます。マウスをフックしたりする場合は、こちらを使ってください。  
+　ptLoadAtUse を設定すると、一発起動型になります。ユーザーがコマンドを呼ぶか、タイマーによって起動された場合、その都度プラグインは ロードされ、TTBPlugin_Init が呼ばれ、その後 TTBPlugin_Execute が呼ばれ、最後に TTBPlugin_Unload が呼ばれてプロセスからアンロードされます。  
+　一発起動型の方が、起動時だけメモリにロードされますから、メモリの節約になります。その代わり、コマンド実行が若干遅れます。大きなデータファイルを読まなければならないようなプラグインの場合は、常駐型にするべきでしょう。  
+　TTBPlugin_WindowsHook を使用する場合は、必ず常駐型にする必要があります。常駐型を作る場合は、できるだけ WindowsAPI だけを使ったコーディングを行い、ファイルサイズを小さくまとめてください。小さい常駐型と大きい一発起動型の２つのプラグインが連携するように作るのも一つの方法です。
 
-  ###コマンドの呼ばれ方の種類  
-   　TTBaseのコマンドの呼び方には、以下の４つがあります。  
+###コマンドの呼ばれ方の種類  
+　TTBaseのコマンドの呼び方には、以下の４つがあります。  
 
-    - ツールメニュー（タスクトレイアイコン左クリックまたはホットキー）  
-    - システムメニュー（タスクトレイアイコン右クリックまたはホットキー）  
-    - ホットキー  
-    - タイマー  
-    - WindowsHook（現状WH_SHELLとWH_MOUSEの一部機能を提供）  
+- ツールメニュー（タスクトレイアイコン左クリックまたはホットキー）
+- システムメニュー（タスクトレイアイコン右クリックまたはホットキー）
+- ホットキー
+- タイマー
+- WindowsHook（現状WH_SHELLとWH_MOUSEの一部機能を提供）
 
-   　ツールメニュー・システムメニューに出すかどうかは、プラグインコマンド情報構造体の DispMenu に適切な値を設定することで決定されます。  
-   またホットキーの設定メニューの中にコマンドを出すかどうかも、DispMenuの設定で左右されます。  
-   　タイマーに関しては、PluginCommandInfo の IntervalTime に呼ばれる時間間隔を設定することで機能するようになります。使わない場合は 0 を設定します。  
-   　WindowsHook は、面倒な Hook.dll を作成しなくても、TTBase が Hook用の手続きを踏んで、Plugin 関数を呼んでくれます。現在のところ、WH_SHELL の全機能と、WH_MOUSE の一部機能が使用できます。
+　ツールメニュー・システムメニューに出すかどうかは、プラグインコマンド情報構造体の DispMenu に適切な値を設定することで決定されます。  
+またホットキーの設定メニューの中にコマンドを出すかどうかも、DispMenuの設定で左右されます。  
+　タイマーに関しては、PluginCommandInfo の IntervalTime に呼ばれる時間間隔を設定することで機能するようになります。使わない場合は 0 を設定します。  
+　WindowsHook は、面倒な Hook.dll を作成しなくても、TTBase が Hook用の手続きを踏んで、Plugin 関数を呼んでくれます。現在のところ、WH_SHELL の全機能と、WH_MOUSE の一部機能が使用できます。
 
-  ###プラグインが本体に対してどうやって情報を伝えているのか  
-   　TTBase は、起動時に実行フォルダ以下の DLL ファイルを検索し、いったんロードします。その後、DLL の TTBPlugin_InitPluginInfo イベントを呼んで、プラグイン情報構造体（TPluginInfo or PLUGIN_INFO）をプラグインから取得します。これによって、そのプラグインの名前・種類・コマンド情報をプラグインから得ます。その後、常駐型でない場合は、アンロードします。  
-   　常駐型の場合は、Plugin_Init が呼ばれ、そのままプロセスにロードされ続けます。  
-   　なお、TTBase の起動を速くするため、インストール後、２回目の起動以降は、TTBase.dat に保存されたプラグイン情報キャッシュを使ってプラグイン情報を得るようになります。DLL のファイルタイムが更新された場合以外は、そのままその情報が使用され続けます。 
+###プラグインが本体に対してどうやって情報を伝えているのか  
+　TTBase は、起動時に実行フォルダ以下の DLL ファイルを検索し、いったんロードします。その後、DLL の TTBPlugin_InitPluginInfo イベントを呼んで、プラグイン情報構造体（TPluginInfo or PLUGIN_INFO）をプラグインから取得します。これによって、そのプラグインの名前・種類・コマンド情報をプラグインから得ます。その後、常駐型でない場合は、アンロードします。  
+　常駐型の場合は、Plugin_Init が呼ばれ、そのままプロセスにロードされ続けます。  
+　なお、TTBase の起動を速くするため、インストール後、２回目の起動以降は、TTBase.dat に保存されたプラグイン情報キャッシュを使ってプラグイン情報を得るようになります。DLL のファイルタイムが更新された場合以外は、そのままその情報が使用され続けます。 
 
-  ###定数と構造体定義  
-   　構造体のアライメントは、圧縮してください。
+###定数と構造体定義  
+　構造体のアライメントは、圧縮してください。  
 ```c
 // プラグインのロードタイプ
 #define ptAlwaysLoad    0
@@ -172,105 +169,101 @@ TPluginInfoArray = array[0..65535] of PPluginInfo;
 ---
 #[解説]
 
-==============================================================
+使用する構造体は２つあります。  
 
-  使用する構造体は２つあります。  
+##PLUGIN_INFO（TPluginInfo）
+　TTBase にプラグインのプロパティを教えるために、Plugin_SetPluginInfo関数を使って、この構造体を渡します。  
+一緒にコマンド情報（PLUGIN_COMMAND_INFO）も渡します。
 
----
+###WORD NeedVersion (WORD)
+　必要とする TTBase プラグイン仕様のバージョンです。  
+現時点では0 を指定してください。
 
-  ##PLUGIN_INFO（TPluginInfo）  
-   　TTBase にプラグインのプロパティを教えるために、Plugin_SetPluginInfo関数を使って、この構造体を渡します。  
-   一緒にコマンド情報（PLUGIN_COMMAND_INFO）も渡します。
+###char* Name (PChar)
+　プラグインの名前です。２バイト文字が使えます。
 
-   ###WORD NeedVersion (WORD)
-   　必要とする TTBase プラグイン仕様のバージョンです。  
-   現時点では0 を指定してください。
+###char* Filename (PChar)
+　プラグインのファイル名を TTBase インストールフォルダからの相対パスで格納します。
 
-   ###char* Name (PChar)  
-   　プラグインの名前です。２バイト文字が使えます。
+###WORD PluginType
+　常駐型か、一発起動型かを指定します。  
 
-   ###char* Filename (PChar)  
-   　プラグインのファイル名を TTBase インストールフォルダからの相対パスで格納します。
+- ptAlwaysLoad:    常駐型
+- ptLoadAtUse:     一発起動型
+- ptSpecViolation: 内部使用。この値はセットしてはいけません。
 
-   ###WORD PluginType  
-   　常駐型か、一発起動型かを指定します。  
+　コマンド駆動の機能しか持たないプラグインは、できるだけ ptLoadAtUse を指定してください。  
+これによって、TTBase の使用メモリ量を抑制することができます。
 
-    - ptAlwaysLoad:    常駐型  
-    - ptLoadAtUse:     一発起動型  
-    - ptSpecViolation: 内部使用。この値はセットしてはいけません。  
+###DWORD VersionMS, VersionLS (DWORD)  
+　プラグインのバージョンを格納します。  
 
-   　コマンド駆動の機能しか持たないプラグインは、できるだけ ptLoadAtUse を指定してください。  
-   これによって、TTBase の使用メモリ量を抑制することができます。
+- HIWORD(VersionMS): Major Version
+- LOWORD(VersionMS): Minor Version
+- HIWORD(VersionLS): Release Number
+- LOWORD(VersionLS): Build Number
 
-   ###DWORD VersionMS, VersionLS (DWORD)  
-   　プラグインのバージョンを格納します。  
+　これを推奨しますが、意味付けは強制はしません。
 
-    - HIWORD(VersionMS): Major Version  
-    - LOWORD(VersionMS): Minor Version  
-    - HIWORD(VersionLS): Release Number  
-    - LOWORD(VersionLS): Build Number  
-
-   　これを推奨しますが、意味付けは強制はしません。
-
-   ###DWORD CommandCount (DWORD)  
-   　プラグインが持つコマンドの数です。  
-   コマンドの数は合計で256個以下である必要があります。
+###DWORD CommandCount (DWORD)  
+　プラグインが持つコマンドの数です。  
+コマンドの数は合計で256個以下である必要があります。
 
 ---
 
-  ##PLUGIN_COMMAND_INFO** Commands (Commands PPluginCommandInfoArray)  
-   プラグインコマンド情報構造体へのポインタの配列へのポインタです。ここに、必要なメモリを確保してポインタを指定してください。 
+##PLUGIN_COMMAND_INFO** Commands (Commands PPluginCommandInfoArray)
+　プラグインコマンド情報構造体へのポインタの配列へのポインタです。ここに、必要なメモリを確保してポインタを指定してください。 
 
-   ###DWORD LoadTime (DWORD)  
-   　このメンバーは、TTBase 内部で使用されるだけで、個別プラグイン には関係ありません。 そのプラグインの情報取得にかかった時間が msec で格納されます。  
-   　値は、QueryPerformanceTimer を使用して取得しますので、分解能は msec 以下です。
+###DWORD LoadTime (DWORD)
+　このメンバーは、TTBase 内部で使用されるだけで、個別プラグイン には関係ありません。 そのプラグインの情報取得にかかった時間が msec で格納されます。  
+　値は、QueryPerformanceTimer を使用して取得しますので、分解能は msec 以下です。
 
-   ###PLUGIN_COMMAND_INFO(TPluginCommandInfo)  
-   　PLUGIN_INFO の Commands メンバに設定する構造体です。
-   コマンドの情報を格納して TTBase に渡します。
+###PLUGIN_COMMAND_INFO (TPluginCommandInfo)
+　PLUGIN_INFO の Commands メンバに設定する構造体です。
+コマンドの情報を格納して TTBase に渡します。
 
-   ###char* Name (PChar)  
-   　コマンドの名前です。半角英数と _ を使用して記述してください。
+###char* Name (PChar)
+　コマンドの名前です。半角英数と _ を使用して記述してください。
 
-   ###char* Caption (PChar)  
-   　コマンドの説明です。メニューなどに表示されます。２バイト文字も使用できます。
+###char* Caption (PChar)
+　コマンドの説明です。メニューなどに表示されます。２バイト文字も使用できます。
 
-   ###int CommandID (Integer)  
-   　コマンド番号。コマンド一つに付き一つ、ユニークな値を定義します。
+###int CommandID (Integer)
+　コマンド番号。コマンド一つに付き一つ、ユニークな値を定義します。
 
-   ###int Attr (Integer)  
-   　コマンドアトリビュート。現在未使用です。
+###int Attr (Integer)
+　コマンドアトリビュート。現在未使用です。
 
-   ###int ResID(Integer)  
-   　リソース ID。現在未使用です。
+###int ResID(Integer)
+　リソース ID。現在未使用です。
 
-   ###int DispMenu (Integer)  
-   　TTBase のツール・システムメニューに、このコマンドを表示するかどうかを指定します。システムメニューには設定系のメニューを、ツールメニューには、そのプラグインの基本機能を割り当てるのが原則です。  
-   　また、ホットキー設定ができるかどうかもここに設定します。２つ以上の設定を行うときは、和を使ってください。  
+###int DispMenu (Integer)
+　TTBase のツール・システムメニューに、このコマンドを表示するかどうかを指定します。システムメニューには設定系のメニューを、ツールメニューには、そのプラグインの基本機能を割り当てるのが原則です。  
+　また、ホットキー設定ができるかどうかもここに設定します。２つ以上の設定を行うときは、和を使ってください。  
 
-    - dmNone:        表示しない
-    - dmSystemMenu:  システムメニューに表示
-    - dmTooMenu:     ツールメニューに表示
-    - dmHotKeyMenu:  ホットキー設定の選択可能コマンドに表示
-    - dmMenuChecked: メニューにチェックマークが入るかどうか
+- dmNone:        表示しない
+- dmSystemMenu:  システムメニューに表示
+- dmTooMenu:     ツールメニューに表示
+- dmHotKeyMenu:  ホットキー設定の選択可能コマンドに表示
+- dmMenuChecked: メニューにチェックマークが入るかどうか
   
-   ###DWORD TimerInterval (DWORD)  
-   　タイマーによる連続起動コマンド指定です。  
-   時間を [msec] で設定します。  
-   タイマー機能を使用しないときは 0 を設定します。  
-   　TTBase 内部では、約 100msec ごとに Timer イベントが発生しています。この分解能でコマンドを実行しますので、あまり細かい時間を設定しても意味がありません。100msec 単位程度で指定しましょう。
+###DWORD TimerInterval (DWORD)  
+　タイマーによる連続起動コマンド指定です。  
+時間を [msec] で設定します。  
+タイマー機能を使用しないときは 0 を設定します。  
+　TTBase 内部では、約 100msec ごとに Timer イベントが発生しています。この分解能でコマンドを実行しますので、あまり細かい時間を設定しても意味がありません。100msec 単位程度で指定しましょう。
 
-   ###DWORD TimerCounter (DWORD)  
-   　TTBase 内部で使用します。  
+###DWORD TimerCounter (DWORD)  
+　TTBase 内部で使用します。  
 
 ---
 
-#イベントハンドラ
-　　絶対に定義しなければならないイベントハンドラは、以下のものです。DLL で関数の名前をエクスポートしてください。  
-　エクスポートされていない場合は、その DLL をプラグインとは認識しません。
+##イベントハンドラ
+　絶対に定義しなければならないイベントハンドラは、以下のものです。DLL で関数の名前をエクスポートしてください。  
+エクスポートされていない場合は、その DLL をプラグインとは認識しません。
 
 ================================================================
-TTBEvent_InitPluginInfo
+###TTBEvent_InitPluginInfo
 ================================================================
 ```c
 PLUGIN_INFO* WINAPI TTBEvent_InitPluginInfo(char* PluginFilename);
@@ -282,7 +275,7 @@ function TTBEvent_InitPluginInfo(PluginFilename: PChar): PPluginInfo; stdcall; e
 　PluginFilename には、そのプラグイン実行ファイル名が、の TTBase インストールフォルダからの相対パスとして格納されています。これは、プラグインの内部でも使用できますが、プラグイン情報構造体の Filename メンバにメモリを確保して、コピーして TTBase本体に返してください。 
 
 ================================================================
-TTBEvent_FreePluginInfo
+###TTBEvent_FreePluginInfo
 ================================================================
 ```c
 void WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PluginInfo);
@@ -299,7 +292,7 @@ procedure TTBEvent_FreePluginInfo(PluginInfo: PPluginInfo); stdcall; export;
 　以下、必要に応じて定義するイベントハンドラです。
 
 ================================================================
-TTBEvent_Init
+###TTBEvent_Init
 ================================================================
 ```c
 BOOL WINAPI TTBEvent_Init(char* PluginFilename, DWORD hPlugin);
@@ -313,7 +306,7 @@ function TTBEvent_Init(PluginFilename: PChar; hPlugin: DWORD): BOOL; stdcall; ex
 　初期化が成功したら、TRUE を返します。
 
 ================================================================
-TTBEvent_Unload
+###TTBEvent_Unload
 ================================================================
 ```c
 void WINAPI TTBEvent_Unload(void);
@@ -324,7 +317,7 @@ procedure TTBEvent_Unload; stdcall; export;
 　プラグインがアンロードされるときに呼ばれます。
 
 ================================================================
-TTBEvent_Execute
+###TTBEvent_Execute
 ================================================================
 ```c
 BOOL WINAPI TTBEvent_Execute(int CommandID, HWND hWnd);
@@ -334,7 +327,7 @@ function TTBEvent_Execute(CommandID: Integer; hWnd: THandle): BOOL; stdcall; exp
 ```
 　コマンドが、何らかの形で呼ばれる場合、この関数が呼ばれます。  
 　プラグイン情報構造体で、CommandCount を 1 以上に設定した場合は、このハンドラは必ず必要です。  
-　CommandID には、そのコマンドの ID が入っています。  
+CommandID には、そのコマンドの ID が入っています。  
 　hWnd には、TTBase が持っている NotifyWindow （表示はされませんが、メッセージ処理をするために必要です）のウィンドウハンドルが格納されています。  
 　正常に処理を終了したら TRUE を返すようにしてください。  
 
@@ -345,7 +338,7 @@ function TTBEvent_Execute(CommandID: Integer; hWnd: THandle): BOOL; stdcall; exp
  + タイマー型のコマンド（PluginInfo の IntervalTime が 1 以上に設定されているコマンド）の場合、設定時間ごとに自動的に呼ばれる。
 
 ================================================================
-TTBEvent_WindowsHook
+###TTBEvent_WindowsHook
 ================================================================
 ```c
 void WINAPI TTBEvent_WindowsHook(UINT Msg, DWORD wParam, DWORD lParam);
@@ -367,10 +360,10 @@ procedure TTBEvent_WindowsHook(Msg: Word; wParam: DWORD; lParam: DWORD); stdcall
 
 ---
 
-#API 関数
+##API 関数
 
 ================================================================
-TTBPlugin_GetPluginInfo
+###TTBPlugin_GetPluginInfo
 ================================================================
 ```c
 extern PLUGIN_INFO* (WINAPI *TTBPlugin_GetPluginInfo)(DWORD hPlugin);
@@ -382,7 +375,7 @@ TTTBPlugin_GetPluginInfo = function (hPlugin: DWORD): PPluginInfo; stdcall;
 　この API 関数で取得した (PLUGIN_INFO *) 型のポインタは、TTBPlugin_FreePluginInfo 関数で解放する必要があります。
 
 ================================================================
-TTBPlugin_SetPluginInfo
+###TTBPlugin_SetPluginInfo
 ================================================================
 ```c
 extern void (WINAPI *TTBPlugin_SetPluginInfo)(DWORD hPlugin, PLUGIN_INFO *PluginInfo);
@@ -396,7 +389,7 @@ TTTBPlugin_SetPluginInfo = procedure (hPlugin: DWORD; PluginInfo: PPluginInfo); 
 　この関数が使用されると、TTBase は、渡されたプラグイン構造体をコピーして、内部で使用するようになります。そのため、プラグイン側で確保したPluginInfo は、プラグイン側で明示的に解放するようにしてください。
 
 ================================================================
-TTBPlugin_FreePluginInfo
+###TTBPlugin_FreePluginInfo
 ================================================================
 ```c
 extern void (WINAPI *TTBPlugin_FreePluginInfo)(PLUGIN_INFO *PluginInfo);
@@ -408,7 +401,7 @@ TTTBPlugin_FreePluginInfo = procedure (PluginInfo: PPluginInfo); stdcall;
 　TTBPlugin_GetPluginInfo で取得したメモリは、この API 関数を使って解放してください。
 
 ================================================================
-TTBPlugin_SetMenuProperty
+###TTBPlugin_SetMenuProperty
 ================================================================
 ```c
 extern void (WINAPI *TTBPlugin_SetMenuChecked)(DWORD hPlugin, int CommandID, DWORD ChagneFlag, DWORD Flag);
@@ -419,11 +412,11 @@ TTTBPlugin_SetMenuChecked = procedure (hPlugin: DWORD; CommandID: Integer; Chang
 　hPlugin で指定したプラグインの、CommandID で示されるコマンドの、メニュー関係の属性を変更します。
 
 + ChangeFlag: 変更する属性の種類を指定します。複数のフラグを和で指定することもできます。
-+ DISPMENU_MENU:システムメニュー・ツールメニューの種類変更します。 このフラグをセットした時に dmToolMenu、dmSystemMenu の両方を指定しないと、メニューに表示されません。
++ DISPMENU_MENU:システムメニュー・ツールメニューの種類変更します。  
+このフラグをセットした時に dmToolMenu、dmSystemMenu の両方を指定しないと、メニューに表示されません。
 + DISPMENU_ENABLED:メニューをグレーアウトするかどうか指定できます。
 + DISPMENU_CHECKED:メニューにチェックを入れるかどうかを指定できます。
 
----
 Flag:フラグには、以下の値の和として指定します。
 
 + dmNone       =  0; // 何も出さない
@@ -434,11 +427,10 @@ Flag:フラグには、以下の値の和として指定します。
 + dmEnabled    =  0; //
 + dmDisabled   = 16; // メニューがグレイアウトされている
 
----
 　ChangeFlag との組み合わせで、効果を発揮するかどうかが決まります。たとえば、DISPMENU_ENABLED だけを指定している時、dmToolMenu などを Flag にセットしても、効果を発揮しません。
 
 ================================================================
-TTBPlugin_GetAllPluginInfo
+###TTBPlugin_GetAllPluginInfo
 ================================================================
 ```c
 extern PLUGIN_INFO** (WINAPI* TTBPlugin_GetAllPluginInfo)(void);
@@ -450,7 +442,7 @@ TPlugin_GetAllPluginInfo = function : PPluginInfoArray; stdcall;
 最後のプラグイン情報構造体へのポインタの次の配列要素には、NULL が格納されていますので、これで最後を判定してください。
 
 ================================================================
-TTBPlugin_FreePluginInfoArray
+###TTBPlugin_FreePluginInfoArray
 ================================================================
 ```c
 extern void (WINAPI* TTBPlugin_FreePluginInfoArray)(PLUGIN_INFO** PluginInfoArray);
