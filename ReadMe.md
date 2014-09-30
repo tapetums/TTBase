@@ -66,22 +66,29 @@ VC++(2013) 32/64-bit のテンプレートがあります。
 　構造体のアライメントは、圧縮してください。  
 ```c
 // プラグインのロードタイプ
-#define ptAlwaysLoad    0
-#define ptLoadAtUse     1
-#define ptSpecViolation 0xFFFF
+#define ptAlwaysLoad    0x0000 // 常駐型プラグイン
+#define ptLoadAtUse     0x0001 // 一発起動型プラグイン
+#define ptSpecViolation 0xFFFF // TTBaseプラグイン以外のDLL
 
 // メニュー表示に関する定数
-#define dmNone        0 // 何も出さない
-#define dmSystemMenu  1 // システムメニュー
-#define dmToolMenu    2 // ツールメニュー
-#define dmHotKeyMenu  4 // ホットキー
-#define dmMenuChecked 8 // メニューのチェックマーク
+#define dmNone         0 // 何も出さない
+#define dmSystemMenu   1 // システムメニュー
+#define dmToolMenu     2 // ツールメニュー
+#define dmHotKeyMenu   4 // ホットキー
+#define dmMenuChecked  8 // メニューのチェックマーク
+#define dmDisabled    16 // メニューをDisableする
+
+// ログ出力に関する定数
+#define elNever   0 // 出力しない
+#define elError   1 // エラー
+#define elWarning 2 // 警告
+#define elInfo    3 // 情報
+#define elDebug   4 // デバッグ
 
 //--------------------------------------------------------//
 // 構造体定義
 //--------------------------------------------------------//
 
-// コマンド情報構造体
 // コマンド情報構造体
 typedef struct
 {
@@ -153,18 +160,17 @@ typedef PLUGIN_INFO_A PLUGIN_INFO;
 使用する構造体は２つあります。
 
 ##PLUGIN\_INFO 構造体
-　TTBase にプラグインのプロパティを教えるために、Plugin\_SetPluginInfo 関数を使って、この構造体を渡します。  
-一緒にコマンド情報 (PLUGIN\_COMMAND\_INFO) も渡します。
+　プラグイン情報を格納します。 TTBase にプラグインのプロパティを教えるために、Plugin\_SetPluginInfo 関数を使って、この構造体を渡します。一緒にコマンド情報 (PLUGIN\_COMMAND\_INFO) も渡します。
 
 ###WORD NeedVersion
 　必要とする TTBase プラグイン仕様のバージョンです。  
-現時点では0 を指定してください。
+現時点では **0 を指定**してください。
 
 ###LPTSTR Name
 　プラグインの名前です。任意の文字が使えます。
 
 ###LPTSTR Filename
-　プラグインのファイル名を TTBase インストールフォルダからの相対パスで格納します。
+　プラグインのファイル名を TTBase インストールフォルダからの**相対パス**で格納します。
 
 ###WORD PluginType
 　常駐型か、一発起動型かを指定します。  
@@ -188,26 +194,26 @@ typedef PLUGIN_INFO_A PLUGIN_INFO;
 
 ###DWORD CommandCount
 　プラグインが持つコマンドの数です。  
-コマンドの数は合計で 256個以下 である必要があります。
+コマンドの数は合計で **256個以下** である必要があります。
 
 ---
 
-##PLUGIN\_COMMAND\_INFO** Commands
-　プラグインコマンド情報構造体へのポインタの配列へのポインタです。ここに、必要なメモリを確保してポインタを指定してください。 
+##PLUGIN\_COMMAND\_INFO 構造体
+　プラグインコマンド情報を格納します。この構造体へのポインタ配列へのポインタを用意し、そこに、必要なメモリを確保してポインタを指定してください。 
 
 ###DWORD LoadTime
 　このメンバーは、TTBase 内部で使用されるだけで、個別プラグイン には関係ありません。 そのプラグインの情報取得にかかった時間が msec で格納されます。  
-　値は、QueryPerformanceTimer を使用して取得しますので、分解能は msec 以下です。
+　値は、QueryPerformanceTimer() を使用して取得しますので、分解能は msec 以下です。
 
 ###PLUGIN\_COMMAND\_INFO
 　PLUGIN\_INFO の Commands メンバに設定する構造体です。
 コマンドの情報を格納して TTBase に渡します。
 
 ###LPTSTR Name
-　コマンドの名前です。半角英数と \_ を使用して記述してください。
+　コマンドの名前です。**半角英数と \_ を使用**して記述してください。
 
 ###LPTSTR Caption
-　コマンドの説明です。メニューなどに表示されます。
+　コマンドの説明です。メニューなどに表示されます。任意の文字が使えます。
 
 ###int CommandID
 　コマンド番号です。コマンド一つに付き一つ、ユニークな値を定義します。
@@ -229,7 +235,7 @@ typedef PLUGIN_INFO_A PLUGIN_INFO;
 - dmMenuChecked: メニューにチェックマークが入るかどうか
   
 ###DWORD TimerInterval
-　タイマーによる連続起動コマンド指定です。  
+　タイマーによる連続起動コマンド指定です。
 時間を [msec] で設定します。  
 タイマー機能を使用しないときは 0 を設定します。  
 　TTBase 内部では、約 100msec ごとに Timer イベントが発生しています。この分解能でコマンドを実行しますので、あまり細かい時間を設定しても意味がありません。100msec 単位程度で指定しましょう。
@@ -240,7 +246,7 @@ typedef PLUGIN_INFO_A PLUGIN_INFO;
 ---
 
 ##イベントハンドラ
-　絶対に定義しなければならないイベントハンドラは、以下のものです。DLL で関数の名前をエクスポートしてください。  
+　必ず定義しなければならないイベントハンドラは、以下のものです。DLL で関数の名前をエクスポートしてください。  
 エクスポートされていない場合は、その DLL をプラグインとは認識しません。
 
 ================================================================
@@ -250,7 +256,7 @@ typedef PLUGIN_INFO_A PLUGIN_INFO;
 PLUGIN_INFO* WINAPI TTBEvent_InitPluginInfo(LPTSTR PluginFilename);
 ```
 　プラグイン情報構造体のメモリを確保し、情報をセットして返します。コマンドを持つ場合は、コマンド情報構造体のメモリも確保し、渡します。  
-　PluginFilename には、そのプラグイン実行ファイル名が、の TTBase インストールフォルダからの相対パスとして格納されています。これは、プラグインの内部でも使用できますが、プラグイン情報構造体の Filename メンバにメモリを確保して、コピーして TTBase 本体に返してください。 
+　PluginFilename には、そのプラグイン実行ファイル名が、の TTBase インストールフォルダからの**相対パス**として格納されています。これは、プラグインの内部でも使用できますが、プラグイン情報構造体の Filename メンバにメモリを確保して、コピーして TTBase 本体に返してください。 
 
 ================================================================
 ###TTBEvent\_FreePluginInfo
@@ -260,7 +266,6 @@ void WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PluginInfo);
 ```
 　渡されたプラグイン情報構造体のメモリを解放します。  
 　コマンド個数を見て、コマンド情報構造体のメモリも正確に解放するようにしてください。 このコマンドで解放するのは、TTBEvent\_InifPluginInfo 等プラグイン側で確保されたメモリ領域です。
-
 
 ***
 
@@ -273,7 +278,7 @@ void WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PluginInfo);
 BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin);
 ```
 　プラグインの初期化関数です。ロードされた後、最初に呼ばれます。  
-　TTBase のプラグイン情報キャッシュ機構のため、TTBEvent\_InitPluginInfo が毎回呼ばれるわけではありません。そこで、PluginFilename を使って、DLLは自分のファイル名を知ることができます。  
+　TTBase のプラグイン情報キャッシュ機構のため、TTBEvent\_InitPluginInfo が**毎回呼ばれるわけではありません**。そこで、PluginFilename を使って、DLLは自分のファイル名を知ることができます。  
 　hPlugin は、TTBase がプラグインを識別するための識別コードです。一部の API 関数で使用するので、グローバル変数等に保存するようにしてください。  
 　初期化が成功したら、TRUE を返します。
 
@@ -299,9 +304,9 @@ CommandID には、そのコマンドの ID が入っています。
 
 　この関数が呼ばれるのは、以下の条件です。  
 
- + TTBaseのツールメニューかシステムメニューが選択された  
- + ユーザーが設定したホットキーからコマンドが呼ばれた  
- + タイマー型のコマンド（PluginInfo の IntervalTime が 1 以上に設定されているコマンド）の場合、設定時間ごとに自動的に呼ばれる。
+- TTBaseのツールメニューかシステムメニューが選択された  
+- ユーザーが設定したホットキーからコマンドが呼ばれた  
+- タイマー型のコマンド（PluginInfo の IntervalTime が 1 以上に設定されているコマンド）の場合、設定時間ごとに自動的に呼ばれる
 
 ================================================================
 ###TTBEvent\_WindowsHook
@@ -313,12 +318,12 @@ void WINAPI TTBEvent_WindowsHook(UINT Msg, WPARAM wParam, LPARAM lParam);
 　現在サポートされているのは、ShellHook(WH\_SHELL) と、MouseHook(WH\_MOUSE) の２つがあります。
 
 [WH\_SHELL]  
-　コールバック関数で得られる nCode ごとに、TTB\_HSHELL\_ で始まるユーザー定義メッセージが定義されています。これはテンプレートの MessageDef.cpp を参照してください。  
+　コールバック関数で得られる nCode ごとに、"TTB\_HSHELL\_" で始まるユーザー定義メッセージが定義されています。これはテンプレートの MessageDef.cpp を参照してください。  
 　このメッセージ番号が Msg に設定されます。またコールバック関数で得られる wParam と lParam も得ることができます。
 
 [WH\_MOUSE]  
 　コールバック関数で得られる nCode が HC\_ACTION の場合だけ通知されます。  
-　MsgにTTB\_HMOUSE\_ACTIONが設定されます（MessageDef.cpp参照）。  
+　Msgに TTB\_HMOUSE\_ACTION が設定されます（MessageDef.cpp 参照）。  
 　wParam にマウスメッセージの種類、lParam にそのマウスイベントが起こったウィンドウのハンドルが設定されます。実際の WH\_MOUSE では、lParam に MOUSEHOOKSTRUCT へのポインタが設定されますが、これをすべてプラグインで受け取ることはできません。ウィンドウハンドルのみが提供されています。
 
 ---
@@ -341,9 +346,9 @@ extern PLUGIN_INFO* (WINAPI* TTBPlugin_GetPluginInfo)(DWORD hPlugin);
 extern void (WINAPI* TTBPlugin_SetPluginInfo)(DWORD hPlugin, PLUGIN_INFO* PluginInfo);
 ```
 　hPlugin で指定したプラグインのプラグイン情報構造体を再設定します。プラグイン側から動的にプラグイン情報構造体の内容を変更したいときに使用します。  
-　PluginInfo は、新たにメモリを確保して使用してください。TTBPlugin\_GetPluginInfo で取得したものを使用してはいけません。  
+　PluginInfo は、新たにメモリを確保して使用してください。**TTBPlugin\_GetPluginInfo で取得したものを使用してはいけません**。  
 （プラグインテンプレートには、ユーティリティルーチンとして、CopyPluginInfo 関数が用意されているので、これで TTBPlugin\_GetPluginInfo 関数で得たプラグイン情報構造体をコピーして使用するようにします。もちろん TTBPlugin\_GetPluginInfo を使用しないでプラグイン情報構造体を作成しても構いません）  
-　この関数が使用されると、TTBase は、渡されたプラグイン構造体をコピーして、内部で使用するようになります。そのため、プラグイン側で確保した PluginInfo は、プラグイン側で明示的に解放するようにしてください。
+　この関数が使用されると、TTBase は、渡されたプラグイン構造体をコピーして、内部で使用するようになります。そのため、プラグイン側で確保した PluginInfo は、**プラグイン側で明示的に解放**するようにしてください。
 
 ================================================================
 ###TTBPlugin\_FreePluginInfo
@@ -362,13 +367,14 @@ extern void (WINAPI* TTBPlugin_SetMenuChecked)(DWORD hPlugin, int CommandID, DWO
 ```
 　hPlugin で指定したプラグインの、CommandID で示されるコマンドの、メニュー関係の属性を変更します。
 
-+ ChangeFlag: 変更する属性の種類を指定します。複数のフラグを和で指定することもできます。
-+ DISPMENU\_MENU:システムメニュー・ツールメニューの種類変更します。  
-このフラグをセットした時に dmToolMenu、dmSystemMenu の両方を指定しないと、メニューに表示されません。
-+ DISPMENU\_ENABLED:メニューをグレーアウトするかどうか指定できます。
-+ DISPMENU\_CHECKED:メニューにチェックを入れるかどうかを指定できます。
+ChangeFlag: 変更する属性の種類を指定します。複数のフラグを論理和で指定することもできます。
 
-Flag:フラグには、以下の値の和として指定します。
+- DISPMENU\_MENU:システムメニュー・ツールメニューの種類変更します。  
+このフラグをセットした時に dmToolMenu、dmSystemMenu の両方を指定しないと、メニューに表示されません。
+- DISPMENU\_ENABLED:メニューをグレーアウトするかどうか指定できます。
+- DISPMENU\_CHECKED:メニューにチェックを入れるかどうかを指定できます。
+
+Flag: フラグには、以下の値の論理和として指定します。
 
 - dmNone       =  0; // 何も出さない
 - dmToolMenu   =  2; // ツールメニュー
@@ -386,7 +392,7 @@ Flag:フラグには、以下の値の和として指定します。
 ```c
 extern PLUGIN_INFO** (WINAPI* TTBPlugin_GetAllPluginInfo)(void);
 ```
-　TTBase に読み込まれているすべてのプラグインのプラグイン情報構造体へのポインタの配列へのポインタを返します。  
+　TTBase に読み込まれているすべてのプラグインのプラグイン情報構造体へのポインタ配列へのポインタを返します。  
 最後のプラグイン情報構造体へのポインタの次の配列要素には、nullptr が格納されていますので、これで最後を判定してください。
 
 ================================================================
@@ -401,7 +407,7 @@ extern void (WINAPI* TTBPlugin_FreePluginInfoArray)(PLUGIN_INFO** PluginInfoArra
 
 以上です。
 
-Original Introduction by K2:  
+**Original Introduction by K2:**  
 [http://pc2.2ch.net/test/read.cgi/tech/1042029896/1-28](http://pc2.2ch.net/test/read.cgi/tech/1042029896/1-28)
 
-<div style="text-align: right;">Last modified 2014.09.30 by tapetums</div>
+######Last modified 2014.09.30 by tapetums
