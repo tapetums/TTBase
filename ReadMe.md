@@ -2,15 +2,18 @@
 　便利だからと常駐ソフトを沢山起動していると、リソース不足やPCの起動時間が大幅にかかったりと、いいことがありません。  
 　そこで、考案されたのがTTBaseです。 プラグインインターフェイスを持っていて、使うプラグインを制限することにより、自分の欲しい機能だけを備えた自分だけのオールインワンソフトができるのです。
 
- 作者K2のサイト  
- [http://web.kyoto-inet.or.jp/people/koyabu/](http://web.kyoto-inet.or.jp/people/koyabu/)
+ 公式サイト  
+ [http://ttbase.sourceforge.jp/](http://ttbase.sourceforge.jp/)
 
- TTBase本体・プラグイン置き場  
- [http://web.kyoto-inet.or.jp/people/koyabu/TTBase.html](http://web.kyoto-inet.or.jp/people/koyabu/TTBase.html)
+ 作者K2のサイト  
+ [http://k2top.jpn.org/index.php?TTBase](http://k2top.jpn.org/index.php?TTBase)
+
+ TTbase アップローダー  
+ [http://ttbase.coresv.com/uploader/](http://ttbase.coresv.com/uploader/)
 
  ソフトウェア板スレ  
- 【常駐】TTBaseってどうよ【プラグイン】  
- [http://pc3.2ch.net/test/read.cgi/software/1041375122/](http://pc3.2ch.net/test/read.cgi/software/1041375122/)
+ 【常駐】TTBaseってどうよ？その10【プラグイン】  
+ [http://anago.2ch.net/test/read.cgi/software/1325925703/](http://anago.2ch.net/test/read.cgi/software/1325925703/)
 
 ---
 
@@ -29,8 +32,7 @@
 
 ##開発環境  
 　プラグインインターフェイスは、作成されたダイナミックリンクライブラリ (DLL) に対しての動的ロードを使いますので、処理系を選びません。DLL を作成できる処理系なら、どんなものでも使用できるはずです。  
-　現在、~~Delphi(5) 用と VC++(6.0),Borland C++ Free(5.5), C++Builder(5) のテンプレートが付属されています。~~  
-VC++(2013) 32/64-bit のテンプレートがあります。
+　現在、~~Delphi(5) 用と VC++(6.0),Borland C++ Free(5.5), C++Builder(5) のテンプレートが付属されています。~~ VC++(2013) 32/64-bit のテンプレートがあります。
 
 ---
 

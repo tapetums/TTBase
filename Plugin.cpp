@@ -11,11 +11,10 @@
 #include <strsafe.h>
 
 #include "Plugin.h"
-#include "Main.h"
 #include "MessageDef.h"
 
 // ---------------------------------------------------------//
-//      本体側エクスポート関数
+//      本体側エクスポート関数への関数ポインタ
 // ---------------------------------------------------------//
 #ifdef __cplusplus
 extern "C" {
@@ -36,8 +35,11 @@ BOOL          (WINAPI* TTBPlugin_ExecuteCommand)     (LPCTSTR PluginFilename, in
 // ---------------------------------------------------------//
 //      グローバル変数
 // ---------------------------------------------------------//
-LPTSTR    PLUGIN_FILENAME = nullptr; // プラグインのファイル名。TTBaseからの相対パス
-DWORD_PTR PLUGIN_HANDLE   = 0;       // プラグインをTTBaseで認識するための識別コード
+// プラグインのファイル名。本体からの相対パス
+LPTSTR    PLUGIN_FILENAME = nullptr;
+
+// プラグインを本体で認識するための識別コード
+DWORD_PTR PLUGIN_HANDLE   = 0;
 
 //**************************************************************//
 //
@@ -183,7 +185,7 @@ void GetVersion(LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS)
 // ---------------------------------------------------------//
 void WriteLog(int logLevel, LPCTSTR msg)
 {
-    // TTBase が TTBPlugin_WriteLog をエクスポートしていない場合は何もしない
+    // 本体が TTBPlugin_WriteLog をエクスポートしていない場合は何もしない
     if ( TTBPlugin_WriteLog == nullptr )
     {
         return;
@@ -197,7 +199,7 @@ void WriteLog(int logLevel, LPCTSTR msg)
 // ---------------------------------------------------------//
 BOOL ExecutePluginCommand(LPCTSTR pluginName, int CmdID)
 {
-    // TTBase が TTBPlugin_ExecuteCommand をエクスポートしていない場合は何もしない
+    // 本体が TTBPlugin_ExecuteCommand をエクスポートしていない場合は何もしない
     if ( TTBPlugin_ExecuteCommand == nullptr )
     {
         return FALSE;
@@ -294,15 +296,9 @@ BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
     {
         free(PLUGIN_FILENAME);
     }
+    PLUGIN_FILENAME = MakeStringFrom(PluginFilename);
 
-    const auto len = 1 + ::lstrlen(PluginFilename);
-    PLUGIN_FILENAME = (LPTSTR)malloc(len * sizeof(TCHAR));
-    if ( PLUGIN_FILENAME != nullptr )
-    {
-        ::StringCchCopy(PLUGIN_FILENAME, len, PluginFilename);
-    }
-
-    // TTBaseから、プラグインを認識するための識別コードを受け取る
+    // 本体から、プラグインを認識するための識別コードを受け取る
     PLUGIN_HANDLE = hPlugin;
 
     // API関数の取得

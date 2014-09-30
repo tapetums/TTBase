@@ -35,9 +35,9 @@
 
 // 構造体アライメント圧縮
 #pragma pack(push,1)
-// ---------------------------------------------------------//
+// --------------------------------------------------------
 //      構造体定義
-// ---------------------------------------------------------//
+// --------------------------------------------------------
 // コマンド情報構造体
 typedef struct
 {
@@ -103,9 +103,28 @@ typedef PLUGIN_INFO_A PLUGIN_INFO;
 #endif
 #pragma pack(pop)
 
-// ---------------------------------------------------------//
+// --------------------------------------------------------
+//      本体側エクスポート関数への関数ポインタ
+// --------------------------------------------------------
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern PLUGIN_INFO*  (WINAPI* TTBPlugin_GetPluginInfo)      (DWORD_PTR hPlugin);
+extern void          (WINAPI* TTBPlugin_SetPluginInfo)      (DWORD_PTR hPlugin, PLUGIN_INFO* PLUGIN_INFO);
+extern void          (WINAPI* TTBPlugin_FreePluginInfo)     (PLUGIN_INFO* PLUGIN_INFO);
+extern void          (WINAPI* TTBPlugin_SetMenuProperty)    (DWORD_PTR hPlugin, int CommandID, DWORD ChangeFlag, DWORD Flag);
+extern PLUGIN_INFO** (WINAPI* TTBPlugin_GetAllPluginInfo)   (void);
+extern void          (WINAPI* TTBPlugin_FreePluginInfoArray)(PLUGIN_INFO** PluginInfoArray);
+extern void          (WINAPI* TTBPlugin_SetTaskTrayIcon)    (HICON hIcon, LPCTSTR Tips);
+extern void          (WINAPI* TTBPlugin_WriteLog)           (DWORD_PTR hPlugin, int logLevel, LPCTSTR msg);
+extern BOOL          (WINAPI* TTBPlugin_ExecuteCommand)     (LPCTSTR PluginFilename, int CmdID);
+#ifdef __cplusplus
+};
+#endif
+
+// --------------------------------------------------------
 //      プラグイン側エクスポート関数
-// ---------------------------------------------------------//
+// --------------------------------------------------------
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -121,31 +140,47 @@ void         WINAPI TTBEvent_WindowsHook   (UINT Msg, WPARAM wParam, LPARAM lPar
 };
 #endif
 
-// ---------------------------------------------------------//
-//      本体側エクスポート関数
-// ---------------------------------------------------------//
-extern PLUGIN_INFO*  (WINAPI* TTBPlugin_GetPluginInfo)      (DWORD_PTR hPlugin);
-extern void          (WINAPI* TTBPlugin_SetPluginInfo)      (DWORD_PTR hPlugin, PLUGIN_INFO* PLUGIN_INFO);
-extern void          (WINAPI* TTBPlugin_FreePluginInfo)     (PLUGIN_INFO* PLUGIN_INFO);
-extern void          (WINAPI* TTBPlugin_SetMenuProperty)    (DWORD_PTR hPlugin, int CommandID, DWORD ChangeFlag, DWORD Flag);
-extern PLUGIN_INFO** (WINAPI* TTBPlugin_GetAllPluginInfo)   (void);
-extern void          (WINAPI* TTBPlugin_FreePluginInfoArray)(PLUGIN_INFO** PluginInfoArray);
-extern void          (WINAPI* TTBPlugin_SetTaskTrayIcon)    (HICON hIcon, LPCTSTR Tips);
-extern void          (WINAPI* TTBPlugin_WriteLog)           (DWORD_PTR hPlugin, int logLevel, LPCTSTR msg);
-extern BOOL          (WINAPI* TTBPlugin_ExecuteCommand)     (LPCTSTR PluginFilename, int CmdID);
+// --------------------------------------------------------
+//    プラグインの情報
+// --------------------------------------------------------
+// プラグインのファイル名。本体フォルダからの相対パス
+extern LPTSTR    PLUGIN_FILENAME;
 
-// ---------------------------------------------------------//
+// 本体がプラグインを識別するためのコード
+extern DWORD_PTR PLUGIN_HANDLE;
+
+// プラグインの名前（任意の文字が使用可能）
+extern LPCTSTR   PLUGIN_NAME;
+
+// プラグインのタイプ
+extern WORD      PLUGIN_TYPE;
+
+// --------------------------------------------------------
+//    コマンドの情報
+// --------------------------------------------------------
+// コマンドの数
+extern DWORD COMMAND_COUNT;
+
+// コマンドID
+enum CMD : int;
+
+// コマンドの情報
+extern PLUGIN_COMMAND_INFO COMMAND_INFO[];
+
+// --------------------------------------------------------
+//    関数定義
+// --------------------------------------------------------
+BOOL Init   (void);
+void Unload (void);
+BOOL Execute(int CmdId, HWND hWnd);
+void Hook   (UINT Msg, WPARAM wParam, LPARAM lParam);
+
+// --------------------------------------------------------
 //      ユーティリティルーチン
-// ---------------------------------------------------------//
+// --------------------------------------------------------
 LPTSTR       MakeStringFrom      (LPCTSTR Src);
 PLUGIN_INFO* CopyPluginInfo      (PLUGIN_INFO* Src);
 void         FreePluginInfo      (PLUGIN_INFO* PLUGIN_INFO);
 void         GetVersion          (LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS);
 void         WriteLog            (int logLevel, LPCTSTR msg);
 BOOL         ExecutePluginCommand(LPTSTR pluginName, int CmdID);
-
-// ---------------------------------------------------------//
-//      グローバル変数
-// ---------------------------------------------------------//
-extern LPTSTR    PLUGIN_FILENAME; // プラグインのファイル名。TTBaseフォルダからの相対パス
-extern DWORD_PTR PLUGIN_HANDLE;   // TTBaseがプラグインを識別するためのコード
