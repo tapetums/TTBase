@@ -342,7 +342,7 @@ BOOL WINAPI TTBEvent_Execute(int CommandID, HWND hWnd)
 // ---------------------------------------------------------//
 //      フック（ShellHook,MouseHook)
 // ---------------------------------------------------------//
-void WINAPI TTBEvent_WindowsHook(UINT Msg, DWORD wParam, DWORD lParam)
+void WINAPI TTBEvent_WindowsHook(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
     Hook(Msg, wParam, lParam);
 }

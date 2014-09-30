@@ -116,7 +116,7 @@ void         WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PLUGIN_INFO);
 BOOL         WINAPI TTBEvent_Init          (LPTSTR PluginFilename, DWORD_PTR hPlugin);
 void         WINAPI TTBEvent_Unload        (void);
 BOOL         WINAPI TTBEvent_Execute       (int CommandID, HWND hWnd);
-void         WINAPI TTBEvent_WindowsHook   (UINT Msg, DWORD wParam, DWORD lParam);
+void         WINAPI TTBEvent_WindowsHook   (UINT Msg, WPARAM wParam, LPARAM lParam);
 #ifdef __cplusplus
 };
 #endif
