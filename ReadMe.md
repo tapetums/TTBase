@@ -451,5 +451,3 @@ extern void (WINAPI* TTBPlugin_ExecuteCommand)(LPCTSTR PluginFilename, INT32 Cmd
 
 **Original Introduction by K2:**  
 [http://pc2.2ch.net/test/read.cgi/tech/1042029896/1-28](http://pc2.2ch.net/test/read.cgi/tech/1042029896/1-28)
-
-######Last modified 2014.09.30 by tapetums

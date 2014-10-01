@@ -1,9 +1,10 @@
-﻿/* ===========================================================================
-                           TTB Plugin Template(C++)
-
-                                MessageDef.h
-
-   =========================================================================== */
+﻿//---------------------------------------------------------------------------//
+//
+//                         TTB Plugin Template(VC++)
+//
+//                              MessageDef.cpp
+//
+//---------------------------------------------------------------------------//
 
 #pragma once
 
@@ -21,7 +22,7 @@ extern UINT TTB_HSHELL_WINDOWDESTROYED;
 extern UINT TTB_HMOUSE_ACTION;
 
 // 内部使用。TaskTrayアイコン関係のメッセージです
-extern UINT	TTB_ICON_NOTIFY;
+extern UINT TTB_ICON_NOTIFY;
 // TTBase.datをTTBaseにロードさせます
 extern UINT TTB_LOAD_DATA_FILE;
 // TTBase.datをTTBaseにセーブさせます
