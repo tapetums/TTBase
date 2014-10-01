@@ -15,29 +15,44 @@
 //---------------------------------------------------------------------------//
 
 // プラグインのロードタイプ
-#define ptAlwaysLoad    0x0000 // 常駐型プラグイン
-#define ptLoadAtUse     0x0001 // 一発起動型プラグイン
-#define ptSpecViolation 0xFFFF // TTBaseプラグイン以外のDLL
+enum PLUGINTYPE : WORD
+{
+   PT_ALWAYS_LOAD    = 0x0000, // 常駐型プラグイン
+   PT_LOAD_AT_USE    = 0x0001, // 一発起動型プラグイン
+   PT_SEPC_VIOLATION = 0xFFFF, // TTBaseプラグイン以外のDLL
+};
 
 // メニュー表示に関する定数
-#define dmNone            0 // 何も出さない
-#define dmSystemMenu      1 // システムメニュー
-#define dmToolMenu        2 // ツールメニュー
-#define dmHotKeyMenu      4 // ホットキー
-#define dmChecked         8 // メニューのチェックマーク
-#define dmUnchecked       0 // メニューのチェックマークをつけない
-#define dmEnabled         0 // メニューをEnableに
-#define dmDisabled       16 // メニューをDisableする
-#define DISPMENU_MENU    dmToolMenu | dmSystemMenu
-#define DISPMENU_ENABLED dmDisabled
-#define DISPMENU_CHECKED dmChecked
+enum DISPMENU : DWORD
+{
+    DM_NONE        = 0,      // 何も出さない
+    DM_SYSTEM_MENU = 1,      // システムメニュー
+    DM_TOOL_MENU   = 1 << 1, // ツールメニュー
+    DM_HOTKEY_MENU = 1 << 2, // ホットキー
+    DM_CHEDKED     = 1 << 3, // チェックマーク付き
+    DM_DISABLED    = 1 << 4, // 無効
+
+    DM_UNCHECKED   = 0,      // チェックマークなし
+    DM_ENABLED     = 0,      // 有効
+};
+
+// TTBPlugin_SetMenuProperty の ChangeFlag 定数
+enum CHANGE_FLAG : DWORD
+{
+    DISPMENU_MENU    = DM_SYSTEM_MENU | DM_TOOL_MENU,
+    DISPMENU_ENABLED = DM_DISABLED,
+    DISPMENU_CHECKED = DM_CHEDKED,
+};
 
 // ログ出力に関する定数
-#define elNever   0 // 出力しない
-#define elError   1 // エラー
-#define elWarning 2 // 警告
-#define elInfo    3 // 情報
-#define elDebug   4 // デバッグ
+enum ERROR_LEVEL : DWORD
+{
+    EL_NEVER   = 0, // 出力しない
+    EL_ERROR   = 1, // エラー
+    EL_WARNING = 2, // 警告
+    EL_INFO    = 3, // 情報
+    EL_DEBUG   = 4, // デバッグ
+};
 
 //---------------------------------------------------------------------------//
 //
@@ -51,26 +66,26 @@
 // コマンド情報構造体
 typedef struct
 {
-    LPWSTR Name;          // コマンドの名前（英名）
-    LPWSTR Caption;       // コマンドの説明（日本語）
-    INT32  CommandID;     // コマンド番号
-    INT32  Attr;          // アトリビュート（未使用）
-    INT32  ResID;         // リソース番号（未使用）
-    INT32  DispMenu;      // メニュー表示に関する設定
-    DWORD  TimerInterval; // コマンド実行タイマー間隔[msec] 0で機能を使わない。
-    DWORD  TimerCounter;  // システム内部で使用
+    LPWSTR   Name;          // コマンドの名前（英名）
+    LPWSTR   Caption;       // コマンドの説明（日本語）
+    INT32    CommandID;     // コマンド番号
+    INT32    Attr;          // アトリビュート（未使用）
+    INT32    ResID;         // リソース番号（未使用）
+    DISPMENU DispMenu;      // メニュー表示に関する設定
+    DWORD    TimerInterval; // コマンド実行タイマー間隔[msec] 0で機能を使わない。
+    DWORD    TimerCounter;  // システム内部で使用
 } PLUGIN_COMMAND_INFO_W;
 
 typedef struct
 {
-    LPSTR Name;          // コマンドの名前（英名）
-    LPSTR Caption;       // コマンドの説明（日本語）
-    INT32 CommandID;     // コマンド番号
-    INT32 Attr;          // アトリビュート（未使用）
-    INT32 ResID;         // リソース番号（未使用）
-    INT32 DispMenu;      // メニュー表示に関する設定
-    DWORD TimerInterval; // コマンド実行タイマー間隔[msec] 0で機能を使わない。
-    DWORD TimerCounter;  // システム内部で使用
+    LPSTR    Name;          // コマンドの名前（英名）
+    LPSTR    Caption;       // コマンドの説明（日本語）
+    INT32    CommandID;     // コマンド番号
+    INT32    Attr;          // アトリビュート（未使用）
+    INT32    ResID;         // リソース番号（未使用）
+    DISPMENU DispMenu;      // メニュー表示に関する設定
+    DWORD    TimerInterval; // コマンド実行タイマー間隔[msec] 0で機能を使わない。
+    DWORD    TimerCounter;  // システム内部で使用
 } PLUGIN_COMMAND_INFO_A;
 
 #ifdef _WIN64
@@ -85,7 +100,7 @@ typedef struct
     WORD                   NeedVersion;  // プラグインI/F要求バージョン
     LPWSTR                 Name;         // プラグインの説明（日本語）
     LPWSTR                 Filename;     // プラグインのファイル名（相対パス）
-    WORD                   PluginType;   // プラグインのロードタイプ
+    PLUGINTYPE             PluginType;   // プラグインのロードタイプ
     DWORD                  VersionMS;    // バージョン
     DWORD                  VersionLS;    // バージョン
     DWORD                  CommandCount; // コマンド個数
@@ -98,7 +113,7 @@ typedef struct
     WORD                   NeedVersion;  // プラグインI/F要求バージョン
     LPSTR                  Name;         // プラグインの説明（日本語）
     LPSTR                  Filename;     // プラグインのファイル名（相対パス）
-    WORD                   PluginType;   // プラグインのロードタイプ
+    PLUGINTYPE             PluginType;   // プラグインのロードタイプ
     DWORD                  VersionMS;    // バージョン
     DWORD                  VersionLS;    // バージョン
     DWORD                  CommandCount; // コマンド個数
@@ -127,11 +142,11 @@ extern "C" {
 extern PLUGIN_INFO*  (WINAPI* TTBPlugin_GetPluginInfo)      (DWORD_PTR hPlugin);
 extern void          (WINAPI* TTBPlugin_SetPluginInfo)      (DWORD_PTR hPlugin, PLUGIN_INFO* PLUGIN_INFO);
 extern void          (WINAPI* TTBPlugin_FreePluginInfo)     (PLUGIN_INFO* PLUGIN_INFO);
-extern void          (WINAPI* TTBPlugin_SetMenuProperty)    (DWORD_PTR hPlugin, INT32 CommandID, DWORD ChangeFlag, DWORD Flag);
+extern void          (WINAPI* TTBPlugin_SetMenuProperty)    (DWORD_PTR hPlugin, INT32 CommandID, CHANGE_FLAG ChangeFlag, DISPMENU Flag);
 extern PLUGIN_INFO** (WINAPI* TTBPlugin_GetAllPluginInfo)   (void);
 extern void          (WINAPI* TTBPlugin_FreePluginInfoArray)(PLUGIN_INFO** PluginInfoArray);
 extern void          (WINAPI* TTBPlugin_SetTaskTrayIcon)    (HICON hIcon, LPCTSTR Tips);
-extern void          (WINAPI* TTBPlugin_WriteLog)           (DWORD_PTR hPlugin, INT32 logLevel, LPCTSTR msg);
+extern void          (WINAPI* TTBPlugin_WriteLog)           (DWORD_PTR hPlugin, ERROR_LEVEL logLevel, LPCTSTR msg);
 extern BOOL          (WINAPI* TTBPlugin_ExecuteCommand)     (LPCTSTR PluginFilename, INT32 CmdID);
 #ifdef __cplusplus
 };
@@ -174,7 +189,7 @@ extern DWORD_PTR PLUGIN_HANDLE;
 extern LPCTSTR PLUGIN_NAME;
 
 // プラグインのタイプ
-extern WORD PLUGIN_TYPE;
+extern PLUGINTYPE PLUGIN_TYPE;
 
 //---------------------------------------------------------------------------//
 //
@@ -185,9 +200,6 @@ extern WORD PLUGIN_TYPE;
 // コマンドの数
 extern DWORD COMMAND_COUNT;
 
-// コマンドID
-enum CMD : INT32;
-
 // コマンドの情報
 extern PLUGIN_COMMAND_INFO COMMAND_INFO[];
 
@@ -197,11 +209,10 @@ extern PLUGIN_COMMAND_INFO COMMAND_INFO[];
 //
 //---------------------------------------------------------------------------//
 
-LPTSTR       MakeStringFrom      (LPCTSTR Src);
 PLUGIN_INFO* CopyPluginInfo      (PLUGIN_INFO* Src);
 void         FreePluginInfo      (PLUGIN_INFO* PLUGIN_INFO);
 void         GetVersion          (LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS);
-void         WriteLog            (INT32 logLevel, LPCTSTR msg);
+void         WriteLog            (ERROR_LEVEL logLevel, LPCTSTR msg);
 BOOL         ExecutePluginCommand(LPTSTR pluginName, INT32 CmdID);
 
 //---------------------------------------------------------------------------//

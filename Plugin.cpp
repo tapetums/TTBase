@@ -32,11 +32,11 @@ extern "C" {
 PLUGIN_INFO*  (WINAPI* TTBPlugin_GetPluginInfo)      (DWORD_PTR hPlugin);
 void          (WINAPI* TTBPlugin_SetPluginInfo)      (DWORD_PTR hPlugin, PLUGIN_INFO* PluginInfo);
 void          (WINAPI* TTBPlugin_FreePluginInfo)     (PLUGIN_INFO* PluginInfo);
-void          (WINAPI* TTBPlugin_SetMenuProperty)    (DWORD_PTR hPlugin, INT32 CommandID, DWORD ChangeFlag, DWORD Flag);
+void          (WINAPI* TTBPlugin_SetMenuProperty)    (DWORD_PTR hPlugin, INT32 CommandID, CHANGE_FLAG ChangeFlag, DISPMENU Flag);
 PLUGIN_INFO** (WINAPI* TTBPlugin_GetAllPluginInfo)   (void);
 void          (WINAPI* TTBPlugin_FreePluginInfoArray)(PLUGIN_INFO** PluginInfoArray);
 void          (WINAPI* TTBPlugin_SetTaskTrayIcon)    (HICON hIcon, LPCTSTR Tips);
-void          (WINAPI* TTBPlugin_WriteLog)           (DWORD_PTR hPlugin, INT32 logLevel, LPCTSTR msg);
+void          (WINAPI* TTBPlugin_WriteLog)           (DWORD_PTR hPlugin, ERROR_LEVEL logLevel, LPCTSTR msg);
 BOOL          (WINAPI* TTBPlugin_ExecuteCommand)     (LPCTSTR PluginFilename, INT32 CmdID);
 #ifdef __cplusplus
 };
@@ -49,7 +49,7 @@ BOOL          (WINAPI* TTBPlugin_ExecuteCommand)     (LPCTSTR PluginFilename, IN
 //---------------------------------------------------------------------------//
 
 // 文字列の格納領域を確保し、文字列Srcをコピーして返す
-LPTSTR MakeStringFrom(LPCTSTR Src)
+static LPTSTR MakeStringFrom(LPCTSTR Src)
 {
     const auto len = 1 + ::lstrlen(Src);
     auto Dst = new TCHAR[len];
@@ -183,7 +183,7 @@ void GetVersion(LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS)
 //---------------------------------------------------------------------------//
 
 // ログを出力する
-void WriteLog(INT32 logLevel, LPCTSTR msg)
+void WriteLog(ERROR_LEVEL logLevel, LPCTSTR msg)
 {
     // 本体が TTBPlugin_WriteLog をエクスポートしていない場合は何もしない
     if ( TTBPlugin_WriteLog == nullptr )

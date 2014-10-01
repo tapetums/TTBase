@@ -185,9 +185,9 @@ typedef PLUGIN_INFO_A PLUGIN_INFO;
 ###WORD PluginType
 　常駐型か、一発起動型かを指定します。  
 
-- ptAlwaysLoad:    常駐型
-- ptLoadAtUse:     一発起動型
-- ptSpecViolation: 内部使用。この値はセットしてはいけません。
+    ptAlwaysLoad:    常駐型
+    ptLoadAtUse:     一発起動型
+    ptSpecViolation: 内部使用。この値はセットしてはいけません。
 
 　コマンド駆動の機能しか持たないプラグインは、できるだけ ptLoadAtUse を指定してください。  
 これによって、TTBase の使用メモリ量を抑制することができます。
@@ -195,10 +195,10 @@ typedef PLUGIN_INFO_A PLUGIN_INFO;
 ###DWORD VersionMS, VersionLS
 　プラグインのバージョンを格納します。  
 
-- HIWORD(VersionMS): Major Version
-- LOWORD(VersionMS): Minor Version
-- HIWORD(VersionLS): Release Number
-- LOWORD(VersionLS): Build Number
+    HIWORD(VersionMS): Major Version
+    LOWORD(VersionMS): Minor Version
+    HIWORD(VersionLS): Release Number
+    LOWORD(VersionLS): Build Number
 
 　これを推奨しますが、意味付けは強制はしません。
 
@@ -238,11 +238,11 @@ typedef PLUGIN_INFO_A PLUGIN_INFO;
 　TTBase のツール・システムメニューに、このコマンドを表示するかどうかを指定します。システムメニューには設定系のメニューを、ツールメニューには、そのプラグインの基本機能を割り当てるのが原則です。  
 　また、ホットキー設定ができるかどうかもここに設定します。 2 つ以上の設定を行うときは、論理和を使ってください。  
 
-- dmNone:        表示しない
-- dmSystemMenu:  システムメニューに表示
-- dmTooMenu:     ツールメニューに表示
-- dmHotKeyMenu:  ホットキー設定の選択可能コマンドに表示
-- dmMenuChecked: メニューにチェックマークが入るかどうか
+    dmNone:        表示しない
+    dmSystemMenu:  システムメニューに表示
+    dmTooMenu:     ツールメニューに表示
+    dmHotKeyMenu:  ホットキー設定の選択可能コマンドに表示
+    dmMenuChecked: メニューにチェックマークが入るかどうか
   
 ###DWORD TimerInterval
 　タイマーによる連続起動コマンド指定です。
@@ -377,22 +377,23 @@ extern void (WINAPI* TTBPlugin_SetMenuChecked)(DWORD hPlugin, INT32 CommandID, D
 ```
 　hPlugin で指定したプラグインの、CommandID で示されるコマンドの、メニュー関係の属性を変更します。
 
+_※TTBase 1.1.0 では CommandID が コマンドの ID ではなく、プラグイン内部におけるインデックスを指してしまうバグが存在する。_
+
 ChangeFlag: 変更する属性の種類を指定します。複数のフラグを論理和で指定することもできます。
 
-- DISPMENU\_MENU:システムメニュー・ツールメニューの種類変更します。  
-このフラグをセットした時に dmToolMenu、dmSystemMenu の両方を指定しないと、メニューに表示されません。
-- DISPMENU\_ENABLED:メニューをグレーアウトするかどうか指定できます。
-- DISPMENU\_CHECKED:メニューにチェックを入れるかどうかを指定できます。
+    DISPMENU_MENU:システムメニュー・ツールメニューの種類変更します。 このフラグをセットした時に dmToolMenu、dmSystemMenu の両方を指定しないと、メニューに表示されません。
+    DISPMENU_ENABLED:メニューをグレーアウトするかどうか指定できます。
+    DISPMENU_CHECKED:メニューにチェックを入れるかどうかを指定できます。
 
 Flag: フラグには、以下の値の論理和として指定します。
 
-- dmNone       =  0; // 何も出さない
-- dmToolMenu   =  2; // ツールメニュー
-- dmSystemMenu =  1; // システムメニュー
-- dmUnChecked  =  0; //
-- dmChecked    =  8; // メニューがチェックされている
-- dmEnabled    =  0; //
-- dmDisabled   = 16; // メニューがグレイアウトされている
+    dmNone       =  0; // 何も出さない
+    dmToolMenu   =  2; // ツールメニュー
+    dmSystemMenu =  1; // システムメニュー
+    dmUnChecked  =  0; //
+    dmChecked    =  8; // メニューがチェックされている
+    dmEnabled    =  0; //
+    dmDisabled   = 16; // メニューがグレイアウトされている
 
 　ChangeFlag との組み合わせで、効果を発揮するかどうかが決まります。たとえば、DISPMENU\_ENABLED だけを指定している時、dmToolMenu などを Flag にセットしても、効果を発揮しません。
 
@@ -423,7 +424,8 @@ extern void (WINAPI* TTBPlugin_FreePluginInfoArray)(PLUGIN_INFO** PluginInfoArra
 extern void (WINAPI* TTBPlugin_SetTaskTrayIcon)(HICON hIcon, LPCTSTR Tips);
 ```
 　TTBase のシステムトレイアイコンを変更します。  
-詳細調査中
+
+詳細調査中　_※peach では実装予定なし_
 
 ####_TTBase v1.1.0 以降_
 
@@ -433,8 +435,15 @@ extern void (WINAPI* TTBPlugin_SetTaskTrayIcon)(HICON hIcon, LPCTSTR Tips);
 ```c
 extern void (WINAPI* TTBPlugin_WriteLog)(DWORD_PTR hPlugin, INT32 logLevel, LPCTSTR msg);
 ```
-　hPlugin で指定したプラグインからログを出力します。  
-詳細調査中
+　プラグインからログを出力します。  
+
+logLevel には、以下のいずれかの値を指定します。
+
+    elNever   = 0; // 出力しない
+    elError   = 1; // エラー
+    elWarning = 2; // 警告
+    elInfo    = 3; // 情報
+    elDebug   = 4; // デバッグ
 
 ================================================================
 ###TTBPlugin\_ExecuteCommand
@@ -443,6 +452,7 @@ extern void (WINAPI* TTBPlugin_WriteLog)(DWORD_PTR hPlugin, INT32 logLevel, LPCT
 extern BOOL (WINAPI* TTBPlugin_ExecuteCommand)(LPCTSTR PluginFilename, INT32 CmdID);
 ```
 　プラグインから他のプラグインコマンドを実行します。PluginFilename は TTBase からの相対パスで指定します。  
+
 詳細調査中
 
 ---
