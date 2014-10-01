@@ -1,11 +1,11 @@
-﻿// ===========================================================================
+﻿//---------------------------------------------------------------------------//
 //
 //              TTBaseプラグインテンプレート(Plugin.cpp)
 //
 //              このファイルはできるだけ変更しない。
 //              Main.cppに処理を書くことをお勧めします。
 //
-// ============================================================================
+//---------------------------------------------------------------------------//
 
 #include <windows.h>
 #include <strsafe.h>
@@ -13,46 +13,46 @@
 #include "Plugin.h"
 #include "MessageDef.h"
 
-// ---------------------------------------------------------//
-//      本体側エクスポート関数への関数ポインタ
-// ---------------------------------------------------------//
+//---------------------------------------------------------------------------//
+//
+// グローバル変数
+//
+//---------------------------------------------------------------------------//
+
+// プラグインのファイル名。本体からの相対パス
+LPTSTR PLUGIN_FILENAME = nullptr;
+
+// プラグインを本体で認識するための識別コード
+DWORD_PTR PLUGIN_HANDLE = 0;
+
+// 本体側エクスポート関数への関数ポインタ
 #ifdef __cplusplus
 extern "C" {
 #endif
 PLUGIN_INFO*  (WINAPI* TTBPlugin_GetPluginInfo)      (DWORD_PTR hPlugin);
 void          (WINAPI* TTBPlugin_SetPluginInfo)      (DWORD_PTR hPlugin, PLUGIN_INFO* PluginInfo);
 void          (WINAPI* TTBPlugin_FreePluginInfo)     (PLUGIN_INFO* PluginInfo);
-void          (WINAPI* TTBPlugin_SetMenuProperty)    (DWORD_PTR hPlugin, int CommandID, DWORD ChangeFlag, DWORD Flag);
+void          (WINAPI* TTBPlugin_SetMenuProperty)    (DWORD_PTR hPlugin, INT32 CommandID, DWORD ChangeFlag, DWORD Flag);
 PLUGIN_INFO** (WINAPI* TTBPlugin_GetAllPluginInfo)   (void);
 void          (WINAPI* TTBPlugin_FreePluginInfoArray)(PLUGIN_INFO** PluginInfoArray);
 void          (WINAPI* TTBPlugin_SetTaskTrayIcon)    (HICON hIcon, LPCTSTR Tips);
-void          (WINAPI* TTBPlugin_WriteLog)           (DWORD_PTR hPlugin, int logLevel, LPCTSTR msg);
-BOOL          (WINAPI* TTBPlugin_ExecuteCommand)     (LPCTSTR PluginFilename, int CmdID);
+void          (WINAPI* TTBPlugin_WriteLog)           (DWORD_PTR hPlugin, INT32 logLevel, LPCTSTR msg);
+BOOL          (WINAPI* TTBPlugin_ExecuteCommand)     (LPCTSTR PluginFilename, INT32 CmdID);
 #ifdef __cplusplus
 };
 #endif
 
-// ---------------------------------------------------------//
-//      グローバル変数
-// ---------------------------------------------------------//
-// プラグインのファイル名。本体からの相対パス
-LPTSTR    PLUGIN_FILENAME = nullptr;
-
-// プラグインを本体で認識するための識別コード
-DWORD_PTR PLUGIN_HANDLE   = 0;
-
-//**************************************************************//
+//---------------------------------------------------------------------------//
 //
-//          ユーティリティルーチン
+// ユーティリティルーチン
 //
-//**************************************************************//
-// ---------------------------------------------------------//
-//    文字列の格納領域を確保し、文字列Srcをコピーして返す
-// ---------------------------------------------------------//
+//---------------------------------------------------------------------------//
+
+// 文字列の格納領域を確保し、文字列Srcをコピーして返す
 LPTSTR MakeStringFrom(LPCTSTR Src)
 {
     const auto len = 1 + ::lstrlen(Src);
-    auto Dst = (LPTSTR)malloc(len * sizeof(TCHAR));
+    auto Dst = new TCHAR[len];
     if ( Dst != nullptr )
     {
         ::StringCchCopy(Dst, len, Src);
@@ -61,9 +61,9 @@ LPTSTR MakeStringFrom(LPCTSTR Src)
     return Dst;
 }
 
-// ---------------------------------------------------------//
-//      プラグイン情報構造体のSrcをコピーして返す
-// ---------------------------------------------------------//
+//---------------------------------------------------------------------------//
+
+// プラグイン情報構造体のSrcをコピーして返す
 PLUGIN_INFO* CopyPluginInfo(PLUGIN_INFO* Src)
 {
     if ( Src == nullptr )
@@ -71,7 +71,7 @@ PLUGIN_INFO* CopyPluginInfo(PLUGIN_INFO* Src)
         return nullptr;
     }
 
-    const auto pPinfoResult = (PLUGIN_INFO*)malloc(sizeof(PLUGIN_INFO));
+    const auto pPinfoResult = new PLUGIN_INFO;
     if ( pPinfoResult == nullptr )
     {
         return nullptr;
@@ -81,7 +81,7 @@ PLUGIN_INFO* CopyPluginInfo(PLUGIN_INFO* Src)
     pPinfoResult->Name     = MakeStringFrom(Src->Name);
     pPinfoResult->Filename = MakeStringFrom(Src->Filename);
 
-    pPinfoResult->Commands = (PLUGIN_COMMAND_INFO*)malloc(Src->CommandCount * sizeof(PLUGIN_COMMAND_INFO));
+    pPinfoResult->Commands = new PLUGIN_COMMAND_INFO[Src->CommandCount];
     for ( size_t i = 0; i < Src->CommandCount; ++i )
     {
         pPinfoResult->Commands[i] = Src->Commands[i];
@@ -93,17 +93,17 @@ PLUGIN_INFO* CopyPluginInfo(PLUGIN_INFO* Src)
     return pPinfoResult;
 }
 
-// ---------------------------------------------------------//
-//  プラグイン側で作成されたプラグイン情報構造体を破棄する
-// ---------------------------------------------------------//
+//---------------------------------------------------------------------------//
+
+// プラグイン側で作成されたプラグイン情報構造体を破棄する
 void FreePluginInfo(PLUGIN_INFO* PluginInfo)
 {
     TTBEvent_FreePluginInfo(PluginInfo);
 }
 
-// ---------------------------------------------------------//
-//      バージョン情報を返す
-// ---------------------------------------------------------//
+//---------------------------------------------------------------------------//
+
+// バージョン情報を返す
 void GetVersion(LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS)
 {
     if ( VersionMS == nullptr || VersionLS == nullptr )
@@ -159,7 +159,7 @@ void GetVersion(LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS)
         return;
     }
 
-    const auto pVersionInfo = malloc(VersionSize);
+    const auto pVersionInfo = (LPVOID)new BYTE[VersionSize];
     if ( pVersionInfo == nullptr )
     {
         return;
@@ -175,15 +175,15 @@ void GetVersion(LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS)
             *VersionLS = FixedFileInfo->dwFileVersionLS;
         }
     }
-    free(pVersionInfo);
+    delete[] pVersionInfo;
 
     ::FreeLibrary(hModule);
 }
 
-// ---------------------------------------------------------//
-//      ログを出力する
-// ---------------------------------------------------------//
-void WriteLog(int logLevel, LPCTSTR msg)
+//---------------------------------------------------------------------------//
+
+// ログを出力する
+void WriteLog(INT32 logLevel, LPCTSTR msg)
 {
     // 本体が TTBPlugin_WriteLog をエクスポートしていない場合は何もしない
     if ( TTBPlugin_WriteLog == nullptr )
@@ -194,10 +194,10 @@ void WriteLog(int logLevel, LPCTSTR msg)
     TTBPlugin_WriteLog(PLUGIN_HANDLE, logLevel, msg);
 }
 
-// ---------------------------------------------------------//
-//      ほかのプラグインのコマンドを実行する
-// ---------------------------------------------------------//
-BOOL ExecutePluginCommand(LPCTSTR pluginName, int CmdID)
+//---------------------------------------------------------------------------//
+
+// ほかのプラグインのコマンドを実行する
+BOOL ExecutePluginCommand(LPCTSTR pluginName, INT32 CmdID)
 {
     // 本体が TTBPlugin_ExecuteCommand をエクスポートしていない場合は何もしない
     if ( TTBPlugin_ExecuteCommand == nullptr )
@@ -208,18 +208,17 @@ BOOL ExecutePluginCommand(LPCTSTR pluginName, int CmdID)
     return TTBPlugin_ExecuteCommand(pluginName, CmdID);
 }
 
-//**************************************************************//
+//---------------------------------------------------------------------------//
 //
-//         プラグイン イベント
+// プラグイン イベント
 //
-//**************************************************************//
-// ---------------------------------------------------------//
-//      プラグイン情報構造体のセット
-// ---------------------------------------------------------//
+//---------------------------------------------------------------------------//
+
+// プラグイン情報構造体のセット
 PLUGIN_INFO* WINAPI TTBEvent_InitPluginInfo(LPTSTR PluginFilename)
 {
     // プラグイン情報構造体の生成
-    const auto result = (PLUGIN_INFO*)malloc(sizeof(PLUGIN_INFO));
+    const auto result = new PLUGIN_INFO;
     if ( result == nullptr )
     {
         return nullptr;
@@ -241,7 +240,7 @@ PLUGIN_INFO* WINAPI TTBEvent_InitPluginInfo(LPTSTR PluginFilename)
     }
     else
     {
-        result->Commands = (PLUGIN_COMMAND_INFO*)malloc(COMMAND_COUNT * sizeof(PLUGIN_COMMAND_INFO));
+        result->Commands = new PLUGIN_COMMAND_INFO[COMMAND_COUNT];
         if ( result->Commands != nullptr )
         {
             // コマンド情報構造体の作成
@@ -260,9 +259,9 @@ PLUGIN_INFO* WINAPI TTBEvent_InitPluginInfo(LPTSTR PluginFilename)
     return result;
 }
 
-// ---------------------------------------------------------//
-//      プラグイン情報構造体の破棄
-// ---------------------------------------------------------//
+//---------------------------------------------------------------------------//
+
+// プラグイン情報構造体の破棄
 void WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PluginInfo)
 {
     if ( PluginInfo == nullptr )
@@ -273,19 +272,19 @@ void WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PluginInfo)
     for ( size_t i = 0; i < PluginInfo->CommandCount; ++i )
     {
         const auto pCI = &PluginInfo->Commands[i];
-        free(pCI->Name);
-        free(pCI->Caption);
+        delete pCI->Name;
+        delete pCI->Caption;
     }
+    delete[] PluginInfo->Commands;
 
-    free(PluginInfo->Commands);
-    free(PluginInfo->Filename);
-    free(PluginInfo->Name);
-    free(PluginInfo);
+    delete PluginInfo->Filename;
+    delete PluginInfo->Name;
+    delete PluginInfo;
 }
 
-// ---------------------------------------------------------//
-//      プラグイン初期化
-// ---------------------------------------------------------//
+//---------------------------------------------------------------------------//
+
+// プラグイン初期化
 BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
 {
     RegisterMessages();
@@ -294,7 +293,7 @@ BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
     // そのため、InitでもPLUGIN_FILENAMEの初期化を行う
     if ( PLUGIN_FILENAME != nullptr )
     {
-        free(PLUGIN_FILENAME);
+        delete PLUGIN_FILENAME;
     }
     PLUGIN_FILENAME = MakeStringFrom(PluginFilename);
 
@@ -316,29 +315,33 @@ BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
     return Init();
 }
 
-// ---------------------------------------------------------//
-//      プラグインアンロード時の処理
-// ---------------------------------------------------------//
+//---------------------------------------------------------------------------//
+
+// プラグインアンロード時の処理
 void WINAPI TTBEvent_Unload(void)
 {
     Unload();
 
-    free(PLUGIN_FILENAME);
+    delete PLUGIN_FILENAME;
     PLUGIN_FILENAME = nullptr;
 }
 
-// ---------------------------------------------------------//
-//      コマンド実行
-// ---------------------------------------------------------//
-BOOL WINAPI TTBEvent_Execute(int CommandID, HWND hWnd)
+//---------------------------------------------------------------------------//
+
+// コマンド実行
+BOOL WINAPI TTBEvent_Execute(INT32 CommandID, HWND hWnd)
 {
     return Execute(CommandID, hWnd);
 }
 
-// ---------------------------------------------------------//
-//      フック（ShellHook,MouseHook)
-// ---------------------------------------------------------//
+//---------------------------------------------------------------------------//
+
+// フック（ShellHook,MouseHook)
 void WINAPI TTBEvent_WindowsHook(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
     Hook(Msg, wParam, lParam);
 }
+
+//---------------------------------------------------------------------------//
+
+// Plugin.cpp

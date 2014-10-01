@@ -1,12 +1,18 @@
-﻿// ===========================================================================
+﻿//---------------------------------------------------------------------------//
 //
 //                         TTB Plugin Template(VC++)
 //
 //                               Plugin.h
 //
-// ===========================================================================
+//---------------------------------------------------------------------------//
 
 #pragma once
+
+//---------------------------------------------------------------------------//
+//
+// 定数
+//
+//---------------------------------------------------------------------------//
 
 // プラグインのロードタイプ
 #define ptAlwaysLoad    0x0000 // 常駐型プラグイン
@@ -33,20 +39,24 @@
 #define elInfo    3 // 情報
 #define elDebug   4 // デバッグ
 
+//---------------------------------------------------------------------------//
+//
+// 構造体定義
+//
+//---------------------------------------------------------------------------//
+
 // 構造体アライメント圧縮
 #pragma pack(push,1)
-// --------------------------------------------------------
-//      構造体定義
-// --------------------------------------------------------
+
 // コマンド情報構造体
 typedef struct
 {
     LPWSTR Name;          // コマンドの名前（英名）
     LPWSTR Caption;       // コマンドの説明（日本語）
-    int    CommandID;     // コマンド番号
-    int    Attr;          // アトリビュート（未使用）
-    int    ResID;         // リソース番号（未使用）
-    int    DispMenu;      // システムメニューが1、ツールメニューが2、表示なしは0、ホットキーメニューは4
+    INT32  CommandID;     // コマンド番号
+    INT32  Attr;          // アトリビュート（未使用）
+    INT32  ResID;         // リソース番号（未使用）
+    INT32  DispMenu;      // メニュー表示に関する設定
     DWORD  TimerInterval; // コマンド実行タイマー間隔[msec] 0で機能を使わない。
     DWORD  TimerCounter;  // システム内部で使用
 } PLUGIN_COMMAND_INFO_W;
@@ -55,10 +65,10 @@ typedef struct
 {
     LPSTR Name;          // コマンドの名前（英名）
     LPSTR Caption;       // コマンドの説明（日本語）
-    int   CommandID;     // コマンド番号
-    int   Attr;          // アトリビュート（未使用）
-    int   ResID;         // リソース番号（未使用）
-    int   DispMenu;      // システムメニューが1、ツールメニューが2、表示なしは0、ホットキーメニューは4
+    INT32 CommandID;     // コマンド番号
+    INT32 Attr;          // アトリビュート（未使用）
+    INT32 ResID;         // リソース番号（未使用）
+    INT32 DispMenu;      // メニュー表示に関する設定
     DWORD TimerInterval; // コマンド実行タイマー間隔[msec] 0で機能を使わない。
     DWORD TimerCounter;  // システム内部で使用
 } PLUGIN_COMMAND_INFO_A;
@@ -96,35 +106,43 @@ typedef struct
     DWORD                  LoadTime;     // ロードにかかった時間（msec）
 } PLUGIN_INFO_A;
 
+#pragma pack(pop)
+
+// 32/64-bit で 使用する構造体を切り分ける
 #ifdef _WIN64
 typedef PLUGIN_INFO_W PLUGIN_INFO;
 #else
 typedef PLUGIN_INFO_A PLUGIN_INFO;
 #endif
-#pragma pack(pop)
 
-// --------------------------------------------------------
-//      本体側エクスポート関数への関数ポインタ
-// --------------------------------------------------------
+//---------------------------------------------------------------------------//
+//
+// 本体側エクスポート関数への関数ポインタ
+//
+//---------------------------------------------------------------------------//
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 extern PLUGIN_INFO*  (WINAPI* TTBPlugin_GetPluginInfo)      (DWORD_PTR hPlugin);
 extern void          (WINAPI* TTBPlugin_SetPluginInfo)      (DWORD_PTR hPlugin, PLUGIN_INFO* PLUGIN_INFO);
 extern void          (WINAPI* TTBPlugin_FreePluginInfo)     (PLUGIN_INFO* PLUGIN_INFO);
-extern void          (WINAPI* TTBPlugin_SetMenuProperty)    (DWORD_PTR hPlugin, int CommandID, DWORD ChangeFlag, DWORD Flag);
+extern void          (WINAPI* TTBPlugin_SetMenuProperty)    (DWORD_PTR hPlugin, INT32 CommandID, DWORD ChangeFlag, DWORD Flag);
 extern PLUGIN_INFO** (WINAPI* TTBPlugin_GetAllPluginInfo)   (void);
 extern void          (WINAPI* TTBPlugin_FreePluginInfoArray)(PLUGIN_INFO** PluginInfoArray);
 extern void          (WINAPI* TTBPlugin_SetTaskTrayIcon)    (HICON hIcon, LPCTSTR Tips);
-extern void          (WINAPI* TTBPlugin_WriteLog)           (DWORD_PTR hPlugin, int logLevel, LPCTSTR msg);
-extern BOOL          (WINAPI* TTBPlugin_ExecuteCommand)     (LPCTSTR PluginFilename, int CmdID);
+extern void          (WINAPI* TTBPlugin_WriteLog)           (DWORD_PTR hPlugin, INT32 logLevel, LPCTSTR msg);
+extern BOOL          (WINAPI* TTBPlugin_ExecuteCommand)     (LPCTSTR PluginFilename, INT32 CmdID);
 #ifdef __cplusplus
 };
 #endif
 
-// --------------------------------------------------------
-//      プラグイン側エクスポート関数
-// --------------------------------------------------------
+//---------------------------------------------------------------------------//
+//
+// プラグイン側エクスポート関数の前方宣言
+//
+//---------------------------------------------------------------------------//
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -134,53 +152,69 @@ void         WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PLUGIN_INFO);
 // 任意
 BOOL         WINAPI TTBEvent_Init          (LPTSTR PluginFilename, DWORD_PTR hPlugin);
 void         WINAPI TTBEvent_Unload        (void);
-BOOL         WINAPI TTBEvent_Execute       (int CommandID, HWND hWnd);
+BOOL         WINAPI TTBEvent_Execute       (INT32 CommandID, HWND hWnd);
 void         WINAPI TTBEvent_WindowsHook   (UINT Msg, WPARAM wParam, LPARAM lParam);
 #ifdef __cplusplus
 };
 #endif
 
-// --------------------------------------------------------
-//    プラグインの情報
-// --------------------------------------------------------
+//---------------------------------------------------------------------------//
+//
+// プラグインの情報
+//
+//---------------------------------------------------------------------------//
+
 // プラグインのファイル名。本体フォルダからの相対パス
-extern LPTSTR    PLUGIN_FILENAME;
+extern LPTSTR PLUGIN_FILENAME;
 
 // 本体がプラグインを識別するためのコード
 extern DWORD_PTR PLUGIN_HANDLE;
 
 // プラグインの名前（任意の文字が使用可能）
-extern LPCTSTR   PLUGIN_NAME;
+extern LPCTSTR PLUGIN_NAME;
 
 // プラグインのタイプ
-extern WORD      PLUGIN_TYPE;
+extern WORD PLUGIN_TYPE;
 
-// --------------------------------------------------------
-//    コマンドの情報
-// --------------------------------------------------------
+//---------------------------------------------------------------------------//
+//
+// コマンドの情報
+//
+//---------------------------------------------------------------------------//
+
 // コマンドの数
 extern DWORD COMMAND_COUNT;
 
 // コマンドID
-enum CMD : int;
+enum CMD : INT32;
 
 // コマンドの情報
 extern PLUGIN_COMMAND_INFO COMMAND_INFO[];
 
-// --------------------------------------------------------
-//    関数定義
-// --------------------------------------------------------
-BOOL Init   (void);
-void Unload (void);
-BOOL Execute(int CmdId, HWND hWnd);
-void Hook   (UINT Msg, WPARAM wParam, LPARAM lParam);
+//---------------------------------------------------------------------------//
+//
+// ユーティリティルーチン
+//
+//---------------------------------------------------------------------------//
 
-// --------------------------------------------------------
-//      ユーティリティルーチン
-// --------------------------------------------------------
 LPTSTR       MakeStringFrom      (LPCTSTR Src);
 PLUGIN_INFO* CopyPluginInfo      (PLUGIN_INFO* Src);
 void         FreePluginInfo      (PLUGIN_INFO* PLUGIN_INFO);
 void         GetVersion          (LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS);
-void         WriteLog            (int logLevel, LPCTSTR msg);
-BOOL         ExecutePluginCommand(LPTSTR pluginName, int CmdID);
+void         WriteLog            (INT32 logLevel, LPCTSTR msg);
+BOOL         ExecutePluginCommand(LPTSTR pluginName, INT32 CmdID);
+
+//---------------------------------------------------------------------------//
+//
+// 関数定義 (Main.cpp)
+//
+//---------------------------------------------------------------------------//
+
+BOOL Init   (void);
+void Unload (void);
+BOOL Execute(INT32 CmdId, HWND hWnd);
+void Hook   (UINT Msg, WPARAM wParam, LPARAM lParam);
+
+//---------------------------------------------------------------------------//
+
+// Plugi.h

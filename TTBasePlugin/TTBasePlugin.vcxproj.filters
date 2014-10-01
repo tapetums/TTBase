@@ -26,22 +26,24 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Main.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\MessageDef.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Plugin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Main.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="TTBasePlugin.def">
-      <Filter>Source Files</Filter>
+      <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="TTBasePlugin.res" />
+    <Resource Include="TTBasePlugin.res">
+      <Filter>Resource Files</Filter>
+    </Resource>
   </ItemGroup>
 </Project>

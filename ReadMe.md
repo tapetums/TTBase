@@ -87,19 +87,24 @@
 #define elInfo    3 // 情報
 #define elDebug   4 // デバッグ
 
-//--------------------------------------------------------//
+//---------------------------------------------------------------------------//
+//
 // 構造体定義
-//--------------------------------------------------------//
+//
+//---------------------------------------------------------------------------//
+
+// 構造体アライメント圧縮
+#pragma pack(push,1)
 
 // コマンド情報構造体
 typedef struct
 {
     LPWSTR Name;          // コマンドの名前（英名）
     LPWSTR Caption;       // コマンドの説明（日本語）
-    int    CommandID;     // コマンド番号
-    int    Attr;          // アトリビュート（未使用）
-    int    ResID;         // リソース番号（未使用）
-    int    DispMenu;      // システムメニューが1、ツールメニューが2、表示なしは0、ホットキーメニューは4
+    INT32  CommandID;     // コマンド番号
+    INT32  Attr;          // アトリビュート（未使用）
+    INT32  ResID;         // リソース番号（未使用）
+    INT32  DispMenu;      // メニュー表示に関する設定
     DWORD  TimerInterval; // コマンド実行タイマー間隔[msec] 0で機能を使わない。
     DWORD  TimerCounter;  // システム内部で使用
 } PLUGIN_COMMAND_INFO_W;
@@ -108,10 +113,10 @@ typedef struct
 {
     LPSTR Name;          // コマンドの名前（英名）
     LPSTR Caption;       // コマンドの説明（日本語）
-    int   CommandID;     // コマンド番号
-    int   Attr;          // アトリビュート（未使用）
-    int   ResID;         // リソース番号（未使用）
-    int   DispMenu;      // システムメニューが1、ツールメニューが2、表示なしは0、ホットキーメニューは4
+    INT32 CommandID;     // コマンド番号
+    INT32 Attr;          // アトリビュート（未使用）
+    INT32 ResID;         // リソース番号（未使用）
+    INT32 DispMenu;      // メニュー表示に関する設定
     DWORD TimerInterval; // コマンド実行タイマー間隔[msec] 0で機能を使わない。
     DWORD TimerCounter;  // システム内部で使用
 } PLUGIN_COMMAND_INFO_A;
@@ -149,6 +154,9 @@ typedef struct
     DWORD                  LoadTime;     // ロードにかかった時間（msec）
 } PLUGIN_INFO_A;
 
+#pragma pack(pop)
+
+// 32/64-bit で 使用する構造体を切り分ける
 #ifdef _WIN64
 typedef PLUGIN_INFO_W PLUGIN_INFO;
 #else
@@ -217,16 +225,16 @@ typedef PLUGIN_INFO_A PLUGIN_INFO;
 ###LPTSTR Caption
 　コマンドの説明です。メニューなどに表示されます。任意の文字が使えます。
 
-###int CommandID
+###INT32 CommandID
 　コマンド番号です。コマンド一つに付き一つ、ユニークな値を定義します。
 
-###int Attr
+###INT32 Attr
 　コマンドアトリビュート。現在未使用です。
 
-###int ResID
+###INT32 ResID
 　リソース ID。現在未使用です。
 
-###int DispMenu
+###INT32 DispMenu
 　TTBase のツール・システムメニューに、このコマンドを表示するかどうかを指定します。システムメニューには設定系のメニューを、ツールメニューには、そのプラグインの基本機能を割り当てるのが原則です。  
 　また、ホットキー設定ができるかどうかもここに設定します。 2 つ以上の設定を行うときは、論理和を使ってください。  
 
@@ -296,7 +304,7 @@ void WINAPI TTBEvent_Unload(void);
 ###TTBEvent\_Execute
 ================================================================
 ```c
-BOOL WINAPI TTBEvent_Execute(int CommandID, HWND hWnd);
+BOOL WINAPI TTBEvent_Execute(INT32 CommandID, HWND hWnd);
 ```
 　コマンドが、何らかの形で呼ばれる場合、この関数が呼ばれます。  
 　プラグイン情報構造体で、CommandCount を 1 以上に設定した場合は、このハンドラは必ず必要です。  
@@ -365,7 +373,7 @@ extern void (WINAPI* TTBPlugin_FreePluginInfo)(PLUGIN_INFO* PluginInfo);
 ###TTBPlugin_SetMenuProperty
 ================================================================
 ```c
-extern void (WINAPI* TTBPlugin_SetMenuChecked)(DWORD hPlugin, int CommandID, DWORD ChagneFlag, DWORD Flag);
+extern void (WINAPI* TTBPlugin_SetMenuChecked)(DWORD hPlugin, INT32 CommandID, DWORD ChagneFlag, DWORD Flag);
 ```
 　hPlugin で指定したプラグインの、CommandID で示されるコマンドの、メニュー関係の属性を変更します。
 
@@ -404,6 +412,38 @@ extern PLUGIN_INFO** (WINAPI* TTBPlugin_GetAllPluginInfo)(void);
 extern void (WINAPI* TTBPlugin_FreePluginInfoArray)(PLUGIN_INFO** PluginInfoArray);
 ```
 　TTBPlugin\_GetAllPluginInfo で取得した、PLUGIN\_INFO\_ARRAY を解放します。
+
+####_TTBase v1.0.15 以降_
+
+
+================================================================
+###TTBPlugin\_SetTaskTrayIcon
+================================================================
+```c
+extern void (WINAPI* TTBPlugin_SetTaskTrayIcon)(HICON hIcon, LPCTSTR Tips);
+```
+　TTBase のシステムトレイアイコンを変更します。  
+詳細調査中
+
+####_TTBase v1.1.0 以降_
+
+================================================================
+###TTBPlugin\_WriteLog
+================================================================
+```c
+extern void (WINAPI* TTBPlugin_WriteLog)(DWORD_PTR hPlugin, INT32 logLevel, LPCTSTR msg);
+```
+　hPlugin で指定したプラグインからログを出力します。  
+詳細調査中
+
+================================================================
+###TTBPlugin\_ExecuteCommand
+================================================================
+```c
+extern void (WINAPI* TTBPlugin_ExecuteCommand)(LPCTSTR PluginFilename, INT32 CmdID);
+```
+　プラグインから他のプラグインコマンドを実行します。PluginFilename は TTBase からの相対パスで指定します。  
+詳細調査中
 
 ---
 
