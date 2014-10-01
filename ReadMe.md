@@ -440,7 +440,7 @@ extern void (WINAPI* TTBPlugin_WriteLog)(DWORD_PTR hPlugin, INT32 logLevel, LPCT
 ###TTBPlugin\_ExecuteCommand
 ================================================================
 ```c
-extern void (WINAPI* TTBPlugin_ExecuteCommand)(LPCTSTR PluginFilename, INT32 CmdID);
+extern BOOL (WINAPI* TTBPlugin_ExecuteCommand)(LPCTSTR PluginFilename, INT32 CmdID);
 ```
 　プラグインから他のプラグインコマンドを実行します。PluginFilename は TTBase からの相対パスで指定します。  
 詳細調査中
