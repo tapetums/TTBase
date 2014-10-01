@@ -451,9 +451,9 @@ logLevel には、以下のいずれかの値を指定します。
 ```c
 extern BOOL (WINAPI* TTBPlugin_ExecuteCommand)(LPCTSTR PluginFilename, INT32 CmdID);
 ```
-　プラグインから他のプラグインコマンドを実行します。PluginFilename は TTBase からの相対パスで指定します。  
-
-詳細調査中
+　プラグインから他のプラグインコマンドを実行します。  
+　PluginFilename は TTBase からの相対パスで指定します。パスは TTBPlugin\_GetPluginInfo() もしくは TTBPlugin\_GetAllPluginInfo() で取得できます。  
+　戻り値はコマンドを実行したプラグインから返されます。PluginFilename で指定したプラグインが見つからなかった場合、FALSE が返ります。
 
 ---
 
@@ -461,3 +461,5 @@ extern BOOL (WINAPI* TTBPlugin_ExecuteCommand)(LPCTSTR PluginFilename, INT32 Cmd
 
 **Original Introduction by K2:**  
 [http://pc2.2ch.net/test/read.cgi/tech/1042029896/1-28](http://pc2.2ch.net/test/read.cgi/tech/1042029896/1-28)
+
+######modified by tapetums

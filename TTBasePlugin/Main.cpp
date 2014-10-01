@@ -112,11 +112,15 @@ BOOL Execute(INT32 CmdId, HWND hWnd)
 {
     switch ( CmdId )
     {
-    case CMD_DUMMY:
-        WriteLog(EL_DEBUG, TEXT("プラグイン スケルトン: ダミー コマンド"));
-        return TRUE;
-    default:
-        return FALSE;
+        case CMD_DUMMY:
+        {
+            WriteLog(EL_DEBUG, TEXT("プラグイン スケルトン: ダミー コマンド"));
+            return TRUE;
+        }
+        default:
+        {
+            return FALSE;
+        }
     }
 
     return TRUE;

@@ -213,7 +213,7 @@ PLUGIN_INFO* CopyPluginInfo      (PLUGIN_INFO* Src);
 void         FreePluginInfo      (PLUGIN_INFO* PLUGIN_INFO);
 void         GetVersion          (LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS);
 void         WriteLog            (ERROR_LEVEL logLevel, LPCTSTR msg);
-BOOL         ExecutePluginCommand(LPTSTR pluginName, INT32 CmdID);
+BOOL         ExecutePluginCommand(LPCTSTR pluginName, INT32 CmdID);
 
 //---------------------------------------------------------------------------//
 //
