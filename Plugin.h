@@ -179,6 +179,9 @@ void         WINAPI TTBEvent_WindowsHook   (UINT Msg, WPARAM wParam, LPARAM lPar
 //
 //---------------------------------------------------------------------------//
 
+// プラグインの名前
+extern LPCTSTR PLUGIN_NAME;
+
 // コマンドの数
 extern DWORD COMMAND_COUNT;
 

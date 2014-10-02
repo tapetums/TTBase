@@ -7,9 +7,9 @@
 #include <windows.h>
 
 #include "..\Plugin.h"
-#include "..\MessageDef.h"
 #include "..\Utility.h"
 #include "Main.h"
+#include "WheelMagicHook.h"
 
 //---------------------------------------------------------------------------//
 //
@@ -18,14 +18,15 @@
 //---------------------------------------------------------------------------//
 
 HINSTANCE g_hInstance  = nullptr;
+HANDLE    g_hMutex     = nullptr;
 
 //---------------------------------------------------------------------------//
 
 // プラグインの名前
-LPCTSTR PLUGIN_NAME = TEXT("スケルトン");
+LPCTSTR PLUGIN_NAME = TEXT("WheelMagic for TTBase");
 
 // コマンドの数
-DWORD COMMAND_COUNT = 1;
+DWORD COMMAND_COUNT = 0;
 
 //---------------------------------------------------------------------------//
 
@@ -60,11 +61,11 @@ PLUGIN_INFO g_info =
     0,                   // プラグインI/F要求バージョン
     (LPTSTR)PLUGIN_NAME, // プラグインの名前（任意の文字が使用可能）
     nullptr,             // プラグインのファイル名（相対パス）
-    ptLoadAtUse,         // プラグインのタイプ
+    ptAlwaysLoad,        // プラグインのタイプ
     0,                   // バージョン
     0,                   // バージョン
     COMMAND_COUNT,       // コマンド個数
-    &g_cmd_info[0],      // コマンド
+    nullptr,             // コマンド
     0,                   // ロードにかかった時間（msec）
 };
 
@@ -110,8 +111,29 @@ BOOL Init(void)
     ininame[len - 3] = 'i';
     ininame[len - 2] = 'n';
     ininame[len - 1] = 'i';
+    WriteLog(elDebug, TEXT("%s: %s"), g_info.Name, ininame);
 
     auto param = ::GetPrivateProfileInt(TEXT("Setting"), TEXT("Param"), 0, ininame);
+
+    g_hMutex = ::CreateMutex(nullptr, TRUE, g_info.Name);
+    if ( g_hMutex == nullptr )
+    {
+        WriteLog(elError, TEXT("%s: Failed to create mutex"), g_info.Name);
+        return FALSE;
+    }
+    if ( ::GetLastError() == ERROR_ALREADY_EXISTS )
+    {
+        WriteLog(elError, TEXT("%s: %s is already started"), g_info.Name, g_info.Name);
+        return FALSE;
+    }
+
+    if ( ! WMBeginHook() )
+    {
+        WriteLog(elError, TEXT("%s: Failed to begin hook"), g_info.Name);
+        return FALSE;
+    }
+
+    WriteLog(elInfo, TEXT("%s: successfully initialized"), g_info.Name);
 
     return TRUE;
 }
@@ -121,6 +143,16 @@ BOOL Init(void)
 // TTBEvent_Unload() の内部実装
 void Unload(void)
 {
+    WMEndHook();
+
+    if ( g_hMutex != nullptr )
+    {
+        ::ReleaseMutex(g_hMutex);
+        ::CloseHandle(g_hMutex);
+        g_hMutex = nullptr;
+    }
+
+    WriteLog(elInfo, TEXT("%s: successfully uninitialized"), g_info.Name);
 }
 
 //---------------------------------------------------------------------------//

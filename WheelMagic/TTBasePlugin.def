@@ -1,0 +1,7 @@
+﻿EXPORTS
+	TTBEvent_InitPluginInfo @1
+	TTBEvent_FreePluginInfo @2
+	TTBEvent_Init           @3
+	TTBEvent_Unload         @4
+	TTBEvent_Execute        @5
+	TTBEvent_WindowsHook    @6
