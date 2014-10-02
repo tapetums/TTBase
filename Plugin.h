@@ -132,7 +132,7 @@ typedef PLUGIN_INFO_A PLUGIN_INFO;
 
 //---------------------------------------------------------------------------//
 //
-// 本体側エクスポート関数への関数ポインタ
+// 本体側エクスポート関数
 //
 //---------------------------------------------------------------------------//
 
@@ -154,7 +154,7 @@ extern BOOL          (WINAPI* TTBPlugin_ExecuteCommand)     (LPCTSTR PluginFilen
 
 //---------------------------------------------------------------------------//
 //
-// プラグイン側エクスポート関数の前方宣言
+// プラグイン側エクスポート関数
 //
 //---------------------------------------------------------------------------//
 
@@ -190,18 +190,6 @@ extern PLUGIN_INFO g_info;
 
 // 本体がプラグインを識別するためのコード
 extern DWORD_PTR g_hPlugin;
-
-//---------------------------------------------------------------------------//
-//
-// ユーティリティルーチン
-//
-//---------------------------------------------------------------------------//
-
-PLUGIN_INFO* CopyPluginInfo      (PLUGIN_INFO* Src);
-void         FreePluginInfo      (PLUGIN_INFO* PLUGIN_INFO);
-void         GetVersion          (LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS);
-void         WriteLog            (ERROR_LEVEL logLevel, LPCTSTR format, ...);
-BOOL         ExecutePluginCommand(LPCTSTR pluginName, INT32 CmdID);
 
 //---------------------------------------------------------------------------//
 //

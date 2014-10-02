@@ -8,6 +8,7 @@
 
 #include "..\Plugin.h"
 #include "..\MessageDef.h"
+#include "..\Utility.h"
 #include "Main.h"
 
 //---------------------------------------------------------------------------//
