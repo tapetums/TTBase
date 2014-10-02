@@ -104,7 +104,7 @@ typedef struct
     INT32  CommandID;     // コマンド番号
     INT32  Attr;          // アトリビュート（未使用）
     INT32  ResID;         // リソース番号（未使用）
-    INT32  DispMenu;      // メニュー表示に関する設定
+    DWORD  DispMenu;      // メニュー表示に関する設定
     DWORD  TimerInterval; // コマンド実行タイマー間隔[msec] 0で機能を使わない。
     DWORD  TimerCounter;  // システム内部で使用
 } PLUGIN_COMMAND_INFO_W;
@@ -116,7 +116,7 @@ typedef struct
     INT32 CommandID;     // コマンド番号
     INT32 Attr;          // アトリビュート（未使用）
     INT32 ResID;         // リソース番号（未使用）
-    INT32 DispMenu;      // メニュー表示に関する設定
+    DWORD DispMenu;      // メニュー表示に関する設定
     DWORD TimerInterval; // コマンド実行タイマー間隔[msec] 0で機能を使わない。
     DWORD TimerCounter;  // システム内部で使用
 } PLUGIN_COMMAND_INFO_A;

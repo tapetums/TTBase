@@ -17,41 +17,41 @@
 // プラグインのロードタイプ
 enum PLUGINTYPE : WORD
 {
-   PT_ALWAYS_LOAD    = 0x0000, // 常駐型プラグイン
-   PT_LOAD_AT_USE    = 0x0001, // 一発起動型プラグイン
-   PT_SEPC_VIOLATION = 0xFFFF, // TTBaseプラグイン以外のDLL
+   ptAlwaysLoad    = 0x0000, // 常駐型プラグイン
+   ptLoadAtUse     = 0x0001, // 一発起動型プラグイン
+   ptSpecViolation = 0xFFFF, // TTBaseプラグイン以外のDLL
 };
 
 // メニュー表示に関する定数
 enum DISPMENU : DWORD
 {
-    DM_NONE        = 0,      // 何も出さない
-    DM_SYSTEM_MENU = 1,      // システムメニュー
-    DM_TOOL_MENU   = 1 << 1, // ツールメニュー
-    DM_HOTKEY_MENU = 1 << 2, // ホットキー
-    DM_CHEDKED     = 1 << 3, // チェックマーク付き
-    DM_DISABLED    = 1 << 4, // 無効
+    dmNone        = 0,      // 何も出さない
+    dmSystemMenu  = 1,      // システムメニュー
+    dmToolMenu    = 1 << 1, // ツールメニュー
+    dmHotKeyMenu  = 1 << 2, // ホットキー
+    dmMenuChecked = 1 << 3, // チェックマーク付き
+    dmDisabled    = 1 << 4, // 無効
 
-    DM_UNCHECKED   = 0,      // チェックマークなし
-    DM_ENABLED     = 0,      // 有効
+    dmUnchecked   = 0,      // チェックマークなし
+    dmEnabled     = 0,      // 有効
 };
 
 // TTBPlugin_SetMenuProperty の ChangeFlag 定数
 enum CHANGE_FLAG : DWORD
 {
-    DISPMENU_MENU    = DM_SYSTEM_MENU | DM_TOOL_MENU,
-    DISPMENU_ENABLED = DM_DISABLED,
-    DISPMENU_CHECKED = DM_CHEDKED,
+    DISPMENU_MENU    = dmSystemMenu | dmToolMenu,
+    DISPMENU_ENABLED = dmDisabled,
+    DISPMENU_CHECKED = dmMenuChecked,
 };
 
 // ログ出力に関する定数
 enum ERROR_LEVEL : DWORD
 {
-    EL_NEVER   = 0, // 出力しない
-    EL_ERROR   = 1, // エラー
-    EL_WARNING = 2, // 警告
-    EL_INFO    = 3, // 情報
-    EL_DEBUG   = 4, // デバッグ
+    elNever   = 0, // 出力しない
+    elError   = 1, // エラー
+    elWarning = 2, // 警告
+    elInfo    = 3, // 情報
+    elDebug   = 4, // デバッグ
 };
 
 //---------------------------------------------------------------------------//
@@ -179,14 +179,17 @@ void         WINAPI TTBEvent_WindowsHook   (UINT Msg, WPARAM wParam, LPARAM lPar
 //
 //---------------------------------------------------------------------------//
 
-// プラグインのファイル名。本体フォルダからの相対パス
-extern LPTSTR PLUGIN_FILENAME;
-
 // 本体がプラグインを識別するためのコード
 extern DWORD_PTR PLUGIN_HANDLE;
 
+// プラグインI/F要求バージョン
+extern WORD NEED_VERSION;
+
 // プラグインの名前（任意の文字が使用可能）
 extern LPCTSTR PLUGIN_NAME;
+
+// プラグインのファイル名。本体フォルダからの相対パス
+extern LPTSTR PLUGIN_FILENAME;
 
 // プラグインのタイプ
 extern PLUGINTYPE PLUGIN_TYPE;
@@ -212,7 +215,7 @@ extern PLUGIN_COMMAND_INFO COMMAND_INFO[];
 PLUGIN_INFO* CopyPluginInfo      (PLUGIN_INFO* Src);
 void         FreePluginInfo      (PLUGIN_INFO* PLUGIN_INFO);
 void         GetVersion          (LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS);
-void         WriteLog            (ERROR_LEVEL logLevel, LPCTSTR msg);
+void         WriteLog            (ERROR_LEVEL logLevel, LPCTSTR format, ...);
 BOOL         ExecutePluginCommand(LPCTSTR pluginName, INT32 CmdID);
 
 //---------------------------------------------------------------------------//

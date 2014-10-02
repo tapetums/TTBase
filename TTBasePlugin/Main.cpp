@@ -20,11 +20,16 @@ HINSTANCE g_hInstance  = nullptr;
 
 //---------------------------------------------------------------------------//
 
+// プラグインI/F要求バージョン
+WORD NEED_VERSION = 0;
+
+//---------------------------------------------------------------------------//
+
 // プラグインの名前（任意の文字が使用可能）
 LPCTSTR PLUGIN_NAME = TEXT("プラグイン スケルトン");
 
 // プラグインのタイプ
-PLUGINTYPE PLUGIN_TYPE = PT_LOAD_AT_USE;
+PLUGINTYPE PLUGIN_TYPE = ptLoadAtUse;
 
 //---------------------------------------------------------------------------//
 
@@ -46,7 +51,7 @@ PLUGIN_COMMAND_INFO COMMAND_INFO[] =
         CMD_DUMMY,      // コマンドID
         0,              // Attr（未使用）
         -1,             // ResTd(未使用）
-        DM_HOTKEY_MENU, // DispMenu
+        dmHotKeyMenu,   // DispMenu
         0,              // TimerInterval[msec] 0で使用しない
         0               // TimerCounter（未使用）
     },
@@ -114,7 +119,7 @@ BOOL Execute(INT32 CmdId, HWND hWnd)
     {
         case CMD_DUMMY:
         {
-            WriteLog(EL_DEBUG, TEXT("プラグイン スケルトン: ダミー コマンド"));
+            WriteLog(elDebug, TEXT("%s|%d"), PLUGIN_FILENAME, CmdId);
             return TRUE;
         }
         default:
