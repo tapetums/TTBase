@@ -20,21 +20,10 @@ HINSTANCE g_hInstance  = nullptr;
 
 //---------------------------------------------------------------------------//
 
-// プラグインI/F要求バージョン
-WORD NEED_VERSION = 0;
-
-//---------------------------------------------------------------------------//
-
-// プラグインの名前（任意の文字が使用可能）
-LPCTSTR PLUGIN_NAME = TEXT("プラグイン スケルトン");
-
-// プラグインのタイプ
-PLUGINTYPE PLUGIN_TYPE = ptLoadAtUse;
-
-//---------------------------------------------------------------------------//
-
 // コマンドの数
 DWORD COMMAND_COUNT = 1;
+
+//---------------------------------------------------------------------------//
 
 // コマンドID
 enum CMD : INT32
@@ -42,8 +31,10 @@ enum CMD : INT32
     CMD_DUMMY, // ダミー コマンド
 };
 
+//---------------------------------------------------------------------------//
+
 // コマンドの情報
-PLUGIN_COMMAND_INFO COMMAND_INFO[] =
+PLUGIN_COMMAND_INFO g_cmd_info[] =
 {
     {
         TEXT("Dummy"),  // コマンド名（英名）
@@ -55,6 +46,22 @@ PLUGIN_COMMAND_INFO COMMAND_INFO[] =
         0,              // TimerInterval[msec] 0で使用しない
         0               // TimerCounter（未使用）
     },
+};
+
+//---------------------------------------------------------------------------//
+
+// プラグインの情報
+PLUGIN_INFO g_info =
+{
+    0,                  // プラグインI/F要求バージョン
+    TEXT("スケルトン"), // プラグインの名前（任意の文字が使用可能）
+    nullptr,            // プラグインのファイル名（相対パス）
+    ptLoadAtUse,        // プラグインのタイプ
+    0,                  // バージョン
+    0,                  // バージョン
+    COMMAND_COUNT,      // コマンド個数
+    &g_cmd_info[0],     // コマンド
+    0,                  // ロードにかかった時間（msec）
 };
 
 //---------------------------------------------------------------------------//
@@ -119,7 +126,7 @@ BOOL Execute(INT32 CmdId, HWND hWnd)
     {
         case CMD_DUMMY:
         {
-            WriteLog(elDebug, TEXT("%s|%d"), PLUGIN_FILENAME, CmdId);
+            WriteLog(elDebug, TEXT("%s|%d"), g_info.Filename, CmdId);
             return TRUE;
         }
         default:

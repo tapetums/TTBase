@@ -427,7 +427,7 @@ extern void (WINAPI* TTBPlugin_SetTaskTrayIcon)(HICON hIcon, LPCTSTR Tips);
 
 詳細調査中　_※peach では実装予定なし_
 
-####_TTBase v1.1.0 以降_
+####_TTBase v1.0.17 alpha 2 以降_
 
 ================================================================
 ###TTBPlugin\_WriteLog

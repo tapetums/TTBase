@@ -19,11 +19,10 @@
 //
 //---------------------------------------------------------------------------//
 
-// プラグインのファイル名。本体からの相対パス
-LPTSTR PLUGIN_FILENAME = nullptr;
-
 // プラグインを本体で認識するための識別コード
-DWORD_PTR PLUGIN_HANDLE = 0;
+DWORD_PTR g_hPlugin = 0;
+
+//---------------------------------------------------------------------------//
 
 // 本体側エクスポート関数への関数ポインタ
 #ifdef __cplusplus
@@ -82,29 +81,32 @@ PLUGIN_INFO* CopyPluginInfo(PLUGIN_INFO* Src)
         return nullptr;
     }
 
-    const auto pPinfoResult = new PLUGIN_INFO;
-    if ( pPinfoResult == nullptr )
+    const auto info = new PLUGIN_INFO;
+    if ( info == nullptr )
     {
         return nullptr;
     }
-    *pPinfoResult = *Src;
 
-    pPinfoResult->Name     = CopyString(Src->Name);
-    pPinfoResult->Filename = CopyString(Src->Filename);
-    pPinfoResult->Commands = (Src->CommandCount < 1) ? nullptr : new PLUGIN_COMMAND_INFO[Src->CommandCount];
+    // プラグイン情報のコピー
+    *info = *Src;
 
-    if ( pPinfoResult->Commands != nullptr && Src->Commands != nullptr )
+    info->Name     = CopyString(Src->Name);
+    info->Filename = CopyString(Src->Filename);
+    info->Commands = (Src->CommandCount < 1) ? nullptr : new PLUGIN_COMMAND_INFO[Src->CommandCount];
+
+    // コマンド情報のコピー
+    if ( info->Commands != nullptr && Src->Commands != nullptr )
     {
         for ( size_t i = 0; i < Src->CommandCount; ++i )
         {
-            pPinfoResult->Commands[i] = Src->Commands[i];
+            info->Commands[i] = Src->Commands[i];
 
-            pPinfoResult->Commands[i].Name    = CopyString(Src->Commands[i].Name);
-            pPinfoResult->Commands[i].Caption = CopyString(Src->Commands[i].Caption);
+            info->Commands[i].Name    = CopyString(Src->Commands[i].Name);
+            info->Commands[i].Caption = CopyString(Src->Commands[i].Caption);
         }
     }
 
-    return pPinfoResult;
+    return info;
 }
 
 //---------------------------------------------------------------------------//
@@ -112,7 +114,28 @@ PLUGIN_INFO* CopyPluginInfo(PLUGIN_INFO* Src)
 // プラグイン側で作成されたプラグイン情報構造体を破棄する
 void FreePluginInfo(PLUGIN_INFO* PluginInfo)
 {
-    TTBEvent_FreePluginInfo(PluginInfo);
+    if ( PluginInfo == nullptr )
+    {
+        return;
+    }
+
+    // コマンド情報構造体配列の破棄
+    if ( PluginInfo->Commands != nullptr )
+    {
+        for ( DWORD i = 0; i < PluginInfo->CommandCount; ++i )
+        {
+            const auto pCI = &PluginInfo->Commands[i];
+
+            DeleteString(pCI->Name);
+            DeleteString(pCI->Caption);
+        }
+        delete[] PluginInfo->Commands;
+    }
+
+    DeleteString(PluginInfo->Filename);
+    DeleteString(PluginInfo->Name);
+
+    delete PluginInfo;
 }
 
 //---------------------------------------------------------------------------//
@@ -212,7 +235,7 @@ void WriteLog(ERROR_LEVEL logLevel, LPCTSTR format, ...)
     }
     va_end(al);
 
-    TTBPlugin_WriteLog(PLUGIN_HANDLE, logLevel, msg);
+    TTBPlugin_WriteLog(g_hPlugin, logLevel, msg);
 }
 
 //---------------------------------------------------------------------------//
@@ -238,41 +261,11 @@ BOOL ExecutePluginCommand(LPCTSTR pluginName, INT32 CmdID)
 // プラグイン情報構造体のセット
 PLUGIN_INFO* WINAPI TTBEvent_InitPluginInfo(LPTSTR PluginFilename)
 {
-    // プラグイン情報構造体の生成
-    const auto result = new PLUGIN_INFO;
-    if ( result == nullptr )
-    {
-        return nullptr;
-    }
+    // プラグイン情報を初期化
+    g_info.Filename = CopyString(PluginFilename);
+    GetVersion(PluginFilename, &g_info.VersionMS, &g_info.VersionLS);
 
-    // ファイル名（相対パス）をコピー
-    PLUGIN_FILENAME = CopyString(PluginFilename);
-
-    // 構造体に情報をセット
-    result->NeedVersion  = NEED_VERSION;
-    result->Name         = CopyString(PLUGIN_NAME);
-    result->Filename     = CopyString(PLUGIN_FILENAME);
-    result->PluginType   = PLUGIN_TYPE;
-    GetVersion(PLUGIN_FILENAME, &result->VersionMS, &result->VersionLS);
-    result->CommandCount = COMMAND_COUNT;
-    result->Commands     = (COMMAND_COUNT < 1) ? nullptr : new PLUGIN_COMMAND_INFO[COMMAND_COUNT];
-
-    // コマンド情報構造体配列の作成
-    if ( result->Commands != nullptr )
-    {
-        for ( DWORD i = 0; i < COMMAND_COUNT; ++i )
-        {
-            // コマンド情報構造体に情報をセット
-            const auto pCI = &result->Commands[i];
-
-            *pCI = COMMAND_INFO[i];
-
-            pCI->Name    = CopyString(COMMAND_INFO[i].Name);
-            pCI->Caption = CopyString(COMMAND_INFO[i].Caption);
-        }
-    }
-
-    return result;
+    return &g_info;
 }
 
 //---------------------------------------------------------------------------//
@@ -280,28 +273,6 @@ PLUGIN_INFO* WINAPI TTBEvent_InitPluginInfo(LPTSTR PluginFilename)
 // プラグイン情報構造体の破棄
 void WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PluginInfo)
 {
-    if ( PluginInfo == nullptr )
-    {
-        return;
-    }
-
-    // コマンド情報構造体配列の破棄
-    if ( PluginInfo->Commands != nullptr )
-    {
-        for ( DWORD i = 0; i < PluginInfo->CommandCount; ++i )
-        {
-            const auto pCI = &PluginInfo->Commands[i];
-
-            DeleteString(pCI->Name);
-            DeleteString(pCI->Caption);
-        }
-        delete[] PluginInfo->Commands;
-    }
-
-    DeleteString(PluginInfo->Filename);
-    DeleteString(PluginInfo->Name);
-
-    delete PluginInfo;
 }
 
 //---------------------------------------------------------------------------//
@@ -312,12 +283,14 @@ BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
     RegisterMessages();
 
     // キャッシュのために、TTBPlugin_InitPluginInfoは呼ばれない場合がある
-    // そのため、InitでもPLUGIN_FILENAMEの初期化を行う
-    DeleteString(PLUGIN_FILENAME);
-    PLUGIN_FILENAME = CopyString(PluginFilename);
+    // そのため、Initでもプラグイン情報を初期化する
+    DeleteString(g_info.Filename);
+
+    g_info.Filename = CopyString(PluginFilename);
+    GetVersion(PluginFilename, &g_info.VersionMS, &g_info.VersionLS);
 
     // 本体から、プラグインを認識するための識別コードを受け取る
-    PLUGIN_HANDLE = hPlugin;
+    g_hPlugin = hPlugin;
 
     // API関数の取得
     const auto hModule = ::GetModuleHandle(nullptr);
@@ -341,8 +314,8 @@ void WINAPI TTBEvent_Unload(void)
 {
     Unload();
 
-    DeleteString(PLUGIN_FILENAME);
-    PLUGIN_FILENAME = nullptr;
+    DeleteString(g_info.Filename);
+    g_info.Filename = nullptr;
 }
 
 //---------------------------------------------------------------------------//

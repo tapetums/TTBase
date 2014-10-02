@@ -175,28 +175,7 @@ void         WINAPI TTBEvent_WindowsHook   (UINT Msg, WPARAM wParam, LPARAM lPar
 
 //---------------------------------------------------------------------------//
 //
-// プラグインの情報
-//
-//---------------------------------------------------------------------------//
-
-// 本体がプラグインを識別するためのコード
-extern DWORD_PTR PLUGIN_HANDLE;
-
-// プラグインI/F要求バージョン
-extern WORD NEED_VERSION;
-
-// プラグインの名前（任意の文字が使用可能）
-extern LPCTSTR PLUGIN_NAME;
-
-// プラグインのファイル名。本体フォルダからの相対パス
-extern LPTSTR PLUGIN_FILENAME;
-
-// プラグインのタイプ
-extern PLUGINTYPE PLUGIN_TYPE;
-
-//---------------------------------------------------------------------------//
-//
-// コマンドの情報
+// グローバル変数
 //
 //---------------------------------------------------------------------------//
 
@@ -204,7 +183,13 @@ extern PLUGINTYPE PLUGIN_TYPE;
 extern DWORD COMMAND_COUNT;
 
 // コマンドの情報
-extern PLUGIN_COMMAND_INFO COMMAND_INFO[];
+extern PLUGIN_COMMAND_INFO g_cmd_info[];
+
+// プラグインの情報
+extern PLUGIN_INFO g_info;
+
+// 本体がプラグインを識別するためのコード
+extern DWORD_PTR g_hPlugin;
 
 //---------------------------------------------------------------------------//
 //
