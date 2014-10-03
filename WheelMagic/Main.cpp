@@ -17,8 +17,8 @@
 //
 //---------------------------------------------------------------------------//
 
-HINSTANCE g_hInstance  = nullptr;
-HANDLE    g_hMutex     = nullptr;
+HINSTANCE g_hInstance = nullptr;
+HANDLE    g_hMutex    = nullptr;
 
 //---------------------------------------------------------------------------//
 
@@ -104,17 +104,7 @@ void __cdecl operator delete[](void* p)
 // TTBEvent_Init() の内部実装
 BOOL Init(void)
 {
-    TCHAR ininame[MAX_PATH];
-
-    // iniファイル名取得
-    const auto len = ::GetModuleFileName(g_hInstance, ininame, MAX_PATH);
-    ininame[len - 3] = 'i';
-    ininame[len - 2] = 'n';
-    ininame[len - 1] = 'i';
-    WriteLog(elDebug, TEXT("%s: %s"), g_info.Name, ininame);
-
-    auto param = ::GetPrivateProfileInt(TEXT("Setting"), TEXT("Param"), 0, ininame);
-
+    // フックのために二重起動を禁止
     g_hMutex = ::CreateMutex(nullptr, TRUE, g_info.Name);
     if ( g_hMutex == nullptr )
     {
@@ -127,6 +117,7 @@ BOOL Init(void)
         return FALSE;
     }
 
+    // マウスフックを登録
     if ( ! WMBeginHook() )
     {
         WriteLog(elError, TEXT("%s: Failed to begin hook"), g_info.Name);
@@ -143,8 +134,10 @@ BOOL Init(void)
 // TTBEvent_Unload() の内部実装
 void Unload(void)
 {
+    // マウスフックを解除
     WMEndHook();
 
+    // ミューテックスを削除
     if ( g_hMutex != nullptr )
     {
         ::ReleaseMutex(g_hMutex);
@@ -160,19 +153,6 @@ void Unload(void)
 // TTBEvent_Execute() の内部実装
 BOOL Execute(INT32 CmdId, HWND hWnd)
 {
-    switch ( CmdId )
-    {
-        case CMD_DUMMY:
-        {
-            WriteLog(elDebug, TEXT("%s|%d"), g_info.Filename, CmdId);
-            return TRUE;
-        }
-        default:
-        {
-            return FALSE;
-        }
-    }
-
     return TRUE;
 }
 

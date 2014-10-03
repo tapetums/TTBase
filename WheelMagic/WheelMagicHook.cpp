@@ -1,6 +1,6 @@
 /******************************************************************************
 *                                                                             *
-*    WheelMagicHook.c                       Copyright(c) 2009-2011 itow,y.    *
+*    WheelMagicHook.cpp      Copyright(c) 2009-2011 itow,y., 2014 tapetums    *
 *                                                                             *
 ******************************************************************************/
 
@@ -29,13 +29,9 @@ THE SOFTWARE.
 
 #include <windows.h>
 
-#include "..\Plugin.h"
-#include "..\Utility.h"
 #include "WheelMagicHook.h"
 
 //---------------------------------------------------------------------------//
-
-#define EXPORT(type) type
 
 // フックハンドル
 static HHOOK g_hHook = nullptr;
@@ -46,11 +42,11 @@ extern HINSTANCE g_hInstance;
 //---------------------------------------------------------------------------//
 
 // 位置からウィンドウを探すための情報
-typedef struct
+struct FindWindowInfo
 {
     POINT ptPos;
     HWND  hwnd;
-} FindWindowInfo;
+};
 
 //---------------------------------------------------------------------------//
 
@@ -188,17 +184,6 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam)
     if ( ::GetAsyncKeyState(VK_CONTROL)  < 0 )
         KeyState |= MK_CONTROL;
 
-#ifdef _DEBUG
-    {
-        ::GetClassName(hwndTarget, szClass, sizeof(szClass)/sizeof(TCHAR));
-        WriteLog
-        (
-            elDebug, TEXT("%ld, %ld : %p \"%s\" %u"),
-            ptCursor. x,ptCursor. y,hwndTarget, szClass, (UINT)wParam
-        );
-    }
-#endif
-
     ::PostMessage
     (
         hwndTarget, (UINT)wParam,
@@ -215,29 +200,31 @@ Skip:
 //---------------------------------------------------------------------------//
 
 // フックの開始
-EXPORT(BOOL) WMBeginHook(void)
+BOOL WMBeginHook(void)
 {
-    if ( g_hHook == nullptr )
+    if ( g_hHook != nullptr )
     {
-        g_hHook = ::SetWindowsHookEx(WH_MOUSE_LL, MouseHookProc, g_hInstance, 0);
-        if ( g_hHook == nullptr )
-        {
-            return FALSE;
-        }
+        return TRUE;
     }
-    return TRUE;
+
+    g_hHook = ::SetWindowsHookEx(WH_MOUSE_LL, MouseHookProc, g_hInstance, 0);
+
+    return (g_hHook != nullptr) ? TRUE : FALSE;
 }
 
 //---------------------------------------------------------------------------//
 
 // フックの終了
-EXPORT(BOOL) WMEndHook(void)
+BOOL WMEndHook(void)
 {
-    if ( g_hHook != nullptr )
+    if ( g_hHook == nullptr )
     {
-        ::UnhookWindowsHookEx(g_hHook);
-        g_hHook = nullptr;
+        return FALSE;
     }
+
+    ::UnhookWindowsHookEx(g_hHook);
+    g_hHook = nullptr;
+
     return TRUE;
 }
 
