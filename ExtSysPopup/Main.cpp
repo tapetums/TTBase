@@ -126,7 +126,7 @@ BOOL CheckTopMost(HWND hwnd)
 
 //---------------------------------------------------------------------------//
 
-BOOL ToggleTopMost(HWND hwnd, BOOL topmost )
+BOOL ToggleTopMost(HWND hwnd, BOOL topmost)
 {
     BOOL ret;
 

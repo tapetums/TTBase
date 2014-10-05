@@ -32,7 +32,7 @@
 
 ##開発環境  
 　プラグインインターフェイスは、作成されたダイナミックリンクライブラリ (DLL) に対しての動的ロードを使いますので、処理系を選びません。DLL を作成できる処理系なら、どんなものでも使用できるはずです。  
-　現在、~~Delphi(5) 用と VC++(6.0),Borland C++ Free(5.5), C++Builder(5) のテンプレートが付属されています。~~ VC++(2013) 32/64-bit のテンプレートがあります。
+　現在、~~Delphi(5) 用と VC++(6.0),Borland C++ Free(5.5), C++Builder(5) のテンプレートが付属されています。~~ VC++2013(32/64-bit) のテンプレートがあります。
 
 ---
 
@@ -414,6 +414,8 @@ extern void (WINAPI* TTBPlugin_FreePluginInfoArray)(PLUGIN_INFO** PluginInfoArra
 ```
 　TTBPlugin\_GetAllPluginInfo で取得した、PLUGIN\_INFO\_ARRAY を解放します。
 
+***
+
 ####_TTBase v1.0.15 以降_
 
 
@@ -426,6 +428,8 @@ extern void (WINAPI* TTBPlugin_SetTaskTrayIcon)(HICON hIcon, LPCTSTR Tips);
 　TTBase のシステムトレイアイコンを変更します。  
 
 詳細調査中　_※peach では実装予定なし_
+
+***
 
 ####_TTBase v1.0.17 alpha 2 以降_
 
