@@ -201,19 +201,19 @@ BOOL OpenAppFolder(HWND hwnd)
 //---------------------------------------------------------------------------//
 
 // ウィンドウクラスを登録
-ATOM Register(LPCTSTR m_classname)
+ATOM Register(LPCTSTR lpszClassName)
 {
     WNDCLASSEX wc;
     wc.cbSize        = sizeof(wc);
-    wc.style         = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
+    wc.style         = 0;
     wc.cbClsExtra    = 0;
     wc.cbWndExtra    = 0;
     wc.hInstance     = g_hInstance;
     wc.hIcon         = nullptr;
-    wc.hCursor       = ::LoadCursor(nullptr, IDC_ARROW);
+    wc.hCursor       = nullptr;
     wc.hbrBackground = nullptr;
     wc.lpszMenuName  = nullptr;
-    wc.lpszClassName = m_classname;
+    wc.lpszClassName = lpszClassName;
     wc.hIconSm       = nullptr;
     wc.lpfnWndProc   = [](HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp) -> LRESULT
     {
@@ -245,12 +245,13 @@ BOOL Init(void)
     const auto atom = Register(PLUGIN_NAME);
     if ( atom == 0 )
     {
-        if ( GetLastError() != 0x582 )
+        if ( GetLastError() == 0x582 )
         {
             // 「そのクラスは既にあります。」
         }
         else
         {
+            WriteLog(elError, TEXT("%s: RegisterClassEx() failed"), PLUGIN_NAME);
             goto UNLOAD;
         }
     }
@@ -264,6 +265,7 @@ BOOL Init(void)
     );
     if ( g_hwnd == nullptr )
     {
+        WriteLog(elError, TEXT("%s: CreateWindowEx() failed"), PLUGIN_NAME);
         goto UNLOAD;
     }
 
@@ -274,11 +276,13 @@ BOOL Init(void)
         goto UNLOAD;
     }
 
-    WriteLog(elInfo, TEXT("%s: successfully initialized"), PLUGIN_NAME);
+    WriteLog(elInfo, TEXT("%s: Successfully initialized"), PLUGIN_NAME);
 
     return TRUE;
 
 UNLOAD:
+    WriteLog(elInfo, TEXT("%s: Initialization failed"), PLUGIN_NAME);
+
     Unload();
 
     return false;
@@ -307,7 +311,7 @@ void Unload(void)
         g_hMutex = nullptr;
     }
 
-    WriteLog(elInfo, TEXT("%s: successfully uninitialized"), PLUGIN_NAME);
+    WriteLog(elInfo, TEXT("%s: Successfully uninitialized"), PLUGIN_NAME);
 }
 
 //---------------------------------------------------------------------------//

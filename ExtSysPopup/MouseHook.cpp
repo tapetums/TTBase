@@ -94,18 +94,18 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
     }
 
     // ポップアップメニューを表示
-    const auto cmd = ::TrackPopupMenu
+    const auto CmdId = ::TrackPopupMenu
     (
         hSubMenu, TPM_LEFTALIGN | TPM_NONOTIFY | TPM_RETURNCMD,
         pt.x, pt.y, 0, g_hwnd, nullptr
     );
-    WriteLog(elDebug, TEXT("%s: Command = %d"), PLUGIN_NAME, cmd);
+    WriteLog(elDebug, TEXT("%s: CmdId = %d"), PLUGIN_NAME, CmdId);
 
     // 表示したメニューを破棄
     ::DestroyMenu(hMenu);
 
     // コマンドを実行
-    switch ( cmd )
+    switch ( CmdId )
     {
         case 40000:
         {
@@ -117,7 +117,7 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
         }
         case 40002: case 40004: case 40003: case 40005:
         {
-            ExecutePluginCommand(TEXT(":system"), cmd - 40002 ); break;
+            ExecutePluginCommand(TEXT(":system"), CmdId - 40002 ); break;
         }
         default:
         {
