@@ -1,6 +1,6 @@
 ﻿//---------------------------------------------------------------------------//
 //
-// MainWindow.hpp
+// MainWindow.h
 //  メインウィンドウ
 //   Copyright (C) 2014 tapetums
 //
@@ -25,4 +25,4 @@ LRESULT __stdcall OnThemeChanged(HWND hwnd);
 
 //---------------------------------------------------------------------------//
 
-// MainWindow.hpp
+// MainWindow.h
