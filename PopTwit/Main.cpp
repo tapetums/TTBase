@@ -129,14 +129,16 @@ BOOL Execute(INT32 CmdId, HWND hWnd)
     {
         case CMD_TWEET:
         {
+            // 二重起動の防止
             if ( g_hwnd )
             {
+                ::SetForegroundWindow(g_hwnd);
                 WriteLog(elInfo, TEXT("%s: Window has been opened"), PLUGIN_NAME);
                 return FALSE;
             }
 
             // ウィンドウの生成
-            const auto g_hwnd = Wnd::Create
+            g_hwnd = Wnd::Create
             (
                 PLUGIN_NAME, PLUGIN_NAME, 0, 0, nullptr
             );
@@ -148,6 +150,7 @@ BOOL Execute(INT32 CmdId, HWND hWnd)
             Wnd::Resize(g_hwnd, 400, 128);
             Wnd::ToCenter(g_hwnd);
             Wnd::Show(g_hwnd);
+            ::SetForegroundWindow(g_hwnd);
 
             WriteLog(elInfo, TEXT("%s: Successfully opened window"), PLUGIN_NAME);
             return TRUE;
