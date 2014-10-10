@@ -116,11 +116,9 @@ void GetVersion(LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS)
     {
         return;
     }
-    else
-    {
-        *VersionMS = 0;
-        *VersionLS = 0;
-    }
+
+    *VersionMS = 0;
+    *VersionLS = 0;
 
     // API を取得
     const auto hModule = ::LoadLibrary(TEXT("version.dll"));
@@ -202,8 +200,12 @@ void WriteLog(ERROR_LEVEL logLevel, LPCTSTR format, ...)
     va_list al;
     va_start(al, format);
     {
+#ifdef _DEBUG
+        ::StringCchPrintf(msg, BUF_SIZE, format, al);
+#else
         // Warning: this function has a security problem
         ::wvsprintf(msg, format, al);
+#endif
         msg[BUF_SIZE - 1] = '\0';
     }
     va_end(al);

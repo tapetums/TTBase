@@ -104,6 +104,10 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
     // 表示したメニューを破棄
     ::DestroyMenu(hMenu);
 
+    // Article ID: Q135788
+    // ポップアップメニューから処理を戻すために必要
+    ::PostMessage(hwnd, WM_NULL, 0, 0);
+
     // コマンドを実行
     switch ( CmdId )
     {

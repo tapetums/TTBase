@@ -344,7 +344,7 @@ void WINAPI TTBEvent_WindowsHook(UINT Msg, WPARAM wParam, LPARAM lParam);
 ###TTBPlugin\_GetPluginInfo
 ================================================================
 ```c
-extern PLUGIN_INFO* (WINAPI* TTBPlugin_GetPluginInfo)(DWORD hPlugin);
+extern PLUGIN_INFO* (WINAPI* TTBPlugin_GetPluginInfo)(DWORD_PTR hPlugin);
 ```
 　hPlugin で指定したプラグインのプラグイン情報構造体を取得します。取得時点で、TTBase が管理している情報が引き出せます。メニューのチェック状態などを得るのに使います。  
 　この API 関数で取得した (PLUGIN\_INFO*) 型のポインタは、TTBPlugin\_FreePluginInfo 関数で解放する必要があります。
@@ -353,7 +353,7 @@ extern PLUGIN_INFO* (WINAPI* TTBPlugin_GetPluginInfo)(DWORD hPlugin);
 ###TTBPlugin\_SetPluginInfo
 ================================================================
 ```c
-extern void (WINAPI* TTBPlugin_SetPluginInfo)(DWORD hPlugin, PLUGIN_INFO* PluginInfo);
+extern void (WINAPI* TTBPlugin_SetPluginInfo)(DWORD_PTR hPlugin, PLUGIN_INFO* PluginInfo);
 ```
 　hPlugin で指定したプラグインのプラグイン情報構造体を再設定します。プラグイン側から動的にプラグイン情報構造体の内容を変更したいときに使用します。  
 　PluginInfo は、新たにメモリを確保して使用してください。**TTBPlugin\_GetPluginInfo で取得したものを使用してはいけません**。  
@@ -373,7 +373,7 @@ extern void (WINAPI* TTBPlugin_FreePluginInfo)(PLUGIN_INFO* PluginInfo);
 ###TTBPlugin_SetMenuProperty
 ================================================================
 ```c
-extern void (WINAPI* TTBPlugin_SetMenuChecked)(DWORD hPlugin, INT32 CommandID, DWORD ChagneFlag, DWORD Flag);
+extern void (WINAPI* TTBPlugin_SetMenuChecked)(DWORD_PTR hPlugin, INT32 CommandID, DWORD ChagneFlag, DWORD Flag);
 ```
 　hPlugin で指定したプラグインの、CommandID で示されるコマンドの、メニュー関係の属性を変更します。
 
@@ -401,7 +401,7 @@ Flag: フラグには、以下の値の論理和として指定します。
 ###TTBPlugin\_GetAllPluginInfo
 ================================================================
 ```c
-extern PLUGIN_INFO** (WINAPI* TTBPlugin_GetAllPluginInfo)(void);
+PLUGIN_INFO** WINAPI TTBPlugin_GetAllPluginInfo(void);
 ```
 　TTBase に読み込まれているすべてのプラグインのプラグイン情報構造体へのポインタ配列へのポインタを返します。  
 最後のプラグイン情報構造体へのポインタの次の配列要素には、nullptr が格納されていますので、これで最後を判定してください。
@@ -410,7 +410,7 @@ extern PLUGIN_INFO** (WINAPI* TTBPlugin_GetAllPluginInfo)(void);
 ###TTBPlugin\_FreePluginInfoArray
 ================================================================
 ```c
-extern void (WINAPI* TTBPlugin_FreePluginInfoArray)(PLUGIN_INFO** PluginInfoArray);
+void WINAPI TTBPlugin_FreePluginInfoArray(PLUGIN_INFO** PluginInfoArray);
 ```
 　TTBPlugin\_GetAllPluginInfo で取得した、PLUGIN\_INFO\_ARRAY を解放します。
 
@@ -423,7 +423,7 @@ extern void (WINAPI* TTBPlugin_FreePluginInfoArray)(PLUGIN_INFO** PluginInfoArra
 ###TTBPlugin\_SetTaskTrayIcon
 ================================================================
 ```c
-extern void (WINAPI* TTBPlugin_SetTaskTrayIcon)(HICON hIcon, LPCTSTR Tips);
+void WINAPI TTBPlugin_SetTaskTrayIcon(HICON hIcon, LPCTSTR Tips);
 ```
 　TTBase のシステムトレイアイコンを変更します。  
 
@@ -437,7 +437,7 @@ extern void (WINAPI* TTBPlugin_SetTaskTrayIcon)(HICON hIcon, LPCTSTR Tips);
 ###TTBPlugin\_WriteLog
 ================================================================
 ```c
-extern void (WINAPI* TTBPlugin_WriteLog)(DWORD_PTR hPlugin, INT32 logLevel, LPCTSTR msg);
+void WINAPI TTBPlugin_WriteLog(DWORD_PTR hPlugin, INT32 logLevel, LPCTSTR msg);
 ```
 　プラグインからログを出力します。  
 
@@ -453,7 +453,7 @@ logLevel には、以下のいずれかの値を指定します。
 ###TTBPlugin\_ExecuteCommand
 ================================================================
 ```c
-extern BOOL (WINAPI* TTBPlugin_ExecuteCommand)(LPCTSTR PluginFilename, INT32 CmdID);
+BOOL WINAPI TTBPlugin_ExecuteCommand(LPCTSTR PluginFilename, INT32 CmdID);
 ```
 　プラグインから他のプラグインコマンドを実行します。  
 　PluginFilename は TTBase からの相対パスで指定します。パスは TTBPlugin\_GetPluginInfo() もしくは TTBPlugin\_GetAllPluginInfo() で取得できます。  
