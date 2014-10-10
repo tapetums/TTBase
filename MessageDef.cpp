@@ -9,7 +9,7 @@
 #include <windows.h>
 
 // Message—p•¶Žš—ñ
-#ifdef _WIN64
+#ifdef _UNICODE
 #define TTB_HSHELL_ACTIVATESHELLWINDOW_MESSAGE L"TTBase HShell Activate ShellWindow"
 #define TTB_HSHELL_GETMINRECT_MESSAGE          L"TTBase HShell GetMinRect"
 #define TTB_HSHELL_LANGUAGE_MESSAGE            L"TTBase HShell Language"

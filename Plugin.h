@@ -88,12 +88,6 @@ typedef struct
     DWORD    TimerCounter;  // システム内部で使用
 } PLUGIN_COMMAND_INFO_A;
 
-#ifdef _WIN64
-typedef PLUGIN_COMMAND_INFO_W PLUGIN_COMMAND_INFO;
-#else
-typedef PLUGIN_COMMAND_INFO_A PLUGIN_COMMAND_INFO;
-#endif
-
 // プラグイン情報構造体
 typedef struct
 {
@@ -123,10 +117,12 @@ typedef struct
 
 #pragma pack(pop)
 
-// 32/64-bit で 使用する構造体を切り分ける
-#ifdef _WIN64
+// UNICODE マクロの定義の有無で使用する構造体を切り分ける
+#if defined _UNICODE || defined UNICODE
+typedef PLUGIN_COMMAND_INFO_W PLUGIN_COMMAND_INFO;
 typedef PLUGIN_INFO_W PLUGIN_INFO;
 #else
+typedef PLUGIN_COMMAND_INFO_A PLUGIN_COMMAND_INFO;
 typedef PLUGIN_INFO_A PLUGIN_INFO;
 #endif
 
