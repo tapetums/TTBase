@@ -1,4 +1,4 @@
 ConsumerKey.h
 !*.lib
-!x86/
-!x64/
+!lib/x86/
+!lib/x64/
