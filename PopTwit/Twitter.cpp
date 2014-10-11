@@ -84,25 +84,25 @@ char8_t* toUTF8(const char* str_mbcs)
     int len = 0;
     len = ::MultiByteToWideChar
     (
-        CP_ACP, 0, str_mbcs, -1, nullptr, 0
+        CP_ACP, MB_PRECOMPOSED, str_mbcs, -1, nullptr, 0
     );
-    if ( len < 1 )
+    if ( len < 1 || 1024 < len )
     {
-        return nullptr;
+        return (char8_t*)"";
     }
 
     ::MultiByteToWideChar
     (
-        CP_ACP, 0, str_mbcs, len, (LPWSTR)str_u16, 1024
+        CP_ACP, MB_PRECOMPOSED, str_mbcs, -1, (LPWSTR)str_u16, len
     );
 
     len = ::WideCharToMultiByte
     (
         CP_UTF8, 0, (LPCWSTR)str_u16, -1, nullptr, 0, nullptr, nullptr
     );
-    if ( len < 1 )
+    if ( len < 1 || 1024 < len )
     {
-        return nullptr;
+        return (char8_t*)"";
     }
 
     ::WideCharToMultiByte
@@ -124,9 +124,9 @@ char8_t* toUTF8(const wchar_t* str_u16)
     (
         CP_UTF8, 0, str_u16, -1, nullptr, 0, nullptr, nullptr
     );
-    if ( len < 1 )
+    if ( len < 1 || 1024 < len )
     {
-        return nullptr;
+        return (char8_t*)"";
     }
 
     ::WideCharToMultiByte
@@ -195,8 +195,9 @@ bool __stdcall WriteKeyAsFile(LPCTSTR username, LPCTSTR filename, const char8_t*
     }
 
     DWORD dw;
-    const auto len = ::lstrlenA((char*)key);
+    const auto len = ::lstrlenA((char*)key); // NULL文字は書き込まないので +1 しない
     ::WriteFile(hFile, key, len * sizeof(char8_t), &dw, nullptr);
+    ::SetEndOfFile(hFile);
 
     ::CloseHandle(hFile);
 
