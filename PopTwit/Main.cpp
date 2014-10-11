@@ -5,14 +5,19 @@
 //---------------------------------------------------------------------------//
 
 #include <windows.h>
+#include <strsafe.h>
+
+#ifdef _NODEFLIB
+#include <shlwapi.h>
+#pragma comment(lib, "shlwapi.lib")
+#undef StringCchPrintf
+#define StringCchPrintf wnsprintf
+#endif
 
 #include "..\Plugin.h"
 #include "..\MessageDef.h"
 #include "..\Utility.h"
 
-#include "Wnd.hpp"
-#include "IniFile.h"
-#include "MainWindow.h"
 #include "Main.h"
 
 //---------------------------------------------------------------------------//
@@ -65,7 +70,7 @@ PLUGIN_INFO g_info =
     0,                   // プラグインI/F要求バージョン
     (LPTSTR)PLUGIN_NAME, // プラグインの名前（任意の文字が使用可能）
     nullptr,             // プラグインのファイル名（相対パス）
-    ptAlwaysLoad,        // プラグインのタイプ
+    ptLoadAtUse,         // プラグインのタイプ
     0,                   // バージョン
     0,                   // バージョン
     COMMAND_COUNT,       // コマンド個数
@@ -78,24 +83,6 @@ PLUGIN_INFO g_info =
 // TTBEvent_Init() の内部実装
 BOOL Init(void)
 {
-    TCHAR ininame[MAX_PATH];
-
-    // INI ファイル名取得
-    const auto len = ::GetModuleFileName(g_hInst, ininame, MAX_PATH);
-    ininame[len - 3] = 'i';
-    ininame[len - 2] = 'n';
-    ininame[len - 1] = 'i';
-
-    // INI ファイルの読み込み
-    const auto enabled = LoadIniFile(ininame);
-    if ( !enabled )
-    {
-        return FALSE;
-    }
-
-    // ウィンドウクラスの登録
-    Wnd::Register(PLUGIN_NAME, MainWindowProc, MAKEINTRESOURCE(100));
-
     WriteLog(elInfo, TEXT("%s: Successfully initialized"), PLUGIN_NAME);
 
     return TRUE;
@@ -106,17 +93,6 @@ BOOL Init(void)
 // TTBEvent_Unload() の内部実装
 void Unload(void)
 {
-    TCHAR ininame[MAX_PATH];
-
-    // INI ファイル名取得
-    const auto len = ::GetModuleFileName(g_hInst, ininame, MAX_PATH);
-    ininame[len - 3] = 'i';
-    ininame[len - 2] = 'n';
-    ininame[len - 1] = 'i';
-
-    // INI ファイルの書き込み
-    SaveIniFile(ininame);
-
     WriteLog(elInfo, TEXT("%s: Successfully uninitialized"), PLUGIN_NAME);
 }
 
@@ -129,28 +105,13 @@ BOOL Execute(INT32 CmdId, HWND hWnd)
     {
         case CMD_TWEET:
         {
-            // 二重起動の防止
-            if ( g_hwnd )
-            {
-                ::SetForegroundWindow(g_hwnd);
-                WriteLog(elInfo, TEXT("%s: Window has been opened"), PLUGIN_NAME);
-                return FALSE;
-            }
+            TCHAR path[MAX_PATH];
+            const auto length = ::GetModuleFileName(g_hInst, path, MAX_PATH);
+            path[length - 4] = '\0';
 
-            // ウィンドウの生成
-            g_hwnd = Wnd::Create
-            (
-                PLUGIN_NAME, PLUGIN_NAME, 0, 0, nullptr
-            );
-            if ( g_hwnd == nullptr )
-            {
-                WriteLog(elInfo, TEXT("%s: Failed to open window"), PLUGIN_NAME);
-                return FALSE;
-            }
-            Wnd::Resize(g_hwnd, 400, 128);
-            Wnd::ToCenter(g_hwnd);
-            Wnd::Show(g_hwnd);
-            ::SetForegroundWindow(g_hwnd);
+            TCHAR filename[MAX_PATH];
+            ::StringCchPrintf(filename, MAX_PATH, TEXT("%s\\%s.exe"), path, PLUGIN_NAME);
+            ::ShellExecute(nullptr, TEXT("open"), filename, nullptr, nullptr, SW_SHOW);
 
             WriteLog(elInfo, TEXT("%s: Successfully opened window"), PLUGIN_NAME);
             return TRUE;
@@ -168,6 +129,42 @@ BOOL Execute(INT32 CmdId, HWND hWnd)
 void Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 }
+
+//---------------------------------------------------------------------------//
+//
+// CRT を使わないため new/delete を自前で実装
+//
+//---------------------------------------------------------------------------//
+
+#ifdef _NODEFLIB
+
+void* __cdecl operator new(size_t size)
+{
+    return ::HeapAlloc(::GetProcessHeap(), 0, size);
+}
+
+void __cdecl operator delete(void* p)
+{
+    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
+}
+
+void* __cdecl operator new[](size_t size)
+{
+    return ::HeapAlloc(::GetProcessHeap(), 0, size);
+}
+
+void __cdecl operator delete[](void* p)
+{
+    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
+}
+
+//---------------------------------------------------------------------------//
+
+// プログラムサイズを小さくするためにCRTを除外
+#pragma comment(linker, "/nodefaultlib:libcmt.lib")
+#pragma comment(linker, "/entry:DllMain")
+
+#endif
 
 //---------------------------------------------------------------------------//
 

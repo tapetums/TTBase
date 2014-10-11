@@ -16,13 +16,13 @@ Windows XP では起動しません。
 Microsoft Visual C++ 2008 および 2013 ランタイムが必要です。
 また、以下のライブラリを使用しています。
 
-<OpenSSL>
+・OpenSSL
 http://slproweb.com/products/Win32OpenSSL.html
 
-<libssh2>
+・libssh2
 http://www.libssh2.org/download/
 
-<cURL>
+・cURL
 http://curl.haxx.se/download.html
 
 
@@ -30,21 +30,23 @@ http://curl.haxx.se/download.html
 ├─README.TXT
 ├─NYSL.TXT
 ├─x64
-│　├─libeay32.dll
-│　├─ssleay32.dll
-│　├─libssh2.dll
-│　├─libcurl.dll
-│　└─plugins
-│　　　└─PopTwit.dll
+│　├─PopTwit.dll
+│　└─PopTwit
+│　　　├─PopTwit.exe
+│　　　├─libeay32.dll
+│　　　├─ssleay32.dll
+│　　　├─libssh2.dll
+│　　　└─libcurl.dll
 └─x86
-　　├─libeay32.dll
-　　├─ssleay32.dll
-　　├─libssh2.dll
-　　├─libcurl.dll
-　　└─plugins
-　　　　└─PopTwit.dll
+　　├─PopTwit.dll
+　　└─PopTwit
+　　　　├─PopTwit.exe
+　　　　├─libeay32.dll
+　　　　├─ssleay32.dll
+　　　　├─libssh2.dll
+　　　　└─libcurl.dll
 
-計 12 ファイル
+計 14 ファイル
 
 
 【インストール】
@@ -53,21 +55,13 @@ TTBase の場合は、本体のインストールフォルダ以下の場所に�
 
 32ビット版 は x86 フォルダ一式を、
 64ビット版 は x64 フォルダ一式を それぞれお使いください。
-
-PopTwit.dll の他に、以下の 4 つの dll ファイルが必要です。
-exe ファイルと同じ階層のフォルダに配置してください。
-・libeay32.dll
-・ssleay32.dll
-・libssh2.dll
-・libcurl.dll
-いずれもアーカイブに含まれています。
+PopTwit.dll と PopTwit の位置関係は崩さないでください。
 
 
 【アンインストール】
-DLLファイルを削除してください。レジストリは使用していません。
-常駐型のプラグインのため、本体を一旦終了させる必要があります。
+DLLファイルおよびPopTwitフォルダ以下を削除してください。レジストリは使用していません。
 
- なお、%LOCALAPPDATA%PopTwit に一時ファイルを保存しています。
+ なお、%LOCALAPPDATA%\PopTwit に一時ファイルを保存しています。
  ( Windows 7 であれば C:\Users\アカウント名\AppData\Local\PopTwit\ )
 お手数ですが手動での削除をお願いします。
 
@@ -95,6 +89,9 @@ http://www.kmonos.net/nysl/
 
 
 【更新履歴】
+2014.10.11 v0.2.0.0
+・常駐プラグインからコマンドプラグインに変更
+
 2014.10.11 v0.1.0.2
 ・32ビット版を ANSI に
 ・メッセージ送信時のエンコードバグを修正
