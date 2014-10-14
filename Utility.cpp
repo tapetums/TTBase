@@ -194,7 +194,7 @@ void WriteLog(ERROR_LEVEL logLevel, LPCTSTR format, ...)
         return;
     }
 
-    static const size_t BUF_SIZE = 1024;
+    const size_t BUF_SIZE = 1024;
     thread_local TCHAR msg[BUF_SIZE];
 
     va_list al;

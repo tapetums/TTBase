@@ -35,7 +35,7 @@ HWND      g_hwnd  = nullptr;
 LPCTSTR PLUGIN_NAME = TEXT("PopTwit");
 
 // コマンドの数
-DWORD COMMAND_COUNT = 1;
+DWORD COMMAND_COUNT = 2;
 
 //---------------------------------------------------------------------------//
 
@@ -43,6 +43,7 @@ DWORD COMMAND_COUNT = 1;
 enum CMD : INT32
 {
     CMD_TWEET,
+    CMD_SHOW_TRENDS,
 };
 
 //---------------------------------------------------------------------------//
@@ -59,6 +60,16 @@ PLUGIN_COMMAND_INFO g_cmd_info[] =
         dmHotKeyMenu,     // DispMenu
         0,                // TimerInterval[msec] 0で使用しない
         0                 // TimerCounter（未使用）
+    },
+    {
+        TEXT("Show Trends"),    // コマンド名（英名）
+        TEXT("トレンドを表示"), // コマンド説明（日本語）
+        CMD_SHOW_TRENDS,        // コマンドID
+        0,                      // Attr（未使用）
+        -1,                     // ResTd(未使用）
+        dmHotKeyMenu,           // DispMenu
+        0,                      // TimerInterval[msec] 0で使用しない
+        0                       // TimerCounter（未使用）
     },
 };
 
@@ -111,6 +122,19 @@ BOOL Execute(INT32 CmdId, HWND hWnd)
 
             TCHAR filename[MAX_PATH];
             ::StringCchPrintf(filename, MAX_PATH, TEXT("%s\\%s.exe"), path, PLUGIN_NAME);
+            ::ShellExecute(nullptr, TEXT("open"), filename, nullptr, nullptr, SW_SHOW);
+
+            WriteLog(elInfo, TEXT("%s: Successfully opened window"), PLUGIN_NAME);
+            return TRUE;
+        }
+        case CMD_SHOW_TRENDS:
+        {
+            TCHAR path[MAX_PATH];
+            const auto length = ::GetModuleFileName(g_hInst, path, MAX_PATH);
+            path[length - 4] = '\0';
+
+            TCHAR filename[MAX_PATH];
+            ::StringCchPrintf(filename, MAX_PATH, TEXT("%s\\%s.exe"), path, TEXT("PopTrend"));
             ::ShellExecute(nullptr, TEXT("open"), filename, nullptr, nullptr, SW_SHOW);
 
             WriteLog(elInfo, TEXT("%s: Successfully opened window"), PLUGIN_NAME);
