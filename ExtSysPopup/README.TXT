@@ -1,8 +1,8 @@
 【ソフト名】 ExtSysPopup
-【著作権者】 Copyright(C) 2014 tapetums
+【著作権者】 Copyright (C) 2014-2016 tapetums
 【種　　別】 TTBase プラグイン
-【動作環境】 Windows XP/Vista/7/8/8.1
-【開発環境】 Visual C++ 2013 Express Edition
+【動作環境】 Windows Vista/7/8/8.1/10 32/64-bit
+【開発環境】 Visual Studio Community 2015
 
 
 【概要】
@@ -36,11 +36,15 @@ DLLファイルを削除してください。設定ファイル等は使用し�
 
 
 【ライセンス】
-NYSL です。このプラグラムを使用したことによる一切の影響は関知しません。
+NYSL Version 0.9982 です。このプラグラムを使用したことによる一切の影響は関知しません。
 http://www.kmonos.net/nysl/
 
 
 【更新履歴】
+2016.01.30 v1.0.0.2
+・開発環境を Visual Studio Community 2015 に変更
+・細かなバグを修正
+
 2014.10.06 v1.0.0.1
  ・「プラグインの再読み込み」を行うと初期化に失敗するのを修正
 

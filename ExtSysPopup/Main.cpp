@@ -9,11 +9,12 @@
 #include <psapi.h>
 #pragma comment(lib, "psapi.lib")
 
-#include "..\Plugin.h"
-#include "..\MessageDef.h"
-#include "..\Utility.h"
-#include "Main.h"
-#include "MouseHook.h"
+#include "..\Plugin.hpp"
+#include "..\MessageDef.hpp"
+#include "..\Utility.hpp"
+#include "MouseHook.hpp"
+
+#include "Main.hpp"
 
 //---------------------------------------------------------------------------//
 //
@@ -21,17 +22,17 @@
 //
 //---------------------------------------------------------------------------//
 
-HINSTANCE g_hInstance = nullptr;
-HANDLE    g_hMutex    = nullptr;
-HWND      g_hwnd      = nullptr;
+HINSTANCE g_hInst  { nullptr };
+HANDLE    g_hMutex { nullptr };
+HWND      g_hwnd   { nullptr };
 
 //---------------------------------------------------------------------------//
 
 // プラグインの名前
-LPCTSTR PLUGIN_NAME = TEXT("ExtSysPopup");
+LPCTSTR PLUGIN_NAME { TEXT("ExtSysPopup") };
 
 // コマンドの数
-DWORD COMMAND_COUNT = 2;
+DWORD COMMAND_COUNT { 2 };
 
 //---------------------------------------------------------------------------//
 
@@ -84,36 +85,6 @@ PLUGIN_INFO g_info =
     &g_cmd_info[0],      // コマンド
     0,                   // ロードにかかった時間（msec）
 };
-
-//---------------------------------------------------------------------------//
-//
-// CRT を使わないため new/delete を自前で実装
-//
-//---------------------------------------------------------------------------//
-
-#ifndef _DEBUG
-
-void* __cdecl operator new(size_t size)
-{
-    return ::HeapAlloc(::GetProcessHeap(), 0, size);
-}
-
-void __cdecl operator delete(void* p)
-{
-    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
-}
-
-void* __cdecl operator new[](size_t size)
-{
-    return ::HeapAlloc(::GetProcessHeap(), 0, size);
-}
-
-void __cdecl operator delete[](void* p)
-{
-    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
-}
-
-#endif
 
 //---------------------------------------------------------------------------//
 
@@ -208,14 +179,14 @@ ATOM Register(LPCTSTR lpszClassName)
     wc.style         = 0;
     wc.cbClsExtra    = 0;
     wc.cbWndExtra    = 0;
-    wc.hInstance     = g_hInstance;
+    wc.hInstance     = g_hInst;
     wc.hIcon         = nullptr;
     wc.hCursor       = nullptr;
     wc.hbrBackground = nullptr;
     wc.lpszMenuName  = nullptr;
     wc.lpszClassName = lpszClassName;
     wc.hIconSm       = nullptr;
-    wc.lpfnWndProc   = [](HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp) -> LRESULT
+    wc.lpfnWndProc   = [](HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp)
     {
         return ::DefWindowProc(hwnd, uMsg, wp, lp);
     };
@@ -229,7 +200,10 @@ ATOM Register(LPCTSTR lpszClassName)
 BOOL Init(void)
 {
     // フックのために二重起動を禁止
-    g_hMutex = ::CreateMutex(nullptr, TRUE, PLUGIN_NAME);
+    if ( g_hMutex == nullptr )
+    {
+        g_hMutex = ::CreateMutex(nullptr, TRUE, PLUGIN_NAME);
+    }
     if ( g_hMutex == nullptr )
     {
         WriteLog(elError, TEXT("%s: Failed to create mutex"), PLUGIN_NAME);
@@ -257,12 +231,15 @@ BOOL Init(void)
     }
 
     // TrackPopupMenu() のためにウィンドウを生成
-    g_hwnd = ::CreateWindowEx
-    (
-        0, PLUGIN_NAME, PLUGIN_NAME, 0,
-        100, 100, 320, 240,
-        nullptr, 0, g_hInstance, nullptr
-    );
+    if ( g_hwnd == nullptr )
+    {
+        g_hwnd = ::CreateWindowEx
+        (
+            0, PLUGIN_NAME, PLUGIN_NAME, 0,
+            100, 100, 320, 240,
+            nullptr, nullptr, g_hInst, nullptr
+        );
+    }
     if ( g_hwnd == nullptr )
     {
         WriteLog(elError, TEXT("%s: CreateWindowEx() failed"), PLUGIN_NAME);
@@ -285,7 +262,7 @@ UNLOAD:
 
     Unload();
 
-    return false;
+    return FALSE;
 }
 
 //---------------------------------------------------------------------------//
@@ -299,7 +276,7 @@ void Unload(void)
     // ウィンドウを破棄
     if ( g_hwnd != nullptr )
     {
-        DestroyWindow(g_hwnd);
+        ::DestroyWindow(g_hwnd);
         g_hwnd = nullptr;
     }
 
@@ -343,11 +320,48 @@ BOOL Execute(INT32 CmdId, HWND hWnd)
 // TTBEvent_WindowsHook() の内部実装
 void Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
+    UNREFERENCED_PARAMETER(Msg);
+    UNREFERENCED_PARAMETER(wParam);
+    UNREFERENCED_PARAMETER(lParam);
 }
 
 //---------------------------------------------------------------------------//
+//
+// CRT を使わないため new/delete を自前で実装
+//
+//---------------------------------------------------------------------------//
 
-#ifndef _DEBUG
+#if defined(_NODEFLIB)
+
+void* __cdecl operator new(size_t size)
+{
+    return ::HeapAlloc(::GetProcessHeap(), 0, size);
+}
+
+void __cdecl operator delete(void* p)
+{
+    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
+}
+
+void __cdecl operator delete(void* p, size_t) // C++14
+{
+    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
+}
+
+void* __cdecl operator new[](size_t size)
+{
+    return ::HeapAlloc(::GetProcessHeap(), 0, size);
+}
+
+void __cdecl operator delete[](void* p)
+{
+    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
+}
+
+void __cdecl operator delete[](void* p, size_t) // C++14
+{
+    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
+}
 
 // プログラムサイズを小さくするためにCRTを除外
 #pragma comment(linker, "/nodefaultlib:libcmt.lib")
@@ -355,12 +369,14 @@ void Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 
 #endif
 
+//---------------------------------------------------------------------------//
+
 // DLL エントリポイント
-BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, LPVOID lpvReserved)
+BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, LPVOID)
 {
     if ( fdwReason == DLL_PROCESS_ATTACH )
     {
-        g_hInstance = hInstance;
+        g_hInst = hInstance;
     }
     return TRUE;
 }

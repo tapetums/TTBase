@@ -1,6 +1,6 @@
 ﻿/******************************************************************************
 *                                                                             *
-*    MouseHook.cpp                          Copyright(c) 2009-2011 itow,y.    *
+*    MouseHook.cpp      Copyright(c) 2009-2011 itow,y., 2014-2016 tapetums    *
 *                                                                             *
 ******************************************************************************/
 
@@ -29,21 +29,16 @@ THE SOFTWARE.
 
 #include <windows.h>
 
-#include "..\Plugin.h"
-#include "..\Utility.h"
-#include "MouseHook.h"
-#include "Main.h"
+#include "..\Plugin.hpp"
+#include "..\Utility.hpp"
+#include "Main.hpp"
+
+#include "MouseHook.hpp"
 
 //---------------------------------------------------------------------------//
 
 // フックハンドル
-static HHOOK g_hHook = nullptr;
-
-// インスタンスハンドル
-extern HINSTANCE g_hInstance;
-
-// インスタンスハンドル
-extern HWND g_hwnd;
+namespace{ HHOOK g_hHook { nullptr }; }
 
 //---------------------------------------------------------------------------//
 
@@ -77,7 +72,7 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
     }
 
     // リソースからメニューを取得
-    const auto hMenu    = ::LoadMenu(g_hInstance, MAKEINTRESOURCE(100));
+    const auto hMenu    = ::LoadMenu(g_hInst, MAKEINTRESOURCE(100));
     const auto hSubMenu = ::GetSubMenu(hMenu, 0);
 
     const auto topmost = CheckTopMost(hwnd);
@@ -140,12 +135,9 @@ Skip:
 // フックの開始
 BOOL WMBeginHook(void)
 {
-    if ( g_hHook != nullptr )
-    {
-        return FALSE;
-    }
+    if ( g_hHook != nullptr ) { return TRUE; }
 
-    g_hHook = ::SetWindowsHookEx(WH_MOUSE, MouseHookProc, g_hInstance, 0);
+    g_hHook = ::SetWindowsHookEx(WH_MOUSE, MouseHookProc, g_hInst, 0);
 
     return (g_hHook != nullptr) ? TRUE : FALSE;
 }
@@ -155,10 +147,7 @@ BOOL WMBeginHook(void)
 // フックの終了
 BOOL WMEndHook(void)
 {
-    if ( g_hHook == nullptr )
-    {
-        return FALSE;
-    }
+    if ( g_hHook == nullptr ) { return FALSE; }
 
     ::UnhookWindowsHookEx(g_hHook);
     g_hHook = nullptr;
@@ -168,4 +157,4 @@ BOOL WMEndHook(void)
 
 //---------------------------------------------------------------------------//
 
-// 
+// MouseHook.cpp
