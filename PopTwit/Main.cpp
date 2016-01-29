@@ -14,11 +14,11 @@
 #define StringCchPrintf wnsprintf
 #endif
 
-#include "..\Plugin.h"
-#include "..\MessageDef.h"
-#include "..\Utility.h"
+#include "..\Plugin.hpp"
+#include "..\MessageDef.hpp"
+#include "..\Utility.hpp"
 
-#include "Main.h"
+#include "Main.hpp"
 
 //---------------------------------------------------------------------------//
 //
@@ -26,16 +26,15 @@
 //
 //---------------------------------------------------------------------------//
 
-HINSTANCE g_hInst = nullptr;
-HWND      g_hwnd  = nullptr;
+HINSTANCE g_hInst { nullptr };
 
 //---------------------------------------------------------------------------//
 
 // プラグインの名前
-LPCTSTR PLUGIN_NAME = TEXT("PopTwit");
+LPCTSTR PLUGIN_NAME { TEXT("PopTwit") };
 
 // コマンドの数
-DWORD COMMAND_COUNT = 2;
+DWORD COMMAND_COUNT { 2 };
 
 //---------------------------------------------------------------------------//
 
@@ -110,7 +109,7 @@ void Unload(void)
 //---------------------------------------------------------------------------//
 
 // TTBEvent_Execute() の内部実装
-BOOL Execute(INT32 CmdId, HWND hWnd)
+BOOL Execute(INT32 CmdId, HWND)
 {
     switch ( CmdId )
     {
@@ -152,6 +151,9 @@ BOOL Execute(INT32 CmdId, HWND hWnd)
 // TTBEvent_WindowsHook() の内部実装
 void Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
+    UNREFERENCED_PARAMETER(Msg);
+    UNREFERENCED_PARAMETER(wParam);
+    UNREFERENCED_PARAMETER(lParam);
 }
 
 //---------------------------------------------------------------------------//
@@ -160,7 +162,7 @@ void Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 //
 //---------------------------------------------------------------------------//
 
-#ifdef _NODEFLIB
+#if defined(_NODEFLIB)
 
 void* __cdecl operator new(size_t size)
 {
@@ -168,6 +170,11 @@ void* __cdecl operator new(size_t size)
 }
 
 void __cdecl operator delete(void* p)
+{
+    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
+}
+
+void __cdecl operator delete(void* p, size_t) // C++14
 {
     if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
 }
@@ -182,7 +189,10 @@ void __cdecl operator delete[](void* p)
     if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
 }
 
-//---------------------------------------------------------------------------//
+void __cdecl operator delete[](void* p, size_t) // C++14
+{
+    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
+}
 
 // プログラムサイズを小さくするためにCRTを除外
 #pragma comment(linker, "/nodefaultlib:libcmt.lib")
@@ -193,7 +203,7 @@ void __cdecl operator delete[](void* p)
 //---------------------------------------------------------------------------//
 
 // DLL エントリポイント
-BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, LPVOID lpvReserved)
+BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, LPVOID)
 {
     if ( fdwReason == DLL_PROCESS_ATTACH )
     {

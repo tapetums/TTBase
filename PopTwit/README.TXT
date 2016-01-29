@@ -1,8 +1,8 @@
 【ソフト名】 PopTwit
-【著作権者】 Copyright(C) 2014 tapetums
+【著作権者】 Copyright (C) 2014-2016 tapetums
 【種　　別】 TTBase プラグイン
-【動作環境】 Windows Vista/7/8/8.1 32/64-bit
-【開発環境】 Visual C++ 2013 Express Edition
+【動作環境】 Windows Vista/7/8/8.1/10 32/64-bit
+【開発環境】 Visual Studio Community 2015
 
 【概要】
 ツイッターに投稿するだけのプラグインです。マルチアカウント／マルチユーザーに対応しています。
@@ -82,13 +82,17 @@ DLLファイルおよびPopTwitフォルダ以下を削除してください。�
 
 
 【ライセンス】
-NYSL です。このプラグラムを使用したことによる一切の影響は関知しません。
+NYSL Version 0.9982 です。このプラグラムを使用したことによる一切の影響は関知しません。
 http://www.kmonos.net/nysl/
 
 なお、各ライブラリはそれぞれのライセンスに従います。
 
 
 【更新履歴】
+2016.01.30 v0.2.0.2
+・開発環境を Visual Studio Community 2015 に変更
+・細かなバグを修正
+
 2014.10.12 v0.2.0.1
 ・%LOCALAPPDATA%\PopTwit が存在しない場合認証情報を保存できないバグを修正
 
