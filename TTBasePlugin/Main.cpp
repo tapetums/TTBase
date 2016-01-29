@@ -6,10 +6,11 @@
 
 #include <windows.h>
 
-#include "..\Plugin.h"
-#include "..\MessageDef.h"
-#include "..\Utility.h"
-#include "Main.h"
+#include "..\Plugin.hpp"
+#include "..\MessageDef.hpp"
+#include "..\Utility.hpp"
+
+#include "Main.hpp"
 
 //---------------------------------------------------------------------------//
 //
@@ -17,15 +18,15 @@
 //
 //---------------------------------------------------------------------------//
 
-HINSTANCE g_hInstance  = nullptr;
+HINSTANCE g_hInst { nullptr };
 
 //---------------------------------------------------------------------------//
 
 // プラグインの名前
-LPCTSTR PLUGIN_NAME = TEXT("スケルトン");
+LPCTSTR PLUGIN_NAME { TEXT("スケルトン") };
 
 // コマンドの数
-DWORD COMMAND_COUNT = 1;
+DWORD COMMAND_COUNT { 1 };
 
 //---------------------------------------------------------------------------//
 
@@ -69,36 +70,6 @@ PLUGIN_INFO g_info =
 };
 
 //---------------------------------------------------------------------------//
-//
-// CRT を使わないため new/delete を自前で実装
-//
-//---------------------------------------------------------------------------//
-
-#ifndef _DEBUG
-
-void* __cdecl operator new(size_t size)
-{
-    return ::HeapAlloc(::GetProcessHeap(), 0, size);
-}
-
-void __cdecl operator delete(void* p)
-{
-    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
-}
-
-void* __cdecl operator new[](size_t size)
-{
-    return ::HeapAlloc(::GetProcessHeap(), 0, size);
-}
-
-void __cdecl operator delete[](void* p)
-{
-    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
-}
-
-#endif
-
-//---------------------------------------------------------------------------//
 
 // TTBEvent_Init() の内部実装
 BOOL Init(void)
@@ -106,12 +77,14 @@ BOOL Init(void)
     TCHAR ininame[MAX_PATH];
 
     // iniファイル名取得
-    const auto len = ::GetModuleFileName(g_hInstance, ininame, MAX_PATH);
+    const auto len = ::GetModuleFileName(g_hInst, ininame, MAX_PATH);
     ininame[len - 3] = 'i';
     ininame[len - 2] = 'n';
     ininame[len - 1] = 'i';
 
+    // パラメータ取得の例
     auto param = ::GetPrivateProfileInt(TEXT("Setting"), TEXT("Param"), 0, ininame);
+    UNREFERENCED_PARAMETER(param); // ERASE ME
 
     return TRUE;
 }
@@ -128,6 +101,8 @@ void Unload(void)
 // TTBEvent_Execute() の内部実装
 BOOL Execute(INT32 CmdId, HWND hWnd)
 {
+    UNREFERENCED_PARAMETER(hWnd); // ERASE ME
+
     switch ( CmdId )
     {
         case CMD_DUMMY:
@@ -140,8 +115,6 @@ BOOL Execute(INT32 CmdId, HWND hWnd)
             return FALSE;
         }
     }
-
-    return TRUE;
 }
 
 //---------------------------------------------------------------------------//
@@ -149,11 +122,48 @@ BOOL Execute(INT32 CmdId, HWND hWnd)
 // TTBEvent_WindowsHook() の内部実装
 void Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
+    UNREFERENCED_PARAMETER(Msg);    // ERASE ME
+    UNREFERENCED_PARAMETER(wParam); // ERASE ME
+    UNREFERENCED_PARAMETER(lParam); // ERASE ME
 }
 
 //---------------------------------------------------------------------------//
+//
+// CRT を使わないため new/delete を自前で実装
+//
+//---------------------------------------------------------------------------//
 
-#ifndef _DEBUG
+#if defined(_NODEFLIB)
+
+void* __cdecl operator new(size_t size)
+{
+    return ::HeapAlloc(::GetProcessHeap(), 0, size);
+}
+
+void __cdecl operator delete(void* p)
+{
+    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
+}
+
+void __cdecl operator delete(void* p, size_t) // C++14
+{
+    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
+}
+
+void* __cdecl operator new[](size_t size)
+{
+    return ::HeapAlloc(::GetProcessHeap(), 0, size);
+}
+
+void __cdecl operator delete[](void* p)
+{
+    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
+}
+
+void __cdecl operator delete[](void* p, size_t) // C++14
+{
+    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
+}
 
 // プログラムサイズを小さくするためにCRTを除外
 #pragma comment(linker, "/nodefaultlib:libcmt.lib")
@@ -161,12 +171,14 @@ void Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 
 #endif
 
+//---------------------------------------------------------------------------//
+
 // DLL エントリポイント
-BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, LPVOID lpvReserved)
+BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, LPVOID)
 {
     if ( fdwReason == DLL_PROCESS_ATTACH )
     {
-        g_hInstance = hInstance;
+        g_hInst = hInstance;
     }
     return TRUE;
 }

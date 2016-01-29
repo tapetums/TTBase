@@ -1,12 +1,13 @@
-﻿//---------------------------------------------------------------------------//
+﻿#pragma once
+
+//---------------------------------------------------------------------------//
 //
-//                         TTB Plugin Template(VC++)
-//
-//                               Plugin.h
+// Plugin.hpp
+//  TTB Plugin Template (C++11)
 //
 //---------------------------------------------------------------------------//
 
-#pragma once
+#include <windows.h>
 
 //---------------------------------------------------------------------------//
 //
@@ -63,8 +64,8 @@ enum ERROR_LEVEL : DWORD
 // 構造体アライメント圧縮
 #pragma pack(push,1)
 
-// コマンド情報構造体
-typedef struct
+// コマンド情報構造体 (UNICODE)
+struct PLUGIN_COMMAND_INFO_W
 {
     LPWSTR   Name;          // コマンドの名前（英名）
     LPWSTR   Caption;       // コマンドの説明（日本語）
@@ -74,9 +75,10 @@ typedef struct
     DISPMENU DispMenu;      // メニュー表示に関する設定
     DWORD    TimerInterval; // コマンド実行タイマー間隔[msec] 0で機能を使わない。
     DWORD    TimerCounter;  // システム内部で使用
-} PLUGIN_COMMAND_INFO_W;
+};
 
-typedef struct
+// コマンド情報構造体 (ANSI)
+struct PLUGIN_COMMAND_INFO_A
 {
     LPSTR    Name;          // コマンドの名前（英名）
     LPSTR    Caption;       // コマンドの説明（日本語）
@@ -86,10 +88,10 @@ typedef struct
     DISPMENU DispMenu;      // メニュー表示に関する設定
     DWORD    TimerInterval; // コマンド実行タイマー間隔[msec] 0で機能を使わない。
     DWORD    TimerCounter;  // システム内部で使用
-} PLUGIN_COMMAND_INFO_A;
+};
 
-// プラグイン情報構造体
-typedef struct
+// プラグイン情報構造体 (UNICODE)
+struct PLUGIN_INFO_W
 {
     WORD                   NeedVersion;  // プラグインI/F要求バージョン
     LPWSTR                 Name;         // プラグインの説明（日本語）
@@ -100,9 +102,10 @@ typedef struct
     DWORD                  CommandCount; // コマンド個数
     PLUGIN_COMMAND_INFO_W* Commands;     // コマンド
     DWORD                  LoadTime;     // ロードにかかった時間（msec）
-} PLUGIN_INFO_W;
+};
 
-typedef struct
+// コマンド情報構造体 (ANSI)
+struct PLUGIN_INFO_A
 {
     WORD                   NeedVersion;  // プラグインI/F要求バージョン
     LPSTR                  Name;         // プラグインの説明（日本語）
@@ -113,17 +116,17 @@ typedef struct
     DWORD                  CommandCount; // コマンド個数
     PLUGIN_COMMAND_INFO_A* Commands;     // コマンド
     DWORD                  LoadTime;     // ロードにかかった時間（msec）
-} PLUGIN_INFO_A;
+};
 
 #pragma pack(pop)
 
 // UNICODE マクロの定義の有無で使用する構造体を切り分ける
-#if defined _UNICODE || defined UNICODE
-typedef PLUGIN_COMMAND_INFO_W PLUGIN_COMMAND_INFO;
-typedef PLUGIN_INFO_W PLUGIN_INFO;
+#if defined(_UNICODE) || defined(UNICODE)
+  using PLUGIN_COMMAND_INFO = PLUGIN_COMMAND_INFO_W;
+  using PLUGIN_INFO         = PLUGIN_INFO_W;
 #else
-typedef PLUGIN_COMMAND_INFO_A PLUGIN_COMMAND_INFO;
-typedef PLUGIN_INFO_A PLUGIN_INFO;
+  using PLUGIN_COMMAND_INFO = PLUGIN_COMMAND_INFO_A;
+  using PLUGIN_INFO         = PLUGIN_INFO_A;
 #endif
 
 //---------------------------------------------------------------------------//
@@ -132,21 +135,18 @@ typedef PLUGIN_INFO_A PLUGIN_INFO;
 //
 //---------------------------------------------------------------------------//
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern PLUGIN_INFO*  (WINAPI* TTBPlugin_GetPluginInfo)      (DWORD_PTR hPlugin);
-extern void          (WINAPI* TTBPlugin_SetPluginInfo)      (DWORD_PTR hPlugin, PLUGIN_INFO* PLUGIN_INFO);
-extern void          (WINAPI* TTBPlugin_FreePluginInfo)     (PLUGIN_INFO* PLUGIN_INFO);
-extern void          (WINAPI* TTBPlugin_SetMenuProperty)    (DWORD_PTR hPlugin, INT32 CommandID, CHANGE_FLAG ChangeFlag, DISPMENU Flag);
-extern PLUGIN_INFO** (WINAPI* TTBPlugin_GetAllPluginInfo)   (void);
-extern void          (WINAPI* TTBPlugin_FreePluginInfoArray)(PLUGIN_INFO** PluginInfoArray);
-extern void          (WINAPI* TTBPlugin_SetTaskTrayIcon)    (HICON hIcon, LPCTSTR Tips);
-extern void          (WINAPI* TTBPlugin_WriteLog)           (DWORD_PTR hPlugin, ERROR_LEVEL logLevel, LPCTSTR msg);
-extern BOOL          (WINAPI* TTBPlugin_ExecuteCommand)     (LPCTSTR PluginFilename, INT32 CmdID);
-#ifdef __cplusplus
-};
-#endif
+extern "C"
+{
+    extern PLUGIN_INFO*  (WINAPI* TTBPlugin_GetPluginInfo)      (DWORD_PTR hPlugin);
+    extern void          (WINAPI* TTBPlugin_SetPluginInfo)      (DWORD_PTR hPlugin, PLUGIN_INFO* PLUGIN_INFO);
+    extern void          (WINAPI* TTBPlugin_FreePluginInfo)     (PLUGIN_INFO* PLUGIN_INFO);
+    extern void          (WINAPI* TTBPlugin_SetMenuProperty)    (DWORD_PTR hPlugin, INT32 CommandID, CHANGE_FLAG ChangeFlag, DISPMENU Flag);
+    extern PLUGIN_INFO** (WINAPI* TTBPlugin_GetAllPluginInfo)   (void);
+    extern void          (WINAPI* TTBPlugin_FreePluginInfoArray)(PLUGIN_INFO** PluginInfoArray);
+    extern void          (WINAPI* TTBPlugin_SetTaskTrayIcon)    (HICON hIcon, LPCTSTR Tips);
+    extern void          (WINAPI* TTBPlugin_WriteLog)           (DWORD_PTR hPlugin, ERROR_LEVEL logLevel, LPCTSTR msg);
+    extern BOOL          (WINAPI* TTBPlugin_ExecuteCommand)     (LPCTSTR PluginFilename, INT32 CmdID);
+}
 
 //---------------------------------------------------------------------------//
 //
@@ -154,20 +154,18 @@ extern BOOL          (WINAPI* TTBPlugin_ExecuteCommand)     (LPCTSTR PluginFilen
 //
 //---------------------------------------------------------------------------//
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-// 必須
-PLUGIN_INFO* WINAPI TTBEvent_InitPluginInfo(LPTSTR PluginFilename);
-void         WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PLUGIN_INFO);
-// 任意
-BOOL         WINAPI TTBEvent_Init          (LPTSTR PluginFilename, DWORD_PTR hPlugin);
-void         WINAPI TTBEvent_Unload        (void);
-BOOL         WINAPI TTBEvent_Execute       (INT32 CommandID, HWND hWnd);
-void         WINAPI TTBEvent_WindowsHook   (UINT Msg, WPARAM wParam, LPARAM lParam);
-#ifdef __cplusplus
-};
-#endif
+extern "C"
+{
+    // 必須
+    PLUGIN_INFO* WINAPI TTBEvent_InitPluginInfo(LPTSTR PluginFilename);
+    void         WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PLUGIN_INFO);
+
+    // 任意
+    BOOL         WINAPI TTBEvent_Init          (LPTSTR PluginFilename, DWORD_PTR hPlugin);
+    void         WINAPI TTBEvent_Unload        (void);
+    BOOL         WINAPI TTBEvent_Execute       (INT32 CommandID, HWND hWnd);
+    void         WINAPI TTBEvent_WindowsHook   (UINT Msg, WPARAM wParam, LPARAM lParam);
+}
 
 //---------------------------------------------------------------------------//
 //
@@ -203,4 +201,4 @@ void Hook   (UINT Msg, WPARAM wParam, LPARAM lParam);
 
 //---------------------------------------------------------------------------//
 
-// Plugi.h
+// Plugi.hpp

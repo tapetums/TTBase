@@ -1,55 +1,49 @@
-//---------------------------------------------------------------------------//
+Ôªø//---------------------------------------------------------------------------//
 //
-//                         TTB Plugin Template(VC++)
-//
-//                              MessageDef.cpp
+// MessageDef.cpp
+//  TTB Plugin Template (C++11)
 //
 //---------------------------------------------------------------------------//
 
 #include <windows.h>
 
-// Messageópï∂éöóÒ
-#ifdef _UNICODE
-#define TTB_HSHELL_ACTIVATESHELLWINDOW_MESSAGE L"TTBase HShell Activate ShellWindow"
-#define TTB_HSHELL_GETMINRECT_MESSAGE          L"TTBase HShell GetMinRect"
-#define TTB_HSHELL_LANGUAGE_MESSAGE            L"TTBase HShell Language"
-#define TTB_HSHELL_REDRAW_MESSAGE              L"TTBase HShell Redraw"
-#define TTB_HSHELL_TASKMAN_MESSAGE             L"TTBase HShell TaskMan"
-#define TTB_HSHELL_WINDOWACTIVATED_MESSAGE     L"TTBase HShell WindowActivated"
-#define TTB_HSHELL_WINDOWCREATED_MESSAGE       L"TTBase HShell WindowCreated"
-#define TTB_HSHELL_WINDOWDESTROYED_MESSAGE     L"TTBase HShell WindowDestroyed"
-#define TTB_HMOUSE_ACTION_MESSAGE              L"TTBase HMouse Action"
-#define TTB_ICON_NOTIFY_MESSAGE                L"TTBase ICON NOTIFY"
-#define TTB_LOAD_DATA_FILE_MESSAGE             L"TTBase LOAD DATA FILE"
-#define TTB_SAVE_DATA_FILE_MESSAGE             L"TTBase SAVE DATA FILE"
-#else
-#define TTB_HSHELL_ACTIVATESHELLWINDOW_MESSAGE "TTBase HShell Activate ShellWindow"
-#define TTB_HSHELL_GETMINRECT_MESSAGE          "TTBase HShell GetMinRect"
-#define TTB_HSHELL_LANGUAGE_MESSAGE            "TTBase HShell Language"
-#define TTB_HSHELL_REDRAW_MESSAGE              "TTBase HShell Redraw"
-#define TTB_HSHELL_TASKMAN_MESSAGE             "TTBase HShell TaskMan"
-#define TTB_HSHELL_WINDOWACTIVATED_MESSAGE     "TTBase HShell WindowActivated"
-#define TTB_HSHELL_WINDOWCREATED_MESSAGE       "TTBase HShell WindowCreated"
-#define TTB_HSHELL_WINDOWDESTROYED_MESSAGE     "TTBase HShell WindowDestroyed"
-#define TTB_HMOUSE_ACTION_MESSAGE              "TTBase HMouse Action"
-#define TTB_ICON_NOTIFY_MESSAGE                "TTBase ICON NOTIFY"
-#define TTB_LOAD_DATA_FILE_MESSAGE             "TTBase LOAD DATA FILE"
-#define TTB_SAVE_DATA_FILE_MESSAGE             "TTBase SAVE DATA FILE"
-#endif
+//---------------------------------------------------------------------------//
+// MessageÁî®ÊñáÂ≠óÂàó
+//---------------------------------------------------------------------------//
 
-// MessageíËã`
-UINT TTB_HSHELL_ACTIVATESHELLWINDOW;
-UINT TTB_HSHELL_GETMINRECT;
-UINT TTB_HSHELL_LANGUAGE;
-UINT TTB_HSHELL_REDRAW;
-UINT TTB_HSHELL_TASKMAN;
-UINT TTB_HSHELL_WINDOWACTIVATED;
-UINT TTB_HSHELL_WINDOWCREATED;
-UINT TTB_HSHELL_WINDOWDESTROYED;
-UINT TTB_HMOUSE_ACTION;
-UINT TTB_ICON_NOTIFY;
-UINT TTB_LOAD_DATA_FILE;
-UINT TTB_SAVE_DATA_FILE;
+constexpr auto TTB_HSHELL_ACTIVATESHELLWINDOW_MESSAGE = TEXT("TTBase HShell Activate ShellWindow");
+constexpr auto TTB_HSHELL_GETMINRECT_MESSAGE          = TEXT("TTBase HShell GetMinRect");
+constexpr auto TTB_HSHELL_LANGUAGE_MESSAGE            = TEXT("TTBase HShell Language");
+constexpr auto TTB_HSHELL_REDRAW_MESSAGE              = TEXT("TTBase HShell Redraw");
+constexpr auto TTB_HSHELL_TASKMAN_MESSAGE             = TEXT("TTBase HShell TaskMan");
+constexpr auto TTB_HSHELL_WINDOWACTIVATED_MESSAGE     = TEXT("TTBase HShell WindowActivated");
+constexpr auto TTB_HSHELL_WINDOWCREATED_MESSAGE       = TEXT("TTBase HShell WindowCreated");
+constexpr auto TTB_HSHELL_WINDOWDESTROYED_MESSAGE     = TEXT("TTBase HShell WindowDestroyed");
+constexpr auto TTB_HMOUSE_ACTION_MESSAGE              = TEXT("TTBase HMouse Action");
+constexpr auto TTB_ICON_NOTIFY_MESSAGE                = TEXT("TTBase ICON NOTIFY");
+constexpr auto TTB_LOAD_DATA_FILE_MESSAGE             = TEXT("TTBase LOAD DATA FILE");
+constexpr auto TTB_SAVE_DATA_FILE_MESSAGE             = TEXT("TTBase SAVE DATA FILE");
+
+//---------------------------------------------------------------------------//
+// MessageÂÆöÁæ©
+//---------------------------------------------------------------------------//
+
+UINT TTB_HSHELL_ACTIVATESHELLWINDOW { 0 };
+UINT TTB_HSHELL_GETMINRECT          { 0 };
+UINT TTB_HSHELL_LANGUAGE            { 0 };
+UINT TTB_HSHELL_REDRAW              { 0 };
+UINT TTB_HSHELL_TASKMAN             { 0 };
+UINT TTB_HSHELL_WINDOWACTIVATED     { 0 };
+UINT TTB_HSHELL_WINDOWCREATED       { 0 };
+UINT TTB_HSHELL_WINDOWDESTROYED     { 0 };
+UINT TTB_HMOUSE_ACTION              { 0 };
+UINT TTB_ICON_NOTIFY                { 0 };
+UINT TTB_LOAD_DATA_FILE             { 0 };
+UINT TTB_SAVE_DATA_FILE             { 0 };
+
+//---------------------------------------------------------------------------//
+// ÂèñÂæóÁî®Èñ¢Êï∞
+//---------------------------------------------------------------------------//
 
 void RegisterMessages(void)
 {
@@ -66,3 +60,7 @@ void RegisterMessages(void)
     TTB_LOAD_DATA_FILE             = ::RegisterWindowMessage(TTB_LOAD_DATA_FILE_MESSAGE);
     TTB_SAVE_DATA_FILE             = ::RegisterWindowMessage(TTB_SAVE_DATA_FILE_MESSAGE);
 }
+
+//---------------------------------------------------------------------------//
+
+// MessageDef.cpp
