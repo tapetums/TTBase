@@ -1,6 +1,6 @@
 /******************************************************************************
 *                                                                             *
-*    WheelMagicHook.cpp      Copyright(c) 2009-2011 itow,y., 2014 tapetums    *
+*   WheelMagicHook.cpp   Copyright(c) 2009-2011 itow,y., 2014-2016 tapetums   *
 *                                                                             *
 ******************************************************************************/
 
@@ -26,18 +26,16 @@ THE SOFTWARE.
 
 ******************************************************************************/
 
-
 #include <windows.h>
 
-#include "WheelMagicHook.h"
+#include "Main.hpp"
+
+#include "WheelMagicHook.hpp"
 
 //---------------------------------------------------------------------------//
 
 // フックハンドル
-static HHOOK g_hHook = nullptr;
-
-// インスタンスハンドル
-extern HINSTANCE g_hInstance;
+namespace { HHOOK g_hHook { nullptr }; }
 
 //---------------------------------------------------------------------------//
 
@@ -169,20 +167,13 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam)
     }
 
     WORD KeyState = 0;
-    if ( ::GetAsyncKeyState(VK_LBUTTON) < 0 )
-        KeyState |= MK_LBUTTON;
-    if ( ::GetAsyncKeyState(VK_RBUTTON) < 0 )
-        KeyState |= MK_RBUTTON;
-    if ( ::GetAsyncKeyState(VK_MBUTTON) < 0 )
-        KeyState |= MK_MBUTTON;
-    if ( ::GetAsyncKeyState(VK_XBUTTON1) < 0 )
-        KeyState |= MK_XBUTTON1;
-    if ( ::GetAsyncKeyState(VK_XBUTTON2) < 0 )
-        KeyState |= MK_XBUTTON2;
-    if ( ::GetAsyncKeyState(VK_SHIFT)    < 0 )
-        KeyState |= MK_SHIFT;
-    if ( ::GetAsyncKeyState(VK_CONTROL)  < 0 )
-        KeyState |= MK_CONTROL;
+    if ( ::GetAsyncKeyState(VK_LBUTTON)  < 0 ) { KeyState |= MK_LBUTTON;  }
+    if ( ::GetAsyncKeyState(VK_RBUTTON)  < 0 ) { KeyState |= MK_RBUTTON;  }
+    if ( ::GetAsyncKeyState(VK_MBUTTON)  < 0 ) { KeyState |= MK_MBUTTON;  }
+    if ( ::GetAsyncKeyState(VK_XBUTTON1) < 0 ) { KeyState |= MK_XBUTTON1; }
+    if ( ::GetAsyncKeyState(VK_XBUTTON2) < 0 ) { KeyState |= MK_XBUTTON2; }
+    if ( ::GetAsyncKeyState(VK_SHIFT)    < 0 ) { KeyState |= MK_SHIFT;    }
+    if ( ::GetAsyncKeyState(VK_CONTROL)  < 0 ) { KeyState |= MK_CONTROL;  }
 
     ::PostMessage
     (
@@ -202,12 +193,9 @@ Skip:
 // フックの開始
 BOOL WMBeginHook(void)
 {
-    if ( g_hHook != nullptr )
-    {
-        return TRUE;
-    }
+    if ( g_hHook != nullptr ) { return TRUE; }
 
-    g_hHook = ::SetWindowsHookEx(WH_MOUSE_LL, MouseHookProc, g_hInstance, 0);
+    g_hHook = ::SetWindowsHookEx(WH_MOUSE_LL, MouseHookProc, g_hInst, 0);
 
     return (g_hHook != nullptr) ? TRUE : FALSE;
 }
@@ -217,10 +205,7 @@ BOOL WMBeginHook(void)
 // フックの終了
 BOOL WMEndHook(void)
 {
-    if ( g_hHook == nullptr )
-    {
-        return FALSE;
-    }
+    if ( g_hHook == nullptr ) { return FALSE; }
 
     ::UnhookWindowsHookEx(g_hHook);
     g_hHook = nullptr;
@@ -230,4 +215,4 @@ BOOL WMEndHook(void)
 
 //---------------------------------------------------------------------------//
 
-// 
+// WheelMagicHook.cpp

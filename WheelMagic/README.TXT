@@ -1,8 +1,8 @@
 【ソフト名】 WheelMagic for TTBase
-【著作権者】 Copyright(c) 2009-2011 itow.y, 2014 tapetums
+【著作権者】 Copyright(c) 2009-2011 itow.y, 2014-2016 tapetums
 【種　　別】 TTBase プラグイン
-【動作環境】 Windows XP/Vista/7/8/8.1
-【開発環境】 Visual C++ 2013 Express Edition
+【動作環境】 Windows Vista/7/8/8.1/10 32/64-bit
+【開発環境】 Visual Studio Community 2015
 
 
 【概要】
@@ -39,6 +39,10 @@ http://sourceforge.jp/projects/opensource/wiki/licenses%2FMIT_license
 
 
 【更新履歴】
+2016.01.30 v0.2.0.2
+・開発環境を Visual Studio Community 2015 に変更
+・細かなバグを修正
+
 2014.10.03 v0.2.0.1
  ・初版作成
 

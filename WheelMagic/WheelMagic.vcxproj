@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -20,31 +20,32 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{63C618F6-90D1-4630-BF11-C25F23747631}</ProjectGuid>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -69,23 +70,23 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(ProjectDir)$(PlatformTarget)_$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)$(PlatformTarget)_$(Configuration)\obj\</IntDir>
+    <OutDir>$(ProjectDir)bin\$(Configuration)\$(PlatformTarget)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(Configuration)\$(PlatformTarget)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(ProjectDir)$(PlatformTarget)_$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)$(PlatformTarget)_$(Configuration)\obj\</IntDir>
+    <OutDir>$(ProjectDir)bin\$(Configuration)\$(PlatformTarget)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(Configuration)\$(PlatformTarget)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(ProjectDir)$(PlatformTarget)\</OutDir>
-    <IntDir>$(ProjectDir)$(PlatformTarget)\obj\</IntDir>
+    <OutDir>$(ProjectDir)bin\$(Configuration)\$(PlatformTarget)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(Configuration)\$(PlatformTarget)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(ProjectDir)$(PlatformTarget)\</OutDir>
-    <IntDir>$(ProjectDir)$(PlatformTarget)\obj\</IntDir>
+    <OutDir>$(ProjectDir)bin\$(Configuration)\$(PlatformTarget)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(Configuration)\$(PlatformTarget)\</IntDir>
     <LinkIncremental>
     </LinkIncremental>
   </PropertyGroup>
@@ -96,7 +97,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <Optimization>Disabled</Optimization>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <MinimalRebuild>true</MinimalRebuild>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;VC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -147,7 +148,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <Optimization>Disabled</Optimization>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PreprocessorDefinitions>WIN64;_DEBUG;_WINDOWS;_USRDLL;VC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -198,8 +199,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <Optimization>MinSpace</Optimization>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;VC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>_NODEFLIB;NDEBUG;_WINDOWS;_USRDLL;VC_EXPORTS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <PrecompiledHeaderOutputFile>
       </PrecompiledHeaderOutputFile>
@@ -208,6 +209,7 @@
       <CallingConvention>StdCall</CallingConvention>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ExceptionHandling>false</ExceptionHandling>
     </ClCompile>
     <Midl>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -231,7 +233,7 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <ImportLibrary>
       </ImportLibrary>
-      <AdditionalDependencies>odbc32.lib;odbccp32.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>TTBasePlugin.def</ModuleDefinitionFile>
     </Link>
     <Manifest>
@@ -246,8 +248,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <Optimization>MinSpace</Optimization>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN64;NDEBUG;_WINDOWS;_USRDLL;VC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>_NODEFLIB;NDEBUG;_WINDOWS;_USRDLL;VC_EXPORTS;WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <PrecompiledHeaderOutputFile>
       </PrecompiledHeaderOutputFile>
@@ -256,6 +258,7 @@
       <CallingConvention>StdCall</CallingConvention>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ExceptionHandling>false</ExceptionHandling>
     </ClCompile>
     <Midl>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -278,7 +281,7 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <ImportLibrary>
       </ImportLibrary>
-      <AdditionalDependencies>odbc32.lib;odbccp32.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>TTBasePlugin.def</ModuleDefinitionFile>
     </Link>
     <Manifest>
@@ -293,11 +296,11 @@
     <ClCompile Include="WheelMagicHook.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\MessageDef.h" />
-    <ClInclude Include="..\Plugin.h" />
-    <ClInclude Include="..\Utility.h" />
-    <ClInclude Include="Main.h" />
-    <ClInclude Include="WheelMagicHook.h" />
+    <ClInclude Include="..\MessageDef.hpp" />
+    <ClInclude Include="..\Plugin.hpp" />
+    <ClInclude Include="..\Utility.hpp" />
+    <ClInclude Include="Main.hpp" />
+    <ClInclude Include="WheelMagicHook.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TTBasePlugin.def" />

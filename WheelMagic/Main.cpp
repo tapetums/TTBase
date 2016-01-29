@@ -6,10 +6,11 @@
 
 #include <windows.h>
 
-#include "..\Plugin.h"
-#include "..\Utility.h"
-#include "Main.h"
-#include "WheelMagicHook.h"
+#include "..\Plugin.hpp"
+#include "..\Utility.hpp"
+#include "WheelMagicHook.hpp"
+
+#include "Main.hpp"
 
 //---------------------------------------------------------------------------//
 //
@@ -17,16 +18,16 @@
 //
 //---------------------------------------------------------------------------//
 
-HINSTANCE g_hInstance = nullptr;
-HANDLE    g_hMutex    = nullptr;
+HINSTANCE g_hInst  { nullptr };
+HANDLE    g_hMutex { nullptr };
 
 //---------------------------------------------------------------------------//
 
 // プラグインの名前
-LPCTSTR PLUGIN_NAME = TEXT("WheelMagic for TTBase");
+LPCTSTR PLUGIN_NAME { TEXT("WheelMagic for TTBase") };
 
 // コマンドの数
-DWORD COMMAND_COUNT = 0;
+DWORD COMMAND_COUNT { 0 };
 
 //---------------------------------------------------------------------------//
 
@@ -70,42 +71,15 @@ PLUGIN_INFO g_info =
 };
 
 //---------------------------------------------------------------------------//
-//
-// CRT を使わないため new/delete を自前で実装
-//
-//---------------------------------------------------------------------------//
-
-#ifndef _DEBUG
-
-void* __cdecl operator new(size_t size)
-{
-    return ::HeapAlloc(::GetProcessHeap(), 0, size);
-}
-
-void __cdecl operator delete(void* p)
-{
-    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
-}
-
-void* __cdecl operator new[](size_t size)
-{
-    return ::HeapAlloc(::GetProcessHeap(), 0, size);
-}
-
-void __cdecl operator delete[](void* p)
-{
-    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
-}
-
-#endif
-
-//---------------------------------------------------------------------------//
 
 // TTBEvent_Init() の内部実装
 BOOL Init(void)
 {
     // フックのために二重起動を禁止
-    g_hMutex = ::CreateMutex(nullptr, TRUE, g_info.Name);
+    if ( g_hMutex == nullptr )
+    {
+        g_hMutex = ::CreateMutex(nullptr, TRUE, PLUGIN_NAME);
+    }
     if ( g_hMutex == nullptr )
     {
         WriteLog(elError, TEXT("%s: Failed to create mutex"), g_info.Name);
@@ -153,6 +127,8 @@ void Unload(void)
 // TTBEvent_Execute() の内部実装
 BOOL Execute(INT32 CmdId, HWND hWnd)
 {
+    UNREFERENCED_PARAMETER(CmdId);
+    UNREFERENCED_PARAMETER(hWnd);
     return TRUE;
 }
 
@@ -161,11 +137,48 @@ BOOL Execute(INT32 CmdId, HWND hWnd)
 // TTBEvent_WindowsHook() の内部実装
 void Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
+    UNREFERENCED_PARAMETER(Msg);
+    UNREFERENCED_PARAMETER(wParam);
+    UNREFERENCED_PARAMETER(lParam);
 }
 
 //---------------------------------------------------------------------------//
+//
+// CRT を使わないため new/delete を自前で実装
+//
+//---------------------------------------------------------------------------//
 
-#ifndef _DEBUG
+#if defined(_NODEFLIB)
+
+void* __cdecl operator new(size_t size)
+{
+    return ::HeapAlloc(::GetProcessHeap(), 0, size);
+}
+
+void __cdecl operator delete(void* p)
+{
+    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
+}
+
+void __cdecl operator delete(void* p, size_t) // C++14
+{
+    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
+}
+
+void* __cdecl operator new[](size_t size)
+{
+    return ::HeapAlloc(::GetProcessHeap(), 0, size);
+}
+
+void __cdecl operator delete[](void* p)
+{
+    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
+}
+
+void __cdecl operator delete[](void* p, size_t) // C++14
+{
+    if ( p != nullptr ) ::HeapFree(::GetProcessHeap(), 0, p);
+}
 
 // プログラムサイズを小さくするためにCRTを除外
 #pragma comment(linker, "/nodefaultlib:libcmt.lib")
@@ -173,12 +186,14 @@ void Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 
 #endif
 
+//---------------------------------------------------------------------------//
+
 // DLL エントリポイント
-BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, LPVOID lpvReserved)
+BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, LPVOID)
 {
     if ( fdwReason == DLL_PROCESS_ATTACH )
     {
-        g_hInstance = hInstance;
+        g_hInst = hInstance;
     }
     return TRUE;
 }
