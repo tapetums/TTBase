@@ -122,5 +122,5 @@ Thanks for reading.
 ####Edited by
 tapetums
 
-######The license of this document is NYSL Version 0.9982.  
+######This document is under the license of NYSL Version 0.9982.  
 ######[http://www.kmonos.net/nysl/](http://www.kmonos.net/nysl/)
