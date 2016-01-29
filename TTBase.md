@@ -1,6 +1,6 @@
 #TTBase プラグイン仕様書
-　便利だからと常駐ソフトを沢山起動していると、リソース不足やPCの起動時間が大幅にかかったりと、いいことがありません。  
-　そこで、考案されたのがTTBaseです。 プラグインインターフェイスを持っていて、使うプラグインを制限することにより、自分の欲しい機能だけを備えた自分だけのオールインワンソフトができるのです。
+　便利だからと常駐ソフトを沢山起動していると、リソース不足や PC の起動時間が大幅にかかったりと、いいことがありません。  
+　そこで、考案されたのが TTBase です。 プラグインインターフェイスを持っていて、使うプラグインを制限することにより、自分の欲しい機能だけを備えた自分だけのオールインワンソフトができるのです。
 
  公式サイト  
  [http://ttbase.sourceforge.jp/](http://ttbase.sourceforge.jp/)
@@ -32,7 +32,8 @@
 
 ##開発環境  
 　プラグインインターフェイスは、作成されたダイナミックリンクライブラリ (DLL) に対しての動的ロードを使いますので、処理系を選びません。DLL を作成できる処理系なら、どんなものでも使用できるはずです。  
-　現在、~~Delphi(5) 用と VC++(6.0),Borland C++ Free(5.5), C++Builder(5) のテンプレートが付属されています。~~ VC++2013(32/64-bit) のテンプレートがあります。
+　現在、~~Delphi(5) 用と VC++(6.0),Borland C++ Free(5.5), C++Builder(5) のテンプレートが付属されています。~~  
+-> _**Visual Studio Community 2015 (C++11, 32/64-bit) のテンプレートがあります。**_
 
 ---
 
@@ -66,26 +67,55 @@
 
 #定数と構造体定義  
 　構造体のアライメントは、圧縮してください。  
+
+　以下は C++11 における定義です。
+
 ```c
+//---------------------------------------------------------------------------//
+//
+// 定数
+//
+//---------------------------------------------------------------------------//
+
 // プラグインのロードタイプ
-#define ptAlwaysLoad    0x0000 // 常駐型プラグイン
-#define ptLoadAtUse     0x0001 // 一発起動型プラグイン
-#define ptSpecViolation 0xFFFF // TTBaseプラグイン以外のDLL
+enum PLUGINTYPE : WORD
+{
+   ptAlwaysLoad    = 0x0000, // 常駐型プラグイン
+   ptLoadAtUse     = 0x0001, // 一発起動型プラグイン
+   ptSpecViolation = 0xFFFF, // TTBaseプラグイン以外のDLL
+};
 
 // メニュー表示に関する定数
-#define dmNone         0 // 何も出さない
-#define dmSystemMenu   1 // システムメニュー
-#define dmToolMenu     2 // ツールメニュー
-#define dmHotKeyMenu   4 // ホットキー
-#define dmMenuChecked  8 // メニューのチェックマーク
-#define dmDisabled    16 // メニューをDisableする
+enum DISPMENU : DWORD
+{
+    dmNone        = 0,      // 何も出さない
+    dmSystemMenu  = 1,      // システムメニュー
+    dmToolMenu    = 1 << 1, // ツールメニュー
+    dmHotKeyMenu  = 1 << 2, // ホットキー
+    dmMenuChecked = 1 << 3, // チェックマーク付き
+    dmDisabled    = 1 << 4, // 無効
+
+    dmUnchecked   = 0,      // チェックマークなし
+    dmEnabled     = 0,      // 有効
+};
+
+// TTBPlugin_SetMenuProperty の ChangeFlag 定数
+enum CHANGE_FLAG : DWORD
+{
+    DISPMENU_MENU    = dmSystemMenu | dmToolMenu,
+    DISPMENU_ENABLED = dmDisabled,
+    DISPMENU_CHECKED = dmMenuChecked,
+};
 
 // ログ出力に関する定数
-#define elNever   0 // 出力しない
-#define elError   1 // エラー
-#define elWarning 2 // 警告
-#define elInfo    3 // 情報
-#define elDebug   4 // デバッグ
+enum ERROR_LEVEL : DWORD
+{
+    elNever   = 0, // 出力しない
+    elError   = 1, // エラー
+    elWarning = 2, // 警告
+    elInfo    = 3, // 情報
+    elDebug   = 4, // デバッグ
+};
 
 //---------------------------------------------------------------------------//
 //
@@ -96,71 +126,69 @@
 // 構造体アライメント圧縮
 #pragma pack(push,1)
 
-// コマンド情報構造体
-typedef struct
+// コマンド情報構造体 (UNICODE)
+struct PLUGIN_COMMAND_INFO_W
 {
-    LPWSTR Name;          // コマンドの名前（英名）
-    LPWSTR Caption;       // コマンドの説明（日本語）
-    INT32  CommandID;     // コマンド番号
-    INT32  Attr;          // アトリビュート（未使用）
-    INT32  ResID;         // リソース番号（未使用）
-    DWORD  DispMenu;      // メニュー表示に関する設定
-    DWORD  TimerInterval; // コマンド実行タイマー間隔[msec] 0で機能を使わない。
-    DWORD  TimerCounter;  // システム内部で使用
-} PLUGIN_COMMAND_INFO_W;
+    LPWSTR   Name;          // コマンドの名前（英名）
+    LPWSTR   Caption;       // コマンドの説明（日本語）
+    INT32    CommandID;     // コマンド番号
+    INT32    Attr;          // アトリビュート（未使用）
+    INT32    ResID;         // リソース番号（未使用）
+    DISPMENU DispMenu;      // メニュー表示に関する設定
+    DWORD    TimerInterval; // コマンド実行タイマー間隔[msec] 0で機能を使わない。
+    DWORD    TimerCounter;  // システム内部で使用
+};
 
-typedef struct
+// コマンド情報構造体 (ANSI)
+struct PLUGIN_COMMAND_INFO_A
 {
-    LPSTR Name;          // コマンドの名前（英名）
-    LPSTR Caption;       // コマンドの説明（日本語）
-    INT32 CommandID;     // コマンド番号
-    INT32 Attr;          // アトリビュート（未使用）
-    INT32 ResID;         // リソース番号（未使用）
-    DWORD DispMenu;      // メニュー表示に関する設定
-    DWORD TimerInterval; // コマンド実行タイマー間隔[msec] 0で機能を使わない。
-    DWORD TimerCounter;  // システム内部で使用
-} PLUGIN_COMMAND_INFO_A;
+    LPSTR    Name;          // コマンドの名前（英名）
+    LPSTR    Caption;       // コマンドの説明（日本語）
+    INT32    CommandID;     // コマンド番号
+    INT32    Attr;          // アトリビュート（未使用）
+    INT32    ResID;         // リソース番号（未使用）
+    DISPMENU DispMenu;      // メニュー表示に関する設定
+    DWORD    TimerInterval; // コマンド実行タイマー間隔[msec] 0で機能を使わない。
+    DWORD    TimerCounter;  // システム内部で使用
+};
 
-#ifdef _WIN64
-typedef PLUGIN_COMMAND_INFO_W PLUGIN_COMMAND_INFO;
-#else
-typedef PLUGIN_COMMAND_INFO_A PLUGIN_COMMAND_INFO;
-#endif
-
-// プラグイン情報構造体
-typedef struct
+// プラグイン情報構造体 (UNICODE)
+struct PLUGIN_INFO_W
 {
     WORD                   NeedVersion;  // プラグインI/F要求バージョン
     LPWSTR                 Name;         // プラグインの説明（日本語）
     LPWSTR                 Filename;     // プラグインのファイル名（相対パス）
-    WORD                   PluginType;   // プラグインのロードタイプ
+    PLUGINTYPE             PluginType;   // プラグインのロードタイプ
     DWORD                  VersionMS;    // バージョン
     DWORD                  VersionLS;    // バージョン
     DWORD                  CommandCount; // コマンド個数
     PLUGIN_COMMAND_INFO_W* Commands;     // コマンド
     DWORD                  LoadTime;     // ロードにかかった時間（msec）
-} PLUGIN_INFO_W;
+};
 
-typedef struct
+// コマンド情報構造体 (ANSI)
+struct PLUGIN_INFO_A
 {
     WORD                   NeedVersion;  // プラグインI/F要求バージョン
     LPSTR                  Name;         // プラグインの説明（日本語）
     LPSTR                  Filename;     // プラグインのファイル名（相対パス）
-    WORD                   PluginType;   // プラグインのロードタイプ
+    PLUGINTYPE             PluginType;   // プラグインのロードタイプ
     DWORD                  VersionMS;    // バージョン
     DWORD                  VersionLS;    // バージョン
     DWORD                  CommandCount; // コマンド個数
     PLUGIN_COMMAND_INFO_A* Commands;     // コマンド
     DWORD                  LoadTime;     // ロードにかかった時間（msec）
-} PLUGIN_INFO_A;
+};
 
 #pragma pack(pop)
 
-// 32/64-bit で 使用する構造体を切り分ける
-#ifdef _WIN64
-typedef PLUGIN_INFO_W PLUGIN_INFO;
+// UNICODE マクロの定義の有無で使用する構造体を切り分ける
+#if defined(_UNICODE) || defined(UNICODE)
+  using PLUGIN_COMMAND_INFO = PLUGIN_COMMAND_INFO_W;
+  using PLUGIN_INFO         = PLUGIN_INFO_W;
 #else
-typedef PLUGIN_INFO_A PLUGIN_INFO;
+  using PLUGIN_COMMAND_INFO = PLUGIN_COMMAND_INFO_A;
+  using PLUGIN_INFO         = PLUGIN_INFO_A;
 #endif
 ```
 
@@ -377,13 +405,14 @@ extern void (WINAPI* TTBPlugin_SetMenuChecked)(DWORD_PTR hPlugin, INT32 CommandI
 ```
 　hPlugin で指定したプラグインの、CommandID で示されるコマンドの、メニュー関係の属性を変更します。
 
-_※TTBase 1.1.0 では CommandID が コマンドの ID ではなく、プラグイン内部におけるインデックスを指してしまうバグが存在する。_
+_**※TTBase 1.1.0 では CommandID が コマンドの ID ではなく、プラグイン内部におけるインデックスを指してしまうバグが存在する。**_
 
 ChangeFlag: 変更する属性の種類を指定します。複数のフラグを論理和で指定することもできます。
 
-    DISPMENU_MENU:システムメニュー・ツールメニューの種類変更します。 このフラグをセットした時に dmToolMenu、dmSystemMenu の両方を指定しないと、メニューに表示されません。
-    DISPMENU_ENABLED:メニューをグレーアウトするかどうか指定できます。
-    DISPMENU_CHECKED:メニューにチェックを入れるかどうかを指定できます。
+    DISPMENU_MENU   : システムメニュー・ツールメニューの種類変更します。  
+                      このフラグをセットした時に dmToolMenu、dmSystemMenu の両方を指定しないと、メニューに表示されません。
+    DISPMENU_ENABLED: メニューをグレーアウトするかどうか指定できます。
+    DISPMENU_CHECKED: メニューにチェックを入れるかどうかを指定できます。
 
 Flag: フラグには、以下の値の論理和として指定します。
 
@@ -466,4 +495,4 @@ BOOL WINAPI TTBPlugin_ExecuteCommand(LPCTSTR PluginFilename, INT32 CmdID);
 **Original Introduction by K2:**  
 [http://pc2.2ch.net/test/read.cgi/tech/1042029896/1-28](http://pc2.2ch.net/test/read.cgi/tech/1042029896/1-28)
 
-######modified by tapetums
+######modified by tapetums 2014-2016
