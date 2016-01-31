@@ -3,10 +3,8 @@
 TTBase プラグインのためのスケルトンプロジェクトです。  
 **Visual Studio Community 2015 (C++11, 32/64-bit)** でコンパイルを確認しています。
 
----
-
 ##内容
-
+---
 - TTBase.md
 - TTBase.sln
 - Plugin.hpp
@@ -26,7 +24,6 @@ TTBase プラグインのためのスケルトンプロジェクトです。
  - TTBasePlugin.res
  - Main.hpp
  - Main.cpp
-
 ---
 
 ##説明
