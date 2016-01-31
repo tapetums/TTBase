@@ -3,9 +3,9 @@
 This is a template project for a TTBase plugin.  
 Compilable with: **Visual Studio Community 2015 (C++11, 32/64-bit)**
 
----
-
 ##Contents
+
+---
 
 - TTBase.md
 - TTBase.sln
@@ -25,7 +25,7 @@ Compilable with: **Visual Studio Community 2015 (C++11, 32/64-bit)**
  - TTBasePlugin.def
  - TTBasePlugin.res
  - Main.hpp
- - Main.cpp
+ - Main.cpp  
 
 ---
 
