@@ -28,15 +28,15 @@ DWORD_PTR g_hPlugin = 0;
 // 本体側エクスポート関数
 extern "C"
 {
-    PLUGIN_INFO*  (WINAPI* TTBPlugin_GetPluginInfo)      (DWORD_PTR hPlugin) = nullptr;
-    void          (WINAPI* TTBPlugin_SetPluginInfo)      (DWORD_PTR hPlugin, PLUGIN_INFO* PluginInfo) = nullptr;
-    void          (WINAPI* TTBPlugin_FreePluginInfo)     (PLUGIN_INFO* PluginInfo) = nullptr;
-    void          (WINAPI* TTBPlugin_SetMenuProperty)    (DWORD_PTR hPlugin, INT32 CommandID, CHANGE_FLAG ChangeFlag, DISPMENU Flag) = nullptr;
-    PLUGIN_INFO** (WINAPI* TTBPlugin_GetAllPluginInfo)   (void) = nullptr;
-    void          (WINAPI* TTBPlugin_FreePluginInfoArray)(PLUGIN_INFO** PluginInfoArray) = nullptr;
-    void          (WINAPI* TTBPlugin_SetTaskTrayIcon)    (HICON hIcon, LPCTSTR Tips) = nullptr;
-    void          (WINAPI* TTBPlugin_WriteLog)           (DWORD_PTR hPlugin, ERROR_LEVEL logLevel, LPCTSTR msg) = nullptr;
-    BOOL          (WINAPI* TTBPlugin_ExecuteCommand)     (LPCTSTR PluginFilename, INT32 CmdID) = nullptr;
+    TTBPLUGIN_GETPLUGININFO       TTBPlugin_GetPluginInfo       = nullptr;
+    TTBPLUGIN_SETPLUGININFO       TTBPlugin_SetPluginInfo       = nullptr;
+    TTBPLUGIN_FREEPLUGININFO      TTBPlugin_FreePluginInfo      = nullptr;
+    TTBPLUGIN_SETMENUPROPERTY     TTBPlugin_SetMenuProperty     = nullptr;
+    TTBPLUGIN_GETALLPLUGININFO    TTBPlugin_GetAllPluginInfo    = nullptr;
+    TTBPLUGIN_FREEPLUGININFOARRAY TTBPlugin_FreePluginInfoArray = nullptr;
+    TTBPLUGIN_SETTASKTRAYICON     TTBPlugin_SetTaskTrayIcon     = nullptr;
+    TTBPLUGIN_WRITELOG            TTBPlugin_WriteLog            = nullptr;
+    TTBPLUGIN_EXECUTECOMMAND      TTBPlugin_ExecuteCommand      = nullptr;
 }
 
 //---------------------------------------------------------------------------//

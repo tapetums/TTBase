@@ -137,15 +137,30 @@ struct PLUGIN_INFO_A
 
 extern "C"
 {
-    extern PLUGIN_INFO*  (WINAPI* TTBPlugin_GetPluginInfo)      (DWORD_PTR hPlugin);
-    extern void          (WINAPI* TTBPlugin_SetPluginInfo)      (DWORD_PTR hPlugin, PLUGIN_INFO* PLUGIN_INFO);
-    extern void          (WINAPI* TTBPlugin_FreePluginInfo)     (PLUGIN_INFO* PLUGIN_INFO);
-    extern void          (WINAPI* TTBPlugin_SetMenuProperty)    (DWORD_PTR hPlugin, INT32 CommandID, CHANGE_FLAG ChangeFlag, DISPMENU Flag);
-    extern PLUGIN_INFO** (WINAPI* TTBPlugin_GetAllPluginInfo)   (void);
-    extern void          (WINAPI* TTBPlugin_FreePluginInfoArray)(PLUGIN_INFO** PluginInfoArray);
-    extern void          (WINAPI* TTBPlugin_SetTaskTrayIcon)    (HICON hIcon, LPCTSTR Tips);
-    extern void          (WINAPI* TTBPlugin_WriteLog)           (DWORD_PTR hPlugin, ERROR_LEVEL logLevel, LPCTSTR msg);
-    extern BOOL          (WINAPI* TTBPlugin_ExecuteCommand)     (LPCTSTR PluginFilename, INT32 CmdID);
+    using TTBPLUGIN_GETPLUGININFO       = PLUGIN_INFO*  (WINAPI*)(DWORD_PTR hPlugin);
+    using TTBPLUGIN_SETPLUGININFO       = void          (WINAPI*)(DWORD_PTR hPlugin, PLUGIN_INFO* PLUGIN_INFO);
+    using TTBPLUGIN_FREEPLUGININFO      = void          (WINAPI*)(PLUGIN_INFO* PLUGIN_INFO);
+    using TTBPLUGIN_SETMENUPROPERTY     = void          (WINAPI*)(DWORD_PTR hPlugin, INT32 CommandID, CHANGE_FLAG ChangeFlag, DISPMENU Flag);
+    using TTBPLUGIN_GETALLPLUGININFO    = PLUGIN_INFO** (WINAPI*)();
+    using TTBPLUGIN_FREEPLUGININFOARRAY = void          (WINAPI*)(PLUGIN_INFO** PluginInfoArray);
+    using TTBPLUGIN_SETTASKTRAYICON     = void          (WINAPI*)(HICON hIcon, LPCTSTR Tips);
+    using TTBPLUGIN_WRITELOG            = void          (WINAPI*)(DWORD_PTR hPlugin, ERROR_LEVEL logLevel, LPCTSTR msg);
+    using TTBPLUGIN_EXECUTECOMMAND      = BOOL          (WINAPI*)(LPCTSTR PluginFilename, INT32 CmdID);
+}
+
+//---------------------------------------------------------------------------//
+
+extern "C"
+{
+    extern TTBPLUGIN_GETPLUGININFO       TTBPlugin_GetPluginInfo;
+    extern TTBPLUGIN_SETPLUGININFO       TTBPlugin_SetPluginInfo;
+    extern TTBPLUGIN_FREEPLUGININFO      TTBPlugin_FreePluginInfo;
+    extern TTBPLUGIN_SETMENUPROPERTY     TTBPlugin_SetMenuProperty;
+    extern TTBPLUGIN_GETALLPLUGININFO    TTBPlugin_GetAllPluginInfo;
+    extern TTBPLUGIN_FREEPLUGININFOARRAY TTBPlugin_FreePluginInfoArray;
+    extern TTBPLUGIN_SETTASKTRAYICON     TTBPlugin_SetTaskTrayIcon;
+    extern TTBPLUGIN_WRITELOG            TTBPlugin_WriteLog;
+    extern TTBPLUGIN_EXECUTECOMMAND      TTBPlugin_ExecuteCommand;
 }
 
 //---------------------------------------------------------------------------//
@@ -157,12 +172,27 @@ extern "C"
 extern "C"
 {
     // 必須
+    using TTBEVENT_INITPLUGININFO = PLUGIN_INFO* (WINAPI*)(LPTSTR PluginFilename);
+    using TTBEVENT_FREEPLUGININFO = void         (WINAPI*)(PLUGIN_INFO* PLUGIN_INFO);
+
+    // 任意
+    using TTBEVENT_INIT        = BOOL (WINAPI*)(LPTSTR PluginFilename, DWORD_PTR hPlugin);
+    using TTBEVENT_UNLOAD      = void (WINAPI*)();
+    using TTBEVENT_EXECUTE     = BOOL (WINAPI*)(INT32 CommandID, HWND hWnd);
+    using TTBEVENT_WINDOWSHOOK = void (WINAPI*)(UINT Msg, WPARAM wParam, LPARAM lParam);
+}
+
+//---------------------------------------------------------------------------//
+
+extern "C"
+{
+    // 必須
     PLUGIN_INFO* WINAPI TTBEvent_InitPluginInfo(LPTSTR PluginFilename);
     void         WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PLUGIN_INFO);
 
     // 任意
     BOOL         WINAPI TTBEvent_Init          (LPTSTR PluginFilename, DWORD_PTR hPlugin);
-    void         WINAPI TTBEvent_Unload        (void);
+    void         WINAPI TTBEvent_Unload        ();
     BOOL         WINAPI TTBEvent_Execute       (INT32 CommandID, HWND hWnd);
     void         WINAPI TTBEvent_WindowsHook   (UINT Msg, WPARAM wParam, LPARAM lParam);
 }
