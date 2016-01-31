@@ -82,23 +82,23 @@ BOOL Init(void)
     }
     if ( g_hMutex == nullptr )
     {
-        WriteLog(elError, TEXT("%s: Failed to create mutex"), g_info.Name);
+        WriteLog(g_hPlugin, elError, TEXT("%s: Failed to create mutex"), g_info.Name);
         return FALSE;
     }
     if ( ::GetLastError() == ERROR_ALREADY_EXISTS )
     {
-        WriteLog(elError, TEXT("%s: %s is already started"), g_info.Name, g_info.Name);
+        WriteLog(g_hPlugin, elError, TEXT("%s: %s is already started"), g_info.Name, g_info.Name);
         return FALSE;
     }
 
     // マウスフックを登録
     if ( ! WMBeginHook() )
     {
-        WriteLog(elError, TEXT("%s: Failed to begin hook"), g_info.Name);
+        WriteLog(g_hPlugin, elError, TEXT("%s: Failed to begin hook"), g_info.Name);
         return FALSE;
     }
 
-    WriteLog(elInfo, TEXT("%s: successfully initialized"), g_info.Name);
+    WriteLog(g_hPlugin, elInfo, TEXT("%s: successfully initialized"), g_info.Name);
 
     return TRUE;
 }
@@ -119,7 +119,7 @@ void Unload(void)
         g_hMutex = nullptr;
     }
 
-    WriteLog(elInfo, TEXT("%s: successfully uninitialized"), g_info.Name);
+    WriteLog(g_hPlugin, elInfo, TEXT("%s: successfully uninitialized"), g_info.Name);
 }
 
 //---------------------------------------------------------------------------//

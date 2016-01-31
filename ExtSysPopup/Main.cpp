@@ -127,7 +127,7 @@ BOOL ToggleTopMost(HWND hwnd, BOOL topmost)
 
 BOOL OpenAppFolder(HWND hwnd)
 {
-    WriteLog(elDebug, TEXT("%s: HWND = %p"), PLUGIN_NAME, hwnd);
+    WriteLog(g_hPlugin, elDebug, TEXT("%s: HWND = %p"), PLUGIN_NAME, hwnd);
 
     TCHAR path[MAX_PATH];
 
@@ -139,7 +139,7 @@ BOOL OpenAppFolder(HWND hwnd)
     );
     if ( hProcess == nullptr )
     {
-        WriteLog(elDebug, TEXT("%s: OpenProcess() failed"), PLUGIN_NAME);
+        WriteLog(g_hPlugin, elDebug, TEXT("%s: OpenProcess() failed"), PLUGIN_NAME);
         return FALSE;
     }
 
@@ -147,12 +147,12 @@ BOOL OpenAppFolder(HWND hwnd)
     DWORD   cbRet;
     if ( ! ::EnumProcessModules(hProcess, &hModule, sizeof(hModule), &cbRet) )
     {
-        WriteLog(elDebug, TEXT("%s: EnumProcessModules() failed"), PLUGIN_NAME);
+        WriteLog(g_hPlugin, elDebug, TEXT("%s: EnumProcessModules() failed"), PLUGIN_NAME);
         return FALSE;
     }
 
     const auto length = ::GetModuleFileNameEx(hProcess, hModule, path, MAX_PATH);
-    WriteLog(elDebug, TEXT("%s: %s"), PLUGIN_NAME, path);
+    WriteLog(g_hPlugin, elDebug, TEXT("%s: %s"), PLUGIN_NAME, path);
 
     for ( size_t index = length - 1; index > 0; --index )
     {
@@ -162,7 +162,7 @@ BOOL OpenAppFolder(HWND hwnd)
             break;
         }
     }
-    WriteLog(elDebug, TEXT("%s: %s"), PLUGIN_NAME, path);
+    WriteLog(g_hPlugin, elDebug, TEXT("%s: %s"), PLUGIN_NAME, path);
 
     ::ShellExecute(nullptr, TEXT("open"), path, nullptr, nullptr, SW_SHOWNOACTIVATE);
 
@@ -206,12 +206,12 @@ BOOL Init(void)
     }
     if ( g_hMutex == nullptr )
     {
-        WriteLog(elError, TEXT("%s: Failed to create mutex"), PLUGIN_NAME);
+        WriteLog(g_hPlugin, elError, TEXT("%s: Failed to create mutex"), PLUGIN_NAME);
         return FALSE;
     }
     if ( ::GetLastError() == ERROR_ALREADY_EXISTS )
     {
-        WriteLog(elError, TEXT("%s: Already started"), PLUGIN_NAME);
+        WriteLog(g_hPlugin, elError, TEXT("%s: Already started"), PLUGIN_NAME);
         return FALSE;
     }
 
@@ -225,7 +225,7 @@ BOOL Init(void)
         }
         else
         {
-            WriteLog(elError, TEXT("%s: RegisterClassEx() failed"), PLUGIN_NAME);
+            WriteLog(g_hPlugin, elError, TEXT("%s: RegisterClassEx() failed"), PLUGIN_NAME);
             goto UNLOAD;
         }
     }
@@ -242,23 +242,23 @@ BOOL Init(void)
     }
     if ( g_hwnd == nullptr )
     {
-        WriteLog(elError, TEXT("%s: CreateWindowEx() failed"), PLUGIN_NAME);
+        WriteLog(g_hPlugin, elError, TEXT("%s: CreateWindowEx() failed"), PLUGIN_NAME);
         goto UNLOAD;
     }
 
     // マウスフックを登録
     if ( ! WMBeginHook() )
     {
-        WriteLog(elError, TEXT("%s: Failed to begin hook"), PLUGIN_NAME);
+        WriteLog(g_hPlugin, elError, TEXT("%s: Failed to begin hook"), PLUGIN_NAME);
         goto UNLOAD;
     }
 
-    WriteLog(elInfo, TEXT("%s: Successfully initialized"), PLUGIN_NAME);
+    WriteLog(g_hPlugin, elInfo, TEXT("%s: Successfully initialized"), PLUGIN_NAME);
 
     return TRUE;
 
 UNLOAD:
-    WriteLog(elInfo, TEXT("%s: Initialization failed"), PLUGIN_NAME);
+    WriteLog(g_hPlugin, elInfo, TEXT("%s: Initialization failed"), PLUGIN_NAME);
 
     Unload();
 
@@ -288,7 +288,7 @@ void Unload(void)
         g_hMutex = nullptr;
     }
 
-    WriteLog(elInfo, TEXT("%s: Successfully uninitialized"), PLUGIN_NAME);
+    WriteLog(g_hPlugin, elInfo, TEXT("%s: Successfully uninitialized"), PLUGIN_NAME);
 }
 
 //---------------------------------------------------------------------------//
@@ -296,7 +296,7 @@ void Unload(void)
 // TTBEvent_Execute() の内部実装
 BOOL Execute(INT32 CmdId, HWND hWnd)
 {
-    WriteLog(elDebug, TEXT("%s|%d"), g_info.Filename, CmdId);
+    WriteLog(g_hPlugin, elDebug, TEXT("%s|%d"), g_info.Filename, CmdId);
 
     switch ( CmdId )
     {

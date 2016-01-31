@@ -93,7 +93,7 @@ PLUGIN_INFO g_info =
 // TTBEvent_Init() の内部実装
 BOOL Init(void)
 {
-    WriteLog(elInfo, TEXT("%s: Successfully initialized"), PLUGIN_NAME);
+    WriteLog(g_hPlugin, elInfo, TEXT("%s: Successfully initialized"), PLUGIN_NAME);
 
     return TRUE;
 }
@@ -103,7 +103,7 @@ BOOL Init(void)
 // TTBEvent_Unload() の内部実装
 void Unload(void)
 {
-    WriteLog(elInfo, TEXT("%s: Successfully uninitialized"), PLUGIN_NAME);
+    WriteLog(g_hPlugin, elInfo, TEXT("%s: Successfully uninitialized"), PLUGIN_NAME);
 }
 
 //---------------------------------------------------------------------------//
@@ -123,7 +123,7 @@ BOOL Execute(INT32 CmdId, HWND)
             ::StringCchPrintf(filename, MAX_PATH, TEXT("%s\\%s.exe"), path, PLUGIN_NAME);
             ::ShellExecute(nullptr, TEXT("open"), filename, nullptr, nullptr, SW_SHOW);
 
-            WriteLog(elInfo, TEXT("%s: Successfully opened window"), PLUGIN_NAME);
+            WriteLog(g_hPlugin, elInfo, TEXT("%s: Successfully opened window"), PLUGIN_NAME);
             return TRUE;
         }
         case CMD_SHOW_TRENDS:
@@ -136,7 +136,7 @@ BOOL Execute(INT32 CmdId, HWND)
             ::StringCchPrintf(filename, MAX_PATH, TEXT("%s\\%s.exe"), path, TEXT("PopTrend"));
             ::ShellExecute(nullptr, TEXT("open"), filename, nullptr, nullptr, SW_SHOW);
 
-            WriteLog(elInfo, TEXT("%s: Successfully opened window"), PLUGIN_NAME);
+            WriteLog(g_hPlugin, elInfo, TEXT("%s: Successfully opened window"), PLUGIN_NAME);
             return TRUE;
         }
         default:

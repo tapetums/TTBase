@@ -164,7 +164,7 @@ void GetVersion(LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS)
         UINT itemLen;
 
         // バージョンリソースからファイルバージョンを取得
-        if ( VerQueryValue_(pVersionInfo, TEXT("\\"), (void **)&FixedFileInfo, &itemLen) )
+        if ( VerQueryValue_(pVersionInfo, (LPTSTR)TEXT("\\"), (void **)&FixedFileInfo, &itemLen) )
         {
             *VersionMS = FixedFileInfo->dwFileVersionMS;
             *VersionLS = FixedFileInfo->dwFileVersionLS;
@@ -178,7 +178,7 @@ void GetVersion(LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS)
 //---------------------------------------------------------------------------//
 
 // ログを出力する
-void WriteLog(ERROR_LEVEL logLevel, LPCTSTR format, ...)
+void WriteLog(DWORD_PTR hPlugin, ERROR_LEVEL logLevel, LPCTSTR format, ...)
 {
     // 本体が TTBPlugin_WriteLog をエクスポートしていない場合は何もしない
     if ( TTBPlugin_WriteLog == nullptr ) { return; }
@@ -205,7 +205,7 @@ void WriteLog(ERROR_LEVEL logLevel, LPCTSTR format, ...)
     msg[BUF_SIZE - 1] = '\0';
 
     // ログの出力
-    TTBPlugin_WriteLog(g_hPlugin, logLevel, msg);
+    TTBPlugin_WriteLog(hPlugin, logLevel, msg);
 }
 
 //---------------------------------------------------------------------------//
