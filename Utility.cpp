@@ -198,7 +198,7 @@ void WriteLog(DWORD_PTR hPlugin, ERROR_LEVEL logLevel, LPCTSTR format, ...)
         //       wvsprintf() writes NULL at msg[1024].
         // https://msdn.microsoft.com/en-us/library/windows/desktop/ms647550(v=vs.85).aspx
       #else
-        ::StringCchPrintf(msg, BUF_SIZE, format, al);
+        ::StringCchVPrintf(msg, BUF_SIZE, format, al);
       #endif
     }
     va_end(al);
