@@ -13,7 +13,7 @@
 
  ソフトウェア板スレ  
  【常駐】TTBaseってどうよ？その10【プラグイン】  
- [http://anago.2ch.net/test/read.cgi/software/1325925703/](http://anago.2ch.net/test/read.cgi/software/1325925703/)
+ [http://potato.2ch.net/test/read.cgi/software/1325925703/](http://potato.2ch.net/test/read.cgi/software/1325925703/)
 
 ---
 

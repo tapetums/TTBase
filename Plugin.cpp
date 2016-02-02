@@ -60,11 +60,10 @@ PLUGIN_INFO* WINAPI TTBEvent_InitPluginInfo(LPTSTR PluginFilename)
 // プラグイン情報構造体の破棄
 void WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PluginInfo)
 {
-    // このスケルトンでは TTBEvent_InitPluginInfo() にて
-    // プラグイン情報の参照を返しているため、破棄は不要です。
-    // コピーを返すよう実装を変更した場合は、
-    // ここで破棄を行ってください。
     UNREFERENCED_PARAMETER(PluginInfo);
+
+    DeleteString(g_info.Filename);
+    g_info.Filename = nullptr;
 }
 
 //---------------------------------------------------------------------------//
@@ -86,12 +85,12 @@ BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
 
     // API関数の取得
     const auto hModule = ::GetModuleHandle(nullptr);
-    (FARPROC&)TTBPlugin_GetAllPluginInfo    = ::GetProcAddress(hModule, "TTBPlugin_GetAllPluginInfo");
-    (FARPROC&)TTBPlugin_FreePluginInfoArray = ::GetProcAddress(hModule, "TTBPlugin_FreePluginInfoArray");
     (FARPROC&)TTBPlugin_GetPluginInfo       = ::GetProcAddress(hModule, "TTBPlugin_GetPluginInfo");
     (FARPROC&)TTBPlugin_SetPluginInfo       = ::GetProcAddress(hModule, "TTBPlugin_SetPluginInfo");
     (FARPROC&)TTBPlugin_FreePluginInfo      = ::GetProcAddress(hModule, "TTBPlugin_FreePluginInfo");
     (FARPROC&)TTBPlugin_SetMenuProperty     = ::GetProcAddress(hModule, "TTBPlugin_SetMenuProperty");
+    (FARPROC&)TTBPlugin_GetAllPluginInfo    = ::GetProcAddress(hModule, "TTBPlugin_GetAllPluginInfo");
+    (FARPROC&)TTBPlugin_FreePluginInfoArray = ::GetProcAddress(hModule, "TTBPlugin_FreePluginInfoArray");
     (FARPROC&)TTBPlugin_SetTaskTrayIcon     = ::GetProcAddress(hModule, "TTBPlugin_SetTaskTrayIcon");
     (FARPROC&)TTBPlugin_WriteLog            = ::GetProcAddress(hModule, "TTBPlugin_WriteLog");
     (FARPROC&)TTBPlugin_ExecuteCommand      = ::GetProcAddress(hModule, "TTBPlugin_ExecuteCommand");
@@ -102,7 +101,7 @@ BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
 //---------------------------------------------------------------------------//
 
 // プラグインアンロード時の処理
-void WINAPI TTBEvent_Unload(void)
+void WINAPI TTBEvent_Unload()
 {
     Unload();
 

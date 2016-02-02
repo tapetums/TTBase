@@ -214,7 +214,7 @@ void WriteLog(DWORD_PTR hPlugin, ERROR_LEVEL logLevel, LPCTSTR format, ...)
 BOOL ExecutePluginCommand(LPCTSTR pluginName, INT32 CmdID)
 {
     // 本体が TTBPlugin_ExecuteCommand をエクスポートしていない場合は何もしない
-    if ( TTBPlugin_ExecuteCommand == nullptr ) { return FALSE; }
+    if ( TTBPlugin_ExecuteCommand == nullptr ) { return TRUE; }
 
     return TTBPlugin_ExecuteCommand(pluginName, CmdID);
 }

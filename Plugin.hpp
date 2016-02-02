@@ -150,6 +150,8 @@ extern "C"
 
 //---------------------------------------------------------------------------//
 
+#if defined(_USRDLL) // プラグイン側で使用
+
 extern "C"
 {
     extern TTBPLUGIN_GETPLUGININFO       TTBPlugin_GetPluginInfo;
@@ -162,6 +164,23 @@ extern "C"
     extern TTBPLUGIN_WRITELOG            TTBPlugin_WriteLog;
     extern TTBPLUGIN_EXECUTECOMMAND      TTBPlugin_ExecuteCommand;
 }
+
+#else // 本体用
+
+extern "C"
+{
+    PLUGIN_INFO*  WINAPI TTBPlugin_GetPluginInfo      (DWORD_PTR hPlugin);
+    void          WINAPI TTBPlugin_SetPluginInfo      (DWORD_PTR hPlugin, PLUGIN_INFO* PLUGIN_INFO);
+    void          WINAPI TTBPlugin_FreePluginInfo     (PLUGIN_INFO* PLUGIN_INFO);
+    void          WINAPI TTBPlugin_SetMenuProperty    (DWORD_PTR hPlugin, INT32 CommandID, CHANGE_FLAG ChangeFlag, DISPMENU Flag);
+    PLUGIN_INFO** WINAPI TTBPlugin_GetAllPluginInfo   ();
+    void          WINAPI TTBPlugin_FreePluginInfoArray(PLUGIN_INFO** PluginInfoArray);
+    void          WINAPI TTBPlugin_SetTaskTrayIcon    (HICON hIcon, LPCTSTR Tips);
+    void          WINAPI TTBPlugin_WriteLog           (DWORD_PTR hPlugin, ERROR_LEVEL logLevel, LPCTSTR msg);
+    BOOL          WINAPI TTBPlugin_ExecuteCommand     (LPCTSTR PluginFilename, INT32 CmdID);
+}
+
+#endif
 
 //---------------------------------------------------------------------------//
 //
@@ -191,10 +210,10 @@ extern "C"
     void         WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PLUGIN_INFO);
 
     // 任意
-    BOOL         WINAPI TTBEvent_Init          (LPTSTR PluginFilename, DWORD_PTR hPlugin);
-    void         WINAPI TTBEvent_Unload        ();
-    BOOL         WINAPI TTBEvent_Execute       (INT32 CommandID, HWND hWnd);
-    void         WINAPI TTBEvent_WindowsHook   (UINT Msg, WPARAM wParam, LPARAM lParam);
+    BOOL WINAPI TTBEvent_Init       (LPTSTR PluginFilename, DWORD_PTR hPlugin);
+    void WINAPI TTBEvent_Unload     ();
+    BOOL WINAPI TTBEvent_Execute    (INT32 CommandID, HWND hWnd);
+    void WINAPI TTBEvent_WindowsHook(UINT Msg, WPARAM wParam, LPARAM lParam);
 }
 
 //---------------------------------------------------------------------------//
