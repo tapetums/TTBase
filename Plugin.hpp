@@ -245,7 +245,7 @@ extern DWORD_PTR g_hPlugin;
 
 BOOL Init   (void);
 void Unload (void);
-BOOL Execute(INT32 CmdId, HWND hWnd);
+BOOL Execute(INT32 CmdID, HWND hWnd);
 void Hook   (UINT Msg, WPARAM wParam, LPARAM lParam);
 
 //---------------------------------------------------------------------------//

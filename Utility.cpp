@@ -61,7 +61,7 @@ PLUGIN_INFO* CopyPluginInfo(PLUGIN_INFO* Src)
     info->Name     = CopyString(Src->Name);
     info->Filename = CopyString(Src->Filename);
     info->Commands = (Src->CommandCount == 0) ?
-        nullptr : new PLUGIN_COMMAND_INFO[Src->CommandCount];
+                     nullptr : new PLUGIN_COMMAND_INFO[Src->CommandCount];
 
     // コマンド情報のコピー
     if ( info->Commands != nullptr && Src->Commands != nullptr )
@@ -178,12 +178,14 @@ void GetVersion(LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS)
 //---------------------------------------------------------------------------//
 
 // ログを出力する
-void WriteLog(DWORD_PTR hPlugin, ERROR_LEVEL logLevel, LPCTSTR format, ...)
+void WriteLog(ERROR_LEVEL logLevel, LPCTSTR format, ...)
 {
+  #if defined(_USRDLL)
     // 本体が TTBPlugin_WriteLog をエクスポートしていない場合は何もしない
     if ( TTBPlugin_WriteLog == nullptr ) { return; }
+  #endif
 
-    static constexpr size_t BUF_SIZE { 1024 + 1 };
+    constexpr size_t BUF_SIZE { 1024 + 1 };
 
     static TCHAR msg[BUF_SIZE];
     // TODO: 排他制御
@@ -205,7 +207,7 @@ void WriteLog(DWORD_PTR hPlugin, ERROR_LEVEL logLevel, LPCTSTR format, ...)
     msg[BUF_SIZE - 1] = '\0';
 
     // ログの出力
-    TTBPlugin_WriteLog(hPlugin, logLevel, msg);
+    TTBPlugin_WriteLog(g_hPlugin, logLevel, msg);
 }
 
 //---------------------------------------------------------------------------//
@@ -213,8 +215,10 @@ void WriteLog(DWORD_PTR hPlugin, ERROR_LEVEL logLevel, LPCTSTR format, ...)
 // ほかのプラグインのコマンドを実行する
 BOOL ExecutePluginCommand(LPCTSTR pluginName, INT32 CmdID)
 {
+  #if defined(_USRDLL)
     // 本体が TTBPlugin_ExecuteCommand をエクスポートしていない場合は何もしない
     if ( TTBPlugin_ExecuteCommand == nullptr ) { return TRUE; }
+  #endif
 
     return TTBPlugin_ExecuteCommand(pluginName, CmdID);
 }
