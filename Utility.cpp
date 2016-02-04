@@ -38,7 +38,7 @@ void DeleteString(LPCTSTR Str)
 {
     if ( Str != nullptr )
     {
-        delete Str;
+        delete[] Str;
     }
 }
 
