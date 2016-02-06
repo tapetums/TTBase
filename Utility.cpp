@@ -8,6 +8,8 @@
 #include <windows.h>
 #include <strsafe.h>
 
+#pragma comment(lib, "version.lib") // VerQueryValue
+
 #include "Plugin.hpp"
 #include "Utility.hpp"
 
@@ -111,68 +113,33 @@ void GetVersion(LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS)
 {
     if ( VersionMS == nullptr || VersionLS == nullptr ) { return; }
 
-    *VersionMS = 0;
-    *VersionLS = 0;
-
-    // API を取得
-    const auto hModule = ::LoadLibraryEx
-    (
-        TEXT("version.dll"), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH
-    );
-    if ( hModule == nullptr )
-    {
-        return;
-    }
-
-    // 関数ポインタの取得
-    DWORD (WINAPI* GetFileVersionInfoSize_)(LPCTSTR lptstrFilename, LPDWORD lpdwHandle);
-    BOOL  (WINAPI* GetFileVersionInfo_)    (LPCTSTR lptstrFilename, DWORD dwHandle, DWORD dwLen, LPVOID lpData);
-    BOOL  (WINAPI* VerQueryValue_)         (const LPVOID pBlock, LPTSTR lpSubBlock, LPVOID * lplpBuffer, PUINT puLen);
-
-  #if defined(_UNICODE) || defined(UNICODE)
-    (FARPROC&)GetFileVersionInfoSize_ = GetProcAddress(hModule, "GetFileVersionInfoSizeW");
-    (FARPROC&)GetFileVersionInfo_     = GetProcAddress(hModule, "GetFileVersionInfoW");
-    (FARPROC&)VerQueryValue_          = GetProcAddress(hModule, "VerQueryValueW");
-  #else
-    (FARPROC&)GetFileVersionInfoSize_ = GetProcAddress(hModule, "GetFileVersionInfoSizeA");
-    (FARPROC&)GetFileVersionInfo_     = GetProcAddress(hModule, "GetFileVersionInfoA");
-    (FARPROC&)VerQueryValue_          = GetProcAddress(hModule, "VerQueryValueA");
-  #endif
-
-    if ( GetFileVersionInfoSize_ == nullptr || GetFileVersionInfo_ == nullptr || VerQueryValue_ == nullptr )
-    {
-        ::FreeLibrary(hModule); return;
-    }
-
     // DLL ファイルに埋め込まれたバージョンリソースのサイズを取得
     DWORD VersionHandle;
-    const auto VersionSize = GetFileVersionInfoSize_(Filename, &VersionHandle);
+    const auto VersionSize = GetFileVersionInfoSize(Filename, &VersionHandle);
     if ( VersionSize == 0 )
     {
-        ::FreeLibrary(hModule); return;
+        return;
     }
 
     // バージョンリソースを読み込む
     const auto pVersionInfo = new BYTE[VersionSize];
     if ( pVersionInfo == nullptr )
     {
-        ::FreeLibrary(hModule); return;
+        return;
     }
-    if ( GetFileVersionInfo_(Filename, VersionHandle, VersionSize, pVersionInfo) )
+    if ( GetFileVersionInfo(Filename, VersionHandle, VersionSize, pVersionInfo) )
     {
         VS_FIXEDFILEINFO* FixedFileInfo;
         UINT itemLen;
 
         // バージョンリソースからファイルバージョンを取得
-        if ( VerQueryValue_(pVersionInfo, (LPTSTR)TEXT("\\"), (void **)&FixedFileInfo, &itemLen) )
+        if ( VerQueryValue(pVersionInfo, (LPTSTR)TEXT("\\"), (void **)&FixedFileInfo, &itemLen) )
         {
             *VersionMS = FixedFileInfo->dwFileVersionMS;
             *VersionLS = FixedFileInfo->dwFileVersionLS;
         }
     }
     delete[] pVersionInfo;
-
-    ::FreeLibrary(hModule);
 }
 
 //---------------------------------------------------------------------------//
@@ -186,7 +153,6 @@ void WriteLog(ERROR_LEVEL logLevel, LPCTSTR format, ...)
   #endif
 
     constexpr size_t BUF_SIZE { 1024 + 1 };
-
     static TCHAR msg[BUF_SIZE];
     // TODO: 排他制御
 
