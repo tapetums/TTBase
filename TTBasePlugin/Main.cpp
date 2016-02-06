@@ -107,7 +107,7 @@ BOOL Execute(INT32 CmdId, HWND hWnd)
     {
         case CMD_DUMMY:
         {
-            WriteLog(g_hPlugin, elDebug, TEXT("%s|%d"), g_info.Filename, CmdId);
+            WriteLog(elDebug, TEXT("%s|%d"), g_info.Filename, CmdId);
             return TRUE;
         }
         default:

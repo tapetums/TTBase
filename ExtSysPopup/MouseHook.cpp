@@ -94,7 +94,7 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
         hSubMenu, TPM_LEFTALIGN | TPM_NONOTIFY | TPM_RETURNCMD,
         pt.x, pt.y, 0, g_hwnd, nullptr
     );
-    WriteLog(g_hPlugin, elDebug, TEXT("%s: CmdId = %d"), PLUGIN_NAME, CmdId);
+    WriteLog(elDebug, TEXT("%s: CmdId = %d"), PLUGIN_NAME, CmdId);
 
     // 表示したメニューを破棄
     ::DestroyMenu(hMenu);
