@@ -21,9 +21,11 @@
 //---------------------------------------------------------------------------//
 
 // プラグインを本体で認識するための識別コード
-DWORD_PTR g_hPlugin = 0;
+DWORD_PTR g_hPlugin { 0 };
 
 //---------------------------------------------------------------------------//
+
+#if defined(_USRDLL) // プラグイン側で使用
 
 // 本体側エクスポート関数
 extern "C"
@@ -38,6 +40,8 @@ extern "C"
     TTBPLUGIN_WRITELOG            TTBPlugin_WriteLog            = nullptr;
     TTBPLUGIN_EXECUTECOMMAND      TTBPlugin_ExecuteCommand      = nullptr;
 }
+
+#endif
 
 //---------------------------------------------------------------------------//
 //
@@ -60,7 +64,7 @@ PLUGIN_INFO* WINAPI TTBEvent_InitPluginInfo(LPTSTR PluginFilename)
 // プラグイン情報構造体の破棄
 void WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PluginInfo)
 {
-    UNREFERENCED_PARAMETER(PluginInfo);
+    if ( PluginInfo != &g_info ) { return; }
 
     DeleteString(g_info.Filename);
     g_info.Filename = nullptr;
@@ -76,12 +80,14 @@ BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
     // キャッシュのために、TTBPlugin_InitPluginInfoは呼ばれない場合がある
     // そのため、Initでもプラグイン情報を初期化する
     DeleteString(g_info.Filename);
-
     g_info.Filename = CopyString(PluginFilename);
-    GetVersion(PluginFilename, &g_info.VersionMS, &g_info.VersionLS);
 
     // 本体から、プラグインを認識するための識別コードを受け取る
     g_hPlugin = hPlugin;
+
+  #if defined(_USRDLL) // プラグイン側で使用
+    // リソースからバージョン情報を取得
+    GetVersion(PluginFilename, &g_info.VersionMS, &g_info.VersionLS);
 
     // API関数の取得
     const auto hModule = ::GetModuleHandle(nullptr);
@@ -94,6 +100,7 @@ BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
     (FARPROC&)TTBPlugin_SetTaskTrayIcon     = ::GetProcAddress(hModule, "TTBPlugin_SetTaskTrayIcon");
     (FARPROC&)TTBPlugin_WriteLog            = ::GetProcAddress(hModule, "TTBPlugin_WriteLog");
     (FARPROC&)TTBPlugin_ExecuteCommand      = ::GetProcAddress(hModule, "TTBPlugin_ExecuteCommand");
+  #endif
 
     return Init();
 }

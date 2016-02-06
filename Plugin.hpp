@@ -62,7 +62,7 @@ enum ERROR_LEVEL : DWORD
 //---------------------------------------------------------------------------//
 
 // 構造体アライメント圧縮
-#pragma pack(push,1)
+#pragma pack(push, 1)
 
 // コマンド情報構造体 (UNICODE)
 struct PLUGIN_COMMAND_INFO_W
@@ -243,9 +243,9 @@ extern DWORD_PTR g_hPlugin;
 //
 //---------------------------------------------------------------------------//
 
-BOOL Init   (void);
-void Unload (void);
-BOOL Execute(INT32 CmdID, HWND hWnd);
+BOOL Init   ();
+void Unload ();
+BOOL Execute(INT32 CmdID, HWND hwnd);
 void Hook   (UINT Msg, WPARAM wParam, LPARAM lParam);
 
 //---------------------------------------------------------------------------//
