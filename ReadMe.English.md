@@ -76,7 +76,7 @@ This will be automatically loaded when you open TTBase.sln.
 
 ###TTBasePlugin.def
 .def file for export functions of the plugin.  
-You may have to update it if the API version of the TTBase system in the future.
+You may have to update it if the API version of the TTBase system is revised in the future.
 
 ###TTBasePlugin.res
 Resource file for the DLL.  

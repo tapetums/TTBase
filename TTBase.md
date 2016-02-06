@@ -234,16 +234,19 @@ struct PLUGIN_INFO_A
 　プラグインが持つコマンドの数です。  
 コマンドの数は合計で **256個以下** である必要があります。
 
----
-
-##PLUGIN\_COMMAND\_INFO 構造体
-　プラグインコマンド情報を格納します。この構造体へのポインタ配列へのポインタを用意し、そこに、必要なメモリを確保してポインタを指定してください。 
+###PLUGIN\_COMMAND\_INFO Commands
+　プラグインコマンド情報を格納します。  
+この構造体へのポインタ配列へのポインタを用意し、そこに、必要なメモリを確保してポインタを指定してください。
 
 ###DWORD LoadTime
 　このメンバーは、TTBase 内部で使用されるだけで、個別プラグイン には関係ありません。 そのプラグインの情報取得にかかった時間が msec で格納されます。  
 　値は、QueryPerformanceTimer() を使用して取得しますので、分解能は msec 以下です。
 
-###PLUGIN\_COMMAND\_INFO
+詳細調査中 _※peach では **一律 0**_
+
+---
+
+##PLUGIN\_COMMAND\_INFO 構造体
 　PLUGIN\_INFO の Commands メンバに設定する構造体です。
 コマンドの情報を格納して TTBase に渡します。
 
@@ -456,7 +459,7 @@ void WINAPI TTBPlugin_SetTaskTrayIcon(HICON hIcon, LPCTSTR Tips);
 ```
 　TTBase のシステムトレイアイコンを変更します。  
 
-詳細調査中　_※peach では実装予定なし_
+_※peach では実装予定なし_
 
 ***
 
