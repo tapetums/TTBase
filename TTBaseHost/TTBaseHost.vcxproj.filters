@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ソース ファイル">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="ヘッダー ファイル">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="リソース ファイル">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\TTBase">
+      <UniqueIdentifier>{decd28cb-3cfd-4ba1-adcd-f06b4a4a6ccd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\include">
+      <UniqueIdentifier>{8e79d757-9ea7-4547-9ca3-85a5ee382a57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\include">
+      <UniqueIdentifier>{c302aab4-8a53-4f8c-892e-704cf632baf8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TTBase">
+      <UniqueIdentifier>{5f205c6a-84e5-4080-8472-516ccb140acf}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PluginMgr.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="include\UWnd.cpp">
+      <Filter>ソース ファイル\include</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Utility.cpp">
+      <Filter>ソース ファイル\TTBase</Filter>
+    </ClCompile>
+    <ClCompile Include="System.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Plugin.cpp">
+      <Filter>ソース ファイル\TTBase</Filter>
+    </ClCompile>
+    <ClCompile Include="..\MessageDef.cpp">
+      <Filter>ソース ファイル\TTBase</Filter>
+    </ClCompile>
+    <ClCompile Include="MainWnd.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="WinMain.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MainWnd.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>リソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="PluginMgr.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Application.hpp">
+      <Filter>ヘッダー ファイル\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\CollectFile.hpp">
+      <Filter>ヘッダー ファイル\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\CtrlWnd.hpp">
+      <Filter>ヘッダー ファイル\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Plugin.hpp">
+      <Filter>ヘッダー ファイル\TTBase</Filter>
+    </ClInclude>
+    <ClInclude Include="include\UWnd.hpp">
+      <Filter>ヘッダー ファイル\include</Filter>
+    </ClInclude>
+    <ClInclude Include="Settings.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Utility.hpp">
+      <Filter>ヘッダー ファイル\TTBase</Filter>
+    </ClInclude>
+    <ClInclude Include="Command.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\MessageDef.hpp">
+      <Filter>ヘッダー ファイル\TTBase</Filter>
+    </ClInclude>
+    <ClInclude Include="include\File.hpp">
+      <Filter>ヘッダー ファイル\include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="TTBaseHost.rc">
+      <Filter>リソース ファイル</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="icon.ico">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\TTBase.def">
+      <Filter>リソース ファイル</Filter>
+    </None>
+    <None Include="TTBasePlugin.def">
+      <Filter>リソース ファイル</Filter>
+    </None>
+  </ItemGroup>
+</Project>
