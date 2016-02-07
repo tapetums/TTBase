@@ -92,6 +92,9 @@
     <ClInclude Include="include\File.hpp">
       <Filter>ヘッダー ファイル\include</Filter>
     </ClInclude>
+    <ClInclude Include="include\Font.hpp">
+      <Filter>ヘッダー ファイル\include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TTBaseHost.rc">
@@ -110,5 +113,10 @@
     <None Include="TTBasePlugin.def">
       <Filter>リソース ファイル</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="NYSL.TXT">
+      <Filter>リソース ファイル</Filter>
+    </Text>
   </ItemGroup>
 </Project>

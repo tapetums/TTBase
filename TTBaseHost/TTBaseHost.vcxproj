@@ -192,6 +192,7 @@
     <ClInclude Include="include\CollectFile.hpp" />
     <ClInclude Include="include\CtrlWnd.hpp" />
     <ClInclude Include="include\File.hpp" />
+    <ClInclude Include="include\Font.hpp" />
     <ClInclude Include="include\UWnd.hpp" />
     <ClInclude Include="MainWnd.hpp" />
     <ClInclude Include="PluginMgr.hpp" />
@@ -207,6 +208,9 @@
   <ItemGroup>
     <None Include="..\TTBase.def" />
     <None Include="TTBasePlugin.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="NYSL.TXT" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
