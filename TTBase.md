@@ -124,7 +124,7 @@ enum ERROR_LEVEL : DWORD
 //---------------------------------------------------------------------------//
 
 // 構造体アライメント圧縮
-#pragma pack(push,1)
+#pragma pack(push, 1)
 
 // コマンド情報構造体 (UNICODE)
 struct PLUGIN_COMMAND_INFO_W
@@ -193,11 +193,11 @@ struct PLUGIN_INFO_A
 ```
 
 ---
-###[解説]
+###【解説】
 
 使用する構造体は２つあります。
 
-##PLUGIN\_INFO 構造体
+##[PLUGIN\_INFO 構造体]
 　プラグイン情報を格納します。 TTBase にプラグインのプロパティを教えるために、Plugin\_SetPluginInfo 関数を使って、この構造体を渡します。一緒にコマンド情報 (PLUGIN\_COMMAND\_INFO) も渡します。
 
 ###WORD NeedVersion
@@ -246,7 +246,7 @@ struct PLUGIN_INFO_A
 
 ---
 
-##PLUGIN\_COMMAND\_INFO 構造体
+##[PLUGIN\_COMMAND\_INFO 構造体]
 　PLUGIN\_INFO の Commands メンバに設定する構造体です。
 コマンドの情報を格納して TTBase に渡します。
 
@@ -265,13 +265,13 @@ struct PLUGIN_INFO_A
 ###INT32 ResID
 　リソース ID。現在未使用です。
 
-###INT32 DispMenu
+###DWORD DispMenu
 　TTBase のツール・システムメニューに、このコマンドを表示するかどうかを指定します。システムメニューには設定系のメニューを、ツールメニューには、そのプラグインの基本機能を割り当てるのが原則です。  
 　また、ホットキー設定ができるかどうかもここに設定します。 2 つ以上の設定を行うときは、論理和を使ってください。  
 
     dmNone:        表示しない
     dmSystemMenu:  システムメニューに表示
-    dmTooMenu:     ツールメニューに表示
+    dmToolMenu:    ツールメニューに表示
     dmHotKeyMenu:  ホットキー設定の選択可能コマンドに表示
     dmMenuChecked: メニューにチェックマークが入るかどうか
   
