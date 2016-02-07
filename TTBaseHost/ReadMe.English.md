@@ -48,7 +48,7 @@ To compile, you also require files below
 - x86.manifest
 - amd64.manifest
 
-from the 'TTBase template project'.
+from the 'TTBase plugin template project'.
 
 ---
 
@@ -72,12 +72,12 @@ from the 'TTBase template project'.
 - Saving the settings to the .ini file
 
 ###Not Implemented
-- Hotkey functions
+- Hotkey function
 - Timer function
 - Windows Hook
 
-　The concept is baed on peach. This program does not provide some functions that TTBase does as the host services and let them go with the plugins.  
-　The main difference from peach is serving task-tray icon as a function of the host program. You can switch the visibility of ithe icon by settings.  
+　The concept is baed on peach. This program does not provide some functions that TTBase does as the host services, and let them go with plugins.  
+　The main difference from peach is serving task-tray icon as a function of the host program. You can switch the visibility of the icon by settings.  
 　If you want to show the UI window when the icon is invisible, call the command with the hotkey of plugins or simply double-start the application.
 
 ---

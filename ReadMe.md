@@ -104,7 +104,7 @@ _NODEFLIB
 
 ---
 
-##License
+##ライセンス
 
 
 NYSL Version 0.9982
