@@ -80,10 +80,9 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
     {
         // チェックマークを付ける
         MENUITEMINFO mii;
-        mii.cbSize = sizeof(mii);
-        mii.fMask = MIIM_STATE;
-
         ::GetMenuItemInfo(hSubMenu, 0, TRUE, &mii);
+        mii.cbSize = sizeof(mii);
+        mii.fMask  = MIIM_STATE;
         mii.fState = topmost ? MFS_CHECKED : MFS_UNCHECKED;
         ::SetMenuItemInfo(hSubMenu, 0, TRUE, &mii);
     }
