@@ -56,20 +56,32 @@ struct CTRL
 {
     enum : INT16
     {
-        TREEVIEW             = 1001,
-        LABEL                = 1002,
-        BTN_OPEN_INST_FOLDER = 1003,
-        BTN_EXIT             = 1004,
-        LIST_PLUGIN          = 1005,
-        LIST_COMMAND         = 1006,
+        TREEVIEW              = 1001,
+        LABEL_INFO            = 1002,
+        CBX_LOGLEVEL          = 1003,
+        BTN_TTBASE_COMPATIBLE = 1004,
+        BTN_LOG2WND           = 1005,
+        BTN_LOG2FILE          = 1006,
+        BTN_OPEN_INST_FOLDER  = 1007,
+        BTN_EXIT              = 1008,
+        LIST_PLUGIN           = 1009,
+        LIST_COMMAND          = 1010,
+        LABEL_RESTART         = 1011,
     };
 };
 
-struct BTN_TEXT
+struct CTRL_TEXT
 {
-    static constexpr LPCTSTR Exit       = TEXT("終了");
-    static constexpr LPCTSTR Settings   = TEXT("設定");
-    static constexpr LPCTSTR OpenFolder = TEXT("インストールフォルダを開く");
+    static constexpr LPCTSTR Settings = TEXT("設定");
+    static constexpr LPCTSTR Plugins  = TEXT("プラグイン");
+    static constexpr LPCTSTR Commands = TEXT("コマンド");
+    static constexpr LPCTSTR Note     = TEXT("*次回起動時より有効");
+
+    static constexpr LPCTSTR Exit        = TEXT("終了");
+    static constexpr LPCTSTR OpenFolder  = TEXT("インストールフォルダを開く");
+    static constexpr LPCTSTR Compatible  = TEXT("ウィンドウクラス名とウィンドウ名をTTBaseと同じにする*");
+    static constexpr LPCTSTR logToWindow = TEXT("ログをウィンドウに表示する");
+    static constexpr LPCTSTR logToFile   = TEXT("ログをファイルに出力する*");
 };
 
 struct LIST_PLG_ITEM
@@ -99,13 +111,23 @@ struct LIST_CMD_ITEM
     static constexpr LPCTSTR CmdID    = TEXT("コマンドID");
 };
 
+LPCTSTR CBX_LOGLEVEL_TEXT[6] =
+{
+    TEXT("0 : 出力しない"),
+    TEXT("1 : エラー"),
+    TEXT("2 : エラー/警告"),
+    TEXT("3 : エラー/警告/情報"),
+    TEXT("4 : エラー/警告/情報/デバッグ"),
+    TEXT("5 : エラー/警告/情報/デバッグ/デバッグ(本体)"),
+};
+
 //---------------------------------------------------------------------------//
 // Utility Functions
 //---------------------------------------------------------------------------//
 
 void SetPluginNames   (const PluginMgr& mgr, tapetums::ListWnd& list);
 void SetPluginCommands(const PluginMgr& mgr, tapetums::ListWnd& list);
-void ShowPluginInfo   (tapetums::ListWnd& list, tapetums::CtrlWnd& label);
+void ShowPluginInfo   (tapetums::ListWnd& list, tapetums::CtrlWnd& edit);
 void UpdateCheckState (tapetums::ListWnd& list, const TTBasePlugin* plugin, INT32 CmdID);
 void PopupMenu        (HWND hwnd);
 
@@ -147,7 +169,7 @@ LRESULT MainWnd::WndProc
     {
         ToCenter(); Show(); ::SetForegroundWindow(hwnd); return 0;
     }
-    if ( uMsg == WM_CTLCOLORSTATIC && label == (HWND)lParam )
+    if ( uMsg == WM_CTLCOLORSTATIC )
     {
         return (LRESULT)GetStockBrush(WHITE_BRUSH); // 背景を白に
     }
@@ -222,20 +244,45 @@ BOOL MainWnd::OnCreate
     tree.Create(hwnd, CTRL::TREEVIEW);
     tree.SetFont(font);
     tree.SetImageList(ImageList_Create(1, 32, ILC_COLOR, 0, 0));
-    tvi[0] = tree.InsertItem(TEXT("プラグイン"));
-    tvi[1] = tree.InsertItem(TEXT("コマンド"));
+    tvi[0] = tree.InsertItem(CTRL_TEXT::Settings);
+    tvi[1] = tree.InsertItem(CTRL_TEXT::Plugins);
+    tvi[2] = tree.InsertItem(CTRL_TEXT::Commands);
 
-    label.Create(ES_READONLY | ES_MULTILINE, hwnd, CTRL::LABEL);
-    label.SetFont(font);
-    label.Show();
+    edit.Create(ES_READONLY | ES_MULTILINE, hwnd, CTRL::LABEL_INFO);
+    edit.SetFont(font);
+    edit.Show();
+
+    cbx_log.Create(CBS_DROPDOWNLIST, hwnd, CTRL::CBX_LOGLEVEL);
+    cbx_log.SetFont(font);
+    cbx_log.Resize(328, 800);
+    for ( auto idx = 0; idx < 6; ++idx)
+    {
+        cbx_log.AddString(CBX_LOGLEVEL_TEXT[idx]);
+    }
+    cbx_log.Select(settings::get().logLevel);
+
+    btn_compatible.Create(BS_CHECKBOX | BS_AUTOCHECKBOX , hwnd, CTRL::BTN_TTBASE_COMPATIBLE);
+    btn_compatible.SetFont(font);
+    btn_compatible.SetText(CTRL_TEXT::Compatible);
+    btn_compatible.Check(settings::get().TTBaseCompatible);
 
     btn_open_inst_folder.Create(BS_PUSHBUTTON, hwnd, CTRL::BTN_OPEN_INST_FOLDER);
     btn_open_inst_folder.SetFont(font);
-    btn_open_inst_folder.SetText(BTN_TEXT::OpenFolder);
+    btn_open_inst_folder.SetText(CTRL_TEXT::OpenFolder);
 
     btn_exit.Create(BS_PUSHBUTTON, hwnd, CTRL::BTN_EXIT);
     btn_exit.SetFont(font);
-    btn_exit.SetText(BTN_TEXT::Exit);
+    btn_exit.SetText(CTRL_TEXT::Exit);
+
+    btn_log2wnd.Create(BS_CHECKBOX | BS_AUTOCHECKBOX , hwnd, CTRL::BTN_LOG2WND);
+    btn_log2wnd.SetFont(font);
+    btn_log2wnd.SetText(CTRL_TEXT::logToWindow);
+    btn_log2wnd.Check(settings::get().logToWindow);
+
+    btn_log2file.Create(BS_CHECKBOX | BS_AUTOCHECKBOX , hwnd, CTRL::BTN_LOG2FILE);
+    btn_log2file.SetFont(font);
+    btn_log2file.SetText(CTRL_TEXT::logToFile);
+    btn_log2file.Check(settings::get().logToFile);
 
     auto style = WS_VSCROLL | WS_HSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL;
     auto styleEx = LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_HEADERDRAGDROP;
@@ -245,6 +292,10 @@ BOOL MainWnd::OnCreate
     list_plg.InsertColumn(LIST_PLG_ITEM::Version,   80, LIST_PLG_ITEM::バージョン);
     list_plg.InsertColumn(LIST_PLG_ITEM::Residence, 40, LIST_PLG_ITEM::常駐);
     list_plg.InsertColumn(LIST_PLG_ITEM::CmdCount,  60, LIST_PLG_ITEM::コマンド数);
+
+    label.Create(ES_LEFT, hwnd, CTRL::LABEL_RESTART);
+    label.SetFont(font);
+    label.SetText(CTRL_TEXT::Note);
 
     styleEx |= LVS_EX_CHECKBOXES;
     list_cmd.Create(style, styleEx, hwnd, CTRL::LIST_COMMAND);
@@ -258,7 +309,7 @@ BOOL MainWnd::OnCreate
     SetPluginNames   (mgr, list_plg);
     SetPluginCommands(mgr, list_cmd);
 
-    // 「プラグイン」設定項目を選択
+    // 「設定」設定項目を選択
     tree.Select(tvi[0]);
 
     return TRUE;
@@ -290,12 +341,19 @@ void MainWnd::OnSize
     //  TODO: DPIスケーリングへの対応
     tree.Bounds(2, 2, 140 - 4, cy - 4);
 
-    label.Bounds(140 + 12, 12, cx - 140 - 140 - 24, 100 - 24);
+    btn_compatible.Bounds(140 + 16, 16, 328, 24);
+    cbx_log.Bounds(140 + 16, 52 + 1, 328, 240);
+    btn_log2wnd.Bounds(140 + 48, 102, 328, 24);
+    btn_log2file.Bounds(140 + 48, 136, 328, 24);
+
+    edit.Bounds(140 + 12, 12, cx - 140 - 140 - 24, 100 - 24);
     btn_open_inst_folder.Bounds(cx - 128 - 12, 16, 128, 24);
     btn_exit.Bounds(cx - 128 - 12, 52, 128, 24);
 
     list_plg.Bounds(140 + 2, 90 + 2, cx - 140 - 4, cy - 90 - 4);
     list_cmd.Bounds(140 + 2, 90 + 2, cx - 140 - 4, cy - 90 - 4);
+
+    label.Bounds(140 + 16, cy - 36, 328, 24);
 }
 
 //---------------------------------------------------------------------------//
@@ -346,7 +404,7 @@ LRESULT MainWnd::OnNotify
     if ( pNMHdr->idFrom == CTRL::LIST_PLUGIN && pNMHdr->code == NM_CLICK )
     {
         // プラグインの詳細情報を表示
-        ShowPluginInfo(list_plg, label);
+        ShowPluginInfo(list_plg, edit);
     }
     else if ( pNMHdr->idFrom == CTRL::LIST_COMMAND && pNMHdr->code == NM_CLICK )
     {
@@ -371,21 +429,44 @@ LRESULT MainWnd::OnNotify
     {
         // コントロール表示の切替
         const auto item = tree.GetSelection();
-        if ( item == tvi[0] )
+        if ( item == tvi[1] )
         {
-            label.SetText(TEXT(""));
+            edit.SetText(TEXT(""));
+            edit.Show();
+            cbx_log.Hide();
+            btn_compatible.Hide();
+            btn_log2wnd.Hide();
+            btn_log2file.Hide();
             list_plg.Show();
             list_cmd.Hide();
+            label.Hide();
 
             // 一番上の項目を選択状態に
             list_plg.Select(0);
-            ShowPluginInfo(list_plg, label);
+            ShowPluginInfo(list_plg, edit);
+        }
+        else if ( item == tvi[2] )
+        {
+            edit.SetText(TEXT("項目をダブルクリックして実行"));
+            edit.Show();
+            cbx_log.Hide();
+            btn_compatible.Hide();
+            btn_log2wnd.Hide();
+            btn_log2file.Hide();
+            list_plg.Hide();
+            list_cmd.Show();
+            label.Hide();
         }
         else
         {
-            label.SetText(TEXT("項目をダブルクリックして実行"));
+            edit.Hide();
+            cbx_log.Show();
+            btn_compatible.Show();
+            btn_log2wnd.Show();
+            btn_log2file.Show();
             list_plg.Hide();
-            list_cmd.Show();
+            list_cmd.Hide();
+            label.Show();
         }
     }
 
@@ -418,6 +499,27 @@ void MainWnd::OnCommand
             nullptr, TEXT("open"), path.data(),
             nullptr, nullptr, SW_SHOWNOACTIVATE
         );
+    }
+    else if ( id == CTRL::BTN_TTBASE_COMPATIBLE )
+    {
+        settings::get().TTBaseCompatible ^= true;;
+    }
+    else if ( id == CTRL::BTN_LOG2WND )
+    {
+        settings::get().logToWindow ^= true;;
+    }
+    else if ( id == CTRL::BTN_LOG2FILE )
+    {
+        settings::get().logToFile ^= true;;
+    }
+    else if ( id == CTRL::CBX_LOGLEVEL )
+    {
+        if ( codeNotify != CBN_SELCHANGE ) { return; }
+
+        const auto index = cbx_log.SelectedIndex();
+        settings::get().logLevel = index;
+
+        WriteLog(ERROR_LEVEL(5), TEXT("cbx index = %i"), settings::get().logLevel);
     }
     else if ( id >= 10'000 )
     {
@@ -483,10 +585,10 @@ void MainWnd::OnReloadPlugins()
 
     // 一番上の項目を選択状態に
     const auto item = tree.GetSelection();
-    if ( item  == tvi[0] )
+    if ( item  == tvi[1] )
     {
         list_plg.Select(0);
-        ShowPluginInfo(list_plg, label);
+        ShowPluginInfo(list_plg, edit);
     }
 }
 
@@ -657,7 +759,7 @@ void SetPluginCommands
 
 void ShowPluginInfo
 (
-    tapetums::ListWnd& list, tapetums::CtrlWnd& label
+    tapetums::ListWnd& list, tapetums::CtrlWnd& edit
 )
 {
     // 選択項目のインデックスを取得
@@ -695,7 +797,7 @@ void ShowPluginInfo
     );
 
     // 情報を表示
-    label.SetText(buf.data());
+    edit.SetText(buf.data());
 }
 
 //---------------------------------------------------------------------------//
@@ -718,8 +820,8 @@ void UpdateCheckState
 
       #if 1 // TTBase のバグを再現
 
-        const auto CommandCount = plugin->info()->CommandCount;
-        for ( size_t ID = 0; ID < CommandCount; ++ID, ++index )
+        const INT32 CommandCount = plugin->info()->CommandCount;
+        for ( auto ID = 0; ID < CommandCount; ++ID, ++index )
         {
             if ( ID == CmdID ) { break; }
         }

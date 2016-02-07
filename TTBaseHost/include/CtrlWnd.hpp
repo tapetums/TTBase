@@ -27,6 +27,7 @@ namespace tapetums
     class LabelWnd;
     class BtnWnd;
     class EditWnd;
+    class ComboBox;
     class ListWnd;
     class TreeWnd;
     class TrackbarWnd;
@@ -39,7 +40,17 @@ namespace tapetums
 class tapetums::CtrlWnd : public tapetums::UWnd
 {
     using super = UWnd;
-    struct Init { Init() { ::InitCommonControls(); } };
+    struct Init
+    {
+        Init()
+        {
+            INITCOMMONCONTROLSEX icex;
+
+            icex.dwSize = sizeof(INITCOMMONCONTROLSEX );
+            icex.dwICC  = ICC_WIN95_CLASSES | ICC_DATE_CLASSES | ICC_USEREX_CLASSES;
+            ::InitCommonControlsEx(&icex);
+        }
+    };
 
 protected:
     INT16 m_id { 0 };
@@ -186,6 +197,26 @@ public:
 
         return super::Create(style, hwndParent, id);
     }
+
+    bool IsChecked()
+    {
+        Send(BM_GETCHECK, 0, 0) ? true : false;
+    }
+
+    void Check(bool checked)
+    {
+        Send(BM_SETCHECK, checked ? (WPARAM)BST_CHECKED : (WPARAM)BST_UNCHECKED, 0);
+    }
+
+    void Check()
+    {
+        Send(BM_SETCHECK, (WPARAM)BST_CHECKED, 0);
+    }
+
+    void Uncheck()
+    {
+        Send(BM_SETCHECK, (WPARAM)BST_UNCHECKED, 0);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -204,6 +235,45 @@ public:
         style |= WS_CHILD | WS_VISIBLE;
 
         return super::Create(style, hwndParent, id);
+    }
+};
+
+//---------------------------------------------------------------------------//
+
+class tapetums::ComboBox : public tapetums::CtrlWnd
+{
+    using super = CtrlWnd;
+
+public:
+    ComboBox() { m_class_name = WC_COMBOBOX; }
+    ~ComboBox() = default;
+
+public:
+    HWND Create(DWORD style, HWND hwndParent, INT16 id)
+    {
+        style |= WS_CHILD | WS_VISIBLE | WS_VSCROLL | CBS_DROPDOWNLIST;
+
+        return super::Create(style, hwndParent, id);
+    }
+
+    void AddString(LPCTSTR text)
+    {
+        Send(CB_ADDSTRING, 0, (LPARAM)text);
+    }
+
+    INT32 SelectedIndex()
+    {
+        return (INT32)Send(CB_GETCURSEL, 0, 0);
+    }
+
+    void Select(INT32 index)
+    {
+        Send(CB_SETCURSEL, index, 0);
+    }
+
+    INT32 Count()
+    {
+        return (INT32)Send(CB_GETCOUNT, 0, 0);
     }
 };
 

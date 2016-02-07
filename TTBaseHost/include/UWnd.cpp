@@ -205,6 +205,8 @@ ATOM tapetums::UWnd::Register
     LPCTSTR lpszClassName
 )
 {
+    m_class_name = lpszClassName;
+
     WNDCLASSEX wcex
     {
         sizeof(WNDCLASSEX),

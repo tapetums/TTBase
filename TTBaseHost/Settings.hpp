@@ -89,6 +89,10 @@ inline settings::settings()
     )
     ? true : false;
 
+    // 値の正規化
+    if ( logLevel < 0 ) { logLevel = 0; }
+    if ( logLevel > 5 ) { logLevel = 5; }
+
     // ログの出力先がファイルの場合
     if ( logToFile )
     {
