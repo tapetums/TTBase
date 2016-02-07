@@ -45,7 +45,7 @@ public:
     LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 
 private:
-    BOOL    OnCreate         (HWND hwnd, LPCREATESTRUCT);
+    BOOL    OnCreate         (HWND hwnd, LPCREATESTRUCT lpCreateStruct);
     void    OnDestroy        (HWND hwnd);
     void    OnSize           (HWND hwnd, UINT state, INT32 cx, INT32 cy);
     void    OnPaint          (HWND hwnd);

@@ -31,25 +31,13 @@ extern HINSTANCE g_hInst;
 
 TTBasePlugin::~TTBasePlugin()
 {
-    if ( m_handle == g_hInst )
+    if ( nullptr == m_handle )
     {
-        //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("システムプラグインを解放"));
+        return; // ムーブデストラクタでは余計な処理をしない
+    }
 
-        TTBEvent_Unload();
-        m_info = nullptr;
-
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
-        return;
-    }
-    else if ( m_handle )
-    {
-        Free();
-        FreeInfo();
-    }
-    else
-    {
-        // ムーブデストラクタでは余計な処理をしない
-    }
+    Free();
+    FreeInfo();
 }
 
 //---------------------------------------------------------------------------//
@@ -70,17 +58,25 @@ void TTBasePlugin::swap(TTBasePlugin&& rhs) noexcept
 
 //---------------------------------------------------------------------------//
 
+void TTBasePlugin::info(PLUGIN_INFO* info) noexcept
+{
+    FreePluginInfo(m_info);
+    m_info = CopyPluginInfo(info);
+}
+
+//---------------------------------------------------------------------------//
+
 bool TTBasePlugin::Load
 (
     LPCTSTR plugin_path
 )
 {
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの読み込み"));
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), plugin_path);
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの読み込み"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), plugin_path);
 
     if ( m_handle )
     {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("読み込み済み"));
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("読み込み済み"));
         return true;
     }
 
@@ -88,7 +84,7 @@ bool TTBasePlugin::Load
     m_handle = ::LoadLibraryEx(plugin_path, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
     if ( nullptr == m_handle )
     {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
         return false;
     }
 
@@ -106,13 +102,43 @@ bool TTBasePlugin::Load
     // 必須APIを実装しているか
     if ( nullptr == TTBEvent_InitPluginInfo || nullptr == TTBEvent_FreePluginInfo )
     {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("有効なプラグインではありません"));
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("有効なプラグインではありません"));
         Free();
         return false;
     }
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
     return true;
+}
+
+//---------------------------------------------------------------------------//
+
+void TTBasePlugin::Free()
+{
+    Unload();
+
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインを解放"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), m_path);
+
+    if ( nullptr == m_handle )
+    {
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("解放済み"));
+        return;
+    }
+
+    TTBEvent_InitPluginInfo = nullptr;
+    TTBEvent_FreePluginInfo = nullptr;
+    TTBEvent_Init           = nullptr;
+    TTBEvent_Unload         = nullptr;
+    TTBEvent_Execute        = nullptr;
+    TTBEvent_WindowsHook    = nullptr;
+
+    ::FreeLibrary(m_handle);
+    m_handle = nullptr;
+
+    // Reload() する時のため m_path と m_info は記憶しておく
+
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
@@ -121,7 +147,7 @@ bool TTBasePlugin::Reload()
 {
     bool result;
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの再読み込み"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの再読み込み"));
 
     // プラグインの読み込み
     result = Load(m_path);
@@ -157,49 +183,93 @@ bool TTBasePlugin::Reload()
         return false;
     }
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
     return true;
 }
 
 //---------------------------------------------------------------------------//
 
-void TTBasePlugin::Free()
+bool TTBasePlugin::Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
 {
-    Unload();
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの初期化"));
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインを解放"));
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), m_path);
-
-    if ( nullptr == m_handle )
+    if ( nullptr == TTBEvent_Init )
     {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("解放済み"));
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
+        return true;
+    }
+
+    const auto result = TTBEvent_Init(PluginFilename, hPlugin);
+    if ( ! result )
+    {
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
+        return false;
+    }
+
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+
+void TTBasePlugin::Unload()
+{
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの終了処理"));
+
+    if ( nullptr == TTBEvent_Unload )
+    {
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
         return;
     }
 
-    TTBEvent_InitPluginInfo = nullptr;
-    TTBEvent_FreePluginInfo = nullptr;
-    TTBEvent_Init           = nullptr;
-    TTBEvent_Unload         = nullptr;
-    TTBEvent_Execute        = nullptr;
-    TTBEvent_WindowsHook    = nullptr;
+    TTBEvent_Unload();
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+}
 
-    ::FreeLibrary(m_handle);
-    m_handle = nullptr;
+//---------------------------------------------------------------------------//
 
-    // Reload() する時のため m_path と m_info は記憶しておく
+bool TTBasePlugin::Execute(INT32 CmdID, HWND hwnd)
+{
+    if ( nullptr == TTBEvent_Execute )
+    {
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
+        return true;
+    }
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    const auto result = TTBEvent_Execute(CmdID, hwnd);
+    if ( ! result )
+    {
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
+        return false;
+    }
+
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+
+void TTBasePlugin::Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+    if ( nullptr == TTBEvent_WindowsHook )
+    {
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
+        return;
+    }
+
+    TTBEvent_WindowsHook(Msg, wParam, lParam);
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
 
 bool TTBasePlugin::InitInfo(LPTSTR PluginFilename)
 {
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグイン情報をコピー"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグイン情報をコピー"));
 
     if ( nullptr == TTBEvent_InitPluginInfo )
     {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
         return false;
     }
 
@@ -207,7 +277,7 @@ bool TTBasePlugin::InitInfo(LPTSTR PluginFilename)
     const auto tmp = TTBEvent_InitPluginInfo(PluginFilename);
     if ( nullptr == tmp )
     {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("情報取得失敗"));
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("情報取得失敗"));
         return false;
     }
 
@@ -218,7 +288,7 @@ bool TTBasePlugin::InitInfo(LPTSTR PluginFilename)
 
     if ( nullptr == m_info )
     {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("情報コピー失敗"));
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("情報コピー失敗"));
         return false;
     }
 
@@ -226,12 +296,12 @@ bool TTBasePlugin::InitInfo(LPTSTR PluginFilename)
     //  21世紀のコンピューターでは殆どの場合 1ms 未満になるため
     m_info->LoadTime = 0;
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  名前:       %s"), m_info->Name);
-    //WriteLog(ERROR_LEVEL(5), TEXT("  相対パス:   %s"), m_info->Filename);
-    //WriteLog(ERROR_LEVEL(5), TEXT("  タイプ:     %s"), m_info->PluginType == ptAlwaysLoad ? TEXT("常駐") : TEXT("都度"));
-    //WriteLog(ERROR_LEVEL(5), TEXT("  コマンド数: %u"), m_info->CommandCount);
+    WriteLog(ERROR_LEVEL(5), TEXT("  名前:       %s"), m_info->Name);
+    WriteLog(ERROR_LEVEL(5), TEXT("  相対パス:   %s"), m_info->Filename);
+    WriteLog(ERROR_LEVEL(5), TEXT("  タイプ:     %s"), m_info->PluginType == ptAlwaysLoad ? TEXT("常駐") : TEXT("都度"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  コマンド数: %u"), m_info->CommandCount);
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
     return true;
 }
 
@@ -239,7 +309,7 @@ bool TTBasePlugin::InitInfo(LPTSTR PluginFilename)
 
 void TTBasePlugin::FreeInfo()
 {
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグイン情報を解放"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグイン情報を解放"));
 
     if ( m_info )
     {
@@ -247,81 +317,7 @@ void TTBasePlugin::FreeInfo()
         m_info = nullptr;
     }
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
-}
-
-//---------------------------------------------------------------------------//
-
-bool TTBasePlugin::Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
-{
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの初期化"));
-
-    if ( nullptr == TTBEvent_Init )
-    {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
-        return true;
-    }
-
-    const auto result = TTBEvent_Init(PluginFilename, hPlugin);
-    if ( ! result )
-    {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
-        return false;
-    }
-
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
-    return true;
-}
-
-//---------------------------------------------------------------------------//
-
-void TTBasePlugin::Unload()
-{
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの終了処理"));
-
-    if ( nullptr == TTBEvent_Unload )
-    {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
-        return;
-    }
-
-    TTBEvent_Unload();
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
-}
-
-//---------------------------------------------------------------------------//
-
-bool TTBasePlugin::Execute(INT32 CmdID, HWND hwnd)
-{
-    if ( nullptr == TTBEvent_Execute )
-    {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
-        return true;
-    }
-
-    const auto result = TTBEvent_Execute(CmdID, hwnd);
-    if ( ! result )
-    {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
-        return false;
-    }
-
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
-    return true;
-}
-
-//---------------------------------------------------------------------------//
-
-void TTBasePlugin::Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
-{
-    if ( nullptr == TTBEvent_WindowsHook )
-    {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
-        return;
-    }
-
-    TTBEvent_WindowsHook(Msg, wParam, lParam);
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
@@ -330,7 +326,7 @@ void TTBasePlugin::Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 
 PluginMgr::PluginMgr()
 {
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("システムプラグインを生成"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("システムプラグインを生成"));
 
     TTBasePlugin system;
 
@@ -348,31 +344,38 @@ PluginMgr::PluginMgr()
     TTBEvent_Init((LPTSTR)TEXT(":system"), (DWORD_PTR)&system);
 
     // プラグインリストの一番最初に登録
-    plugins.emplace_back(std::move(system));
+    plugins.push_back(std::move(system));
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
 
 PluginMgr::~PluginMgr()
 {
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインマネージャを解放"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインマネージャを解放"));
 
     // ロードとは逆順に解放する
     FreeAll();
 
-    // システムプラグインも解放
-    plugins.clear();
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("システムプラグインを解放"));
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %u plugin(s)"), plugins.size());
+    auto&& system = plugins.front();
+    TTBEvent_Unload();
+    system.m_info = nullptr;
+    system.m_handle = nullptr;
+
+    plugins.clear();
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+
+    WriteLog(ERROR_LEVEL(5), TEXT("  %u plugin(s)"), plugins.size());
 }
 
 //---------------------------------------------------------------------------//
 
 void PluginMgr::LoadAll()
 {
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("すべてのプラグインを読み込み"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("すべてのプラグインを読み込み"));
 
     std::array<TCHAR, MAX_PATH> dir_path;
     ::GetModuleFileName(g_hInst, dir_path.data(), (DWORD)dir_path.size());
@@ -387,7 +390,7 @@ void PluginMgr::LoadAll()
 
 void PluginMgr::FreeAll()
 {
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("すべてのプラグインを解放"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("すべてのプラグインを解放"));
 
     // ロードとは逆順に解放 ... システムプラグインは解放しない
     while ( plugins.size() > 1 )
@@ -395,7 +398,25 @@ void PluginMgr::FreeAll()
         plugins.pop_back();
     }
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %u plugin(s)"), plugins.size());
+    WriteLog(ERROR_LEVEL(5), TEXT("  %u plugin(s)"), plugins.size());
+}
+
+//---------------------------------------------------------------------------//
+
+const TTBasePlugin* PluginMgr::Find
+(
+    LPCTSTR PluginFilename
+)
+const noexcept
+{
+    for ( auto&& plugin: plugins )
+    {
+        if ( 0 == lstrcmp(PluginFilename, plugin.m_info->Filename) )
+        {
+            return &plugin;
+        }
+    }
+    return nullptr;
 }
 
 //---------------------------------------------------------------------------//
@@ -450,43 +471,7 @@ void PluginMgr::InitAll()
         ++it;
     }
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %u plugin(s)"), plugins.size());
-}
-
-//---------------------------------------------------------------------------//
-
-const TTBasePlugin* PluginMgr::Find
-(
-    LPCTSTR PluginFilename
-)
-const noexcept
-{
-    for ( auto&& plugin: plugins )
-    {
-        if ( 0 == lstrcmp(PluginFilename, plugin.m_info->Filename) )
-        {
-            return &plugin;
-        }
-    }
-    return nullptr;
-}
-
-//---------------------------------------------------------------------------//
-
-TTBasePlugin* PluginMgr::Find
-(
-    LPCTSTR PluginFilename
-)
-noexcept
-{
-    for ( auto&& plugin: plugins )
-    {
-        if ( 0 == lstrcmp(PluginFilename, plugin.m_info->Filename) )
-        {
-            return &plugin;
-        }
-    }
-    return nullptr;
+    WriteLog(ERROR_LEVEL(5), TEXT("  %u plugin(s)"), plugins.size());
 }
 
 //---------------------------------------------------------------------------//

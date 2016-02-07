@@ -23,16 +23,17 @@ class PluginMgr;
 // Classes
 //---------------------------------------------------------------------------//
 
+#define package private
+
 class TTBasePlugin
 {
     friend class PluginMgr;
 
-private:
+package: // Members
     TCHAR        m_path[MAX_PATH];
     HMODULE      m_handle { nullptr };
     PLUGIN_INFO* m_info   { nullptr };
 
-private:
     TTBEVENT_INITPLUGININFO TTBEvent_InitPluginInfo { nullptr };
     TTBEVENT_FREEPLUGININFO TTBEvent_FreePluginInfo { nullptr };
     TTBEVENT_INIT           TTBEvent_Init           { nullptr };
@@ -40,7 +41,7 @@ private:
     TTBEVENT_EXECUTE        TTBEvent_Execute        { nullptr };
     TTBEVENT_WINDOWSHOOK    TTBEvent_WindowsHook    { nullptr };
 
-public:
+public: // ctor / dtor
     TTBasePlugin() = default;
     ~TTBasePlugin();
 
@@ -52,17 +53,20 @@ public:
 
     explicit TTBasePlugin(LPCTSTR path) { Load(path ); }
 
-public:
+public: // Move Constructor
     void swap(TTBasePlugin&&) noexcept;
 
-public:
-    bool               is_loaded() const noexcept { return m_handle != nullptr; }
-    const PLUGIN_INFO* info()      const noexcept { return m_info; }
-    PLUGIN_INFO*       info()      noexcept       { return m_info; }
+public: // Properties
+    bool is_loaded() const noexcept { return m_handle != nullptr; }
 
-    void info(PLUGIN_INFO* info) noexcept { m_info = info; }
+public: // Acessors
+    const auto path()   const noexcept { return m_path; }
+    const auto handle() const noexcept { return m_handle; }
+    const auto info()   const noexcept { return m_info; }
 
-public:
+    void info(PLUGIN_INFO* info) noexcept;
+
+public: // Methods
     bool Load(LPCTSTR path);
     void Free();
     bool Reload();
@@ -72,22 +76,24 @@ public:
     bool Execute(INT32 CmdID, HWND hwnd);
     void Hook   (UINT Msg, WPARAM wParam, LPARAM lParam);
 
-private:
+package: // Internal Methods
     bool InitInfo(LPTSTR PluginFilename);
     void FreeInfo();
 };
+
+#undef package
 
 //---------------------------------------------------------------------------//
 
 class PluginMgr
 {
-public:
+public: // Singleton
     static PluginMgr& GetInstance() { static PluginMgr mgr; return mgr; }
 
-private:
+private: // Members
     std::list<TTBasePlugin> plugins;
 
-public:
+public: // ctor / dtor
     PluginMgr();
     ~PluginMgr();
 
@@ -97,28 +103,27 @@ public:
     PluginMgr(PluginMgr&&)             = default;
     PluginMgr& operator =(PluginMgr&&) = default;
 
-public:
+public: // Properties
     size_t size() const noexcept { return plugins.size(); }
 
+public: // Acessors
+    const auto& system() const noexcept { return plugins.front(); }
+    auto&       system() noexcept       { return plugins.front(); }
+
+public: // Iterators
     auto begin(){ return plugins.begin(); }
     auto end()  { return plugins.end(); }
 
     auto begin() const { return plugins.begin(); }
     auto end()   const { return plugins.end(); }
 
-    auto& system() const noexcept { return plugins.front(); }
-    auto& system() noexcept       { return plugins.front(); }
-
-public:
+public: // Methods
     void LoadAll();
     void FreeAll();
-
-private:
-    void InitAll();
-
-public:
     const TTBasePlugin* Find(LPCTSTR PluginFilename) const noexcept;
-    TTBasePlugin*       Find(LPCTSTR PluginFilename) noexcept;
+
+private: // Internal Methods
+    void InitAll();
 };
 
 //---------------------------------------------------------------------------//

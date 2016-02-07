@@ -17,6 +17,7 @@
 #include <shlwapi.h>
 #pragma comment(lib, "shlwapi.lib") // PathRemoveFileSpec, StrToInt
 
+#pragma warning(disable: 4005)
 #include "resource.h"
 
 #include "../Plugin.hpp"
@@ -64,6 +65,13 @@ struct CTRL
     };
 };
 
+struct BTN_TEXT
+{
+    static constexpr LPCTSTR Exit       = TEXT("終了");
+    static constexpr LPCTSTR Settings   = TEXT("設定");
+    static constexpr LPCTSTR OpenFolder = TEXT("インストールフォルダを開く");
+};
+
 struct LIST_PLG_ITEM
 {
     enum : INT32
@@ -98,7 +106,8 @@ struct LIST_CMD_ITEM
 void SetPluginNames   (const PluginMgr& mgr, tapetums::ListWnd& list);
 void SetPluginCommands(const PluginMgr& mgr, tapetums::ListWnd& list);
 void ShowPluginInfo   (tapetums::ListWnd& list, tapetums::CtrlWnd& label);
-void UpdateCheckState (tapetums::ListWnd& list, TTBasePlugin* plugin, INT32 CmdID);
+void UpdateCheckState (tapetums::ListWnd& list, const TTBasePlugin* plugin, INT32 CmdID);
+void PopupMenu        (HWND hwnd);
 
 //---------------------------------------------------------------------------//
 // Methods
@@ -129,7 +138,10 @@ MainWnd::MainWnd()
 
 //---------------------------------------------------------------------------//
 
-LRESULT MainWnd::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT MainWnd::WndProc
+(
+    HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
+)
 {
     if ( uMsg == WM_SHOWWINDOW && wParam == SW_SHOWNORMAL)
     {
@@ -179,7 +191,10 @@ LRESULT MainWnd::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 //---------------------------------------------------------------------------//
 
-BOOL MainWnd::OnCreate(HWND hwnd, LPCREATESTRUCT)
+BOOL MainWnd::OnCreate
+(
+    HWND hwnd, LPCREATESTRUCT
+)
 {
     // 独自ウィンドウメッセージの登録
     WM_OPENFOLDER      = ::RegisterWindowMessage(TEXT("tapetums::WM_OPENFOLDER"));
@@ -216,11 +231,11 @@ BOOL MainWnd::OnCreate(HWND hwnd, LPCREATESTRUCT)
 
     btn_open_inst_folder.Create(BS_PUSHBUTTON, hwnd, CTRL::BTN_OPEN_INST_FOLDER);
     btn_open_inst_folder.SetFont(font);
-    btn_open_inst_folder.SetText(TEXT("インストールフォルダを開く"));
+    btn_open_inst_folder.SetText(BTN_TEXT::OpenFolder);
 
     btn_exit.Create(BS_PUSHBUTTON, hwnd, CTRL::BTN_EXIT);
     btn_exit.SetFont(font);
-    btn_exit.SetText(TEXT("終了"));
+    btn_exit.SetText(BTN_TEXT::Exit);
 
     auto style = WS_VSCROLL | WS_HSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL;
     auto styleEx = LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_HEADERDRAGDROP;
@@ -251,7 +266,10 @@ BOOL MainWnd::OnCreate(HWND hwnd, LPCREATESTRUCT)
 
 //---------------------------------------------------------------------------//
 
-void MainWnd::OnDestroy(HWND)
+void MainWnd::OnDestroy
+(
+    HWND
+)
 {
     // タスクトレイのアイコンを破棄
     DeleteNotifyIcon(ID_TRAYICON);
@@ -263,7 +281,10 @@ void MainWnd::OnDestroy(HWND)
 
 //---------------------------------------------------------------------------//
 
-void MainWnd::OnSize(HWND, UINT , INT32 cx, INT32 cy)
+void MainWnd::OnSize
+(
+    HWND, UINT , INT32 cx, INT32 cy
+)
 {
     // コントロールを配置
     //  TODO: DPIスケーリングへの対応
@@ -279,7 +300,10 @@ void MainWnd::OnSize(HWND, UINT , INT32 cx, INT32 cy)
 
 //---------------------------------------------------------------------------//
 
-void MainWnd::OnPaint(HWND hwnd)
+void MainWnd::OnPaint
+(
+    HWND hwnd
+)
 {
     PAINTSTRUCT ps;
     const auto hdc = ::BeginPaint(hwnd, &ps);
@@ -304,14 +328,20 @@ void MainWnd::OnPaint(HWND hwnd)
 
 //---------------------------------------------------------------------------//
 
-void MainWnd::OnClose(HWND)
+void MainWnd::OnClose
+(
+    HWND
+)
 {
     Hide();
 }
 
 //---------------------------------------------------------------------------//
 
-LRESULT MainWnd::OnNotify(HWND hwnd, INT32, LPNMHDR pNMHdr)
+LRESULT MainWnd::OnNotify
+(
+    HWND hwnd, INT32, LPNMHDR pNMHdr
+)
 {
     if ( pNMHdr->idFrom == CTRL::LIST_PLUGIN && pNMHdr->code == NM_CLICK )
     {
@@ -364,36 +394,60 @@ LRESULT MainWnd::OnNotify(HWND hwnd, INT32, LPNMHDR pNMHdr)
 
 //---------------------------------------------------------------------------//
 
-void MainWnd::OnCommand(HWND, UINT id, HWND, UINT)
+void MainWnd::OnCommand
+(
+    HWND hwnd, UINT id, HWND hwndCtrl, UINT codeNotify
+)
 {
-    switch ( id )
-    {
-        case CTRL::BTN_EXIT:
-        {
-            // アプリケーションを終了
-            Destroy();
-            break;
-        }
-        case CTRL::BTN_OPEN_INST_FOLDER:
-        {
-            // 本体のインストールフォルダを開く
-            std::array<TCHAR, MAX_PATH> path;
-            ::GetModuleFileName(g_hInst, path.data(), (DWORD)path.size());
-            ::PathRemoveFileSpec(path.data());
+    hwnd; hwndCtrl; codeNotify;
 
-            ::ShellExecute
-            (
-                nullptr, TEXT("open"), path.data(),
-                nullptr, nullptr, SW_SHOWNOACTIVATE
-            );
-            break;
+    if ( id == CTRL::BTN_EXIT )
+    {
+        // アプリケーションを終了
+        Destroy();
+    }
+    else if ( id == CTRL::BTN_OPEN_INST_FOLDER)
+    {
+        // 本体のインストールフォルダを開く
+        std::array<TCHAR, MAX_PATH> path;
+        ::GetModuleFileName(g_hInst, path.data(), (DWORD)path.size());
+        ::PathRemoveFileSpec(path.data());
+
+        ::ShellExecute
+        (
+            nullptr, TEXT("open"), path.data(),
+            nullptr, nullptr, SW_SHOWNOACTIVATE
+        );
+    }
+    else if ( id >= 10'000 )
+    {
+        const INT32 index = id - 10'000;
+        if ( index >= list_cmd.Count() )
+        {
+            return;
+        }
+
+        // リストビューコントロールから必要なデータを取得
+        const auto plugin = (TTBasePlugin*)list_cmd.GetItemLPARAM(index);
+        const auto CmdID = list_cmd.GetItemToInt(index, LIST_CMD_ITEM::コマンドID);
+
+        // コマンドを実行
+        if ( plugin )
+        {
+            WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("システムメニューの表示"));
+            WriteLog(ERROR_LEVEL(5), TEXT("  %s"), plugin->info()->Name);
+            WriteLog(ERROR_LEVEL(5), TEXT("  %u"), CmdID);
+            plugin->Execute(CmdID, hwnd);
         }
     }
 }
 
 //---------------------------------------------------------------------------//
 
-void MainWnd::OnNotifyIcon(HWND hwnd, UINT uMsg)
+void MainWnd::OnNotifyIcon
+(
+    HWND hwnd, UINT uMsg
+)
 {
     if ( uMsg == WM_LBUTTONDOWN )
     {
@@ -405,8 +459,7 @@ void MainWnd::OnNotifyIcon(HWND hwnd, UINT uMsg)
     }
     else if ( uMsg == WM_RBUTTONDOWN )
     {
-        // アプリケーションを終了
-        Destroy();
+        PopupMenu(hwnd);
     }
 }
 
@@ -439,7 +492,10 @@ void MainWnd::OnReloadPlugins()
 
 //---------------------------------------------------------------------------//
 
-void MainWnd::OnSetTaskTrayIcon(HICON hIcon, LPCTSTR Tips)
+void MainWnd::OnSetTaskTrayIcon
+(
+    HICON hIcon, LPCTSTR Tips
+)
 {
     if ( 0 == lstrcmp(Tips, TEXT("TOGGLE")) )
     {
@@ -459,11 +515,14 @@ void MainWnd::OnSetTaskTrayIcon(HICON hIcon, LPCTSTR Tips)
         }
 
         // プラグイン一覧でのチェックボックスの状態も更新
-        auto DispMenu = (DWORD)g_info.Commands[CMD_TRAYICON].DispMenu;
-        DispMenu ^= dmMenuChecked;
-        g_info.Commands[CMD_TRAYICON].DispMenu = (DISPMENU)DispMenu;
+        auto&& system = PluginMgr::GetInstance().system();
+        auto&& cmd = system.info()->Commands[CMD_TRAYICON];
 
-        UpdateCheckState(list_cmd, &PluginMgr::GetInstance().system(), CMD_TRAYICON);
+        auto DispMenu = (DWORD)cmd.DispMenu;
+        DispMenu ^= dmMenuChecked;
+        cmd.DispMenu = (DISPMENU)DispMenu;
+
+        UpdateCheckState(list_cmd, &system, CMD_TRAYICON);
     }
     else
     {
@@ -485,9 +544,12 @@ void MainWnd::OnSetTaskTrayIcon(HICON hIcon, LPCTSTR Tips)
 
 //---------------------------------------------------------------------------//
 
-bool MainWnd::OnExecuteCommand(HWND hwnd, TTBasePlugin* plugin, INT32 CmdID)
+bool MainWnd::OnExecuteCommand
+(
+    HWND hwnd, TTBasePlugin* plugin, INT32 CmdID
+)
 {
-    //WriteLog(ERROR_LEVEL(5), TEXT("実行: %s|%d"), plugin->info->Name, CmdID);
+    WriteLog(ERROR_LEVEL(5), TEXT("実行: %s|%d"), plugin->info()->Name, CmdID);
 
     bool result;
 
@@ -503,7 +565,7 @@ bool MainWnd::OnExecuteCommand(HWND hwnd, TTBasePlugin* plugin, INT32 CmdID)
         result = plugin->Reload();
         if ( ! result )
         {
-            //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("ロード失敗"));
+            WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("ロード失敗"));
             return false;
         }
 
@@ -511,7 +573,7 @@ bool MainWnd::OnExecuteCommand(HWND hwnd, TTBasePlugin* plugin, INT32 CmdID)
         plugin->Unload();
     }
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
     return result;
 }
 
@@ -519,7 +581,10 @@ bool MainWnd::OnExecuteCommand(HWND hwnd, TTBasePlugin* plugin, INT32 CmdID)
 // Utility Functions
 //---------------------------------------------------------------------------//
 
-void SetPluginNames(const PluginMgr& mgr, tapetums::ListWnd& list)
+void SetPluginNames
+(
+    const PluginMgr& mgr, tapetums::ListWnd& list
+)
 {
     std::array<TCHAR, 64> buf;
 
@@ -554,7 +619,10 @@ void SetPluginNames(const PluginMgr& mgr, tapetums::ListWnd& list)
 
 //---------------------------------------------------------------------------//
 
-void SetPluginCommands(const PluginMgr& mgr, tapetums::ListWnd& list)
+void SetPluginCommands
+(
+    const PluginMgr& mgr, tapetums::ListWnd& list
+)
 {
     std::array<TCHAR, 64> buf;
 
@@ -587,7 +655,10 @@ void SetPluginCommands(const PluginMgr& mgr, tapetums::ListWnd& list)
 
 //---------------------------------------------------------------------------//
 
-void ShowPluginInfo(tapetums::ListWnd& list, tapetums::CtrlWnd& label)
+void ShowPluginInfo
+(
+    tapetums::ListWnd& list, tapetums::CtrlWnd& label
+)
 {
     // 選択項目のインデックスを取得
     const auto index = list.SelectedIndex();
@@ -629,9 +700,12 @@ void ShowPluginInfo(tapetums::ListWnd& list, tapetums::CtrlWnd& label)
 
 //---------------------------------------------------------------------------//
 
-void UpdateCheckState(tapetums::ListWnd& list, TTBasePlugin* plugin, INT32 CmdID)
+void UpdateCheckState
+(
+    tapetums::ListWnd& list, const TTBasePlugin* plugin, INT32 CmdID
+)
 {
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("チェックボックスの表示状態を更新"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("チェックボックスの表示状態を更新"));
 
     const auto count = list.Count();
     for ( auto index = 0; index < count; ++index )
@@ -640,7 +714,7 @@ void UpdateCheckState(tapetums::ListWnd& list, TTBasePlugin* plugin, INT32 CmdID
         {
             continue;
         }
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), plugin->info->Name);
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), plugin->info()->Name);
 
       #if 1 // TTBase のバグを再現
 
@@ -657,7 +731,7 @@ void UpdateCheckState(tapetums::ListWnd& list, TTBasePlugin* plugin, INT32 CmdID
             list.Check(index);
             if ( list.IsChecked(index) )
             {
-                //WriteLog(ERROR_LEVEL(5), TEXT("  %i, %i, %s"), index, cmd_id, TEXT("Checked"));
+                WriteLog(ERROR_LEVEL(5), TEXT("  %i, %i, %s"), index, cmd_id, TEXT("Checked"));
             }
             break;;
         }
@@ -666,7 +740,7 @@ void UpdateCheckState(tapetums::ListWnd& list, TTBasePlugin* plugin, INT32 CmdID
             list.Uncheck(index);
             if ( ! list.IsChecked(index) )
             {
-                //WriteLog(ERROR_LEVEL(5), TEXT("  %i, %i, %s"), index, cmd_id, TEXT("Unhecked"));
+                WriteLog(ERROR_LEVEL(5), TEXT("  %i, %i, %s"), index, cmd_id, TEXT("Unhecked"));
             }
             break;;
         }
@@ -683,7 +757,7 @@ void UpdateCheckState(tapetums::ListWnd& list, TTBasePlugin* plugin, INT32 CmdID
         {
             if ( ! list.IsChecked(index) )
             {
-                //WriteLog(ERROR_LEVEL(5), TEXT("  %i, %i, %s"), index, CmdID, TEXT("Checked"));
+                WriteLog(ERROR_LEVEL(5), TEXT("  %i, %i, %s"), index, CmdID, TEXT("Checked"));
             }
             list.Check(index);
         }
@@ -691,7 +765,7 @@ void UpdateCheckState(tapetums::ListWnd& list, TTBasePlugin* plugin, INT32 CmdID
         {
             if ( list.IsChecked(index) )
             {
-                //WriteLog(ERROR_LEVEL(5), TEXT("  %i, %i, %s"), index, CmdID, TEXT("Unhecked"));
+                WriteLog(ERROR_LEVEL(5), TEXT("  %i, %i, %s"), index, CmdID, TEXT("Unhecked"));
             }
             list.Uncheck(index);
         }
@@ -699,7 +773,59 @@ void UpdateCheckState(tapetums::ListWnd& list, TTBasePlugin* plugin, INT32 CmdID
       #endif
     }
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+}
+
+//---------------------------------------------------------------------------//
+
+void PopupMenu(HWND hwnd)
+{
+    auto&& mgr = PluginMgr::GetInstance();
+
+    // マウスカーソルの位置を取得
+    POINT pt;
+    ::GetCursorPos(&pt);
+
+    // リソースからメニューを取得
+    const auto hMenu    = ::LoadMenu(g_hInst, MAKEINTRESOURCE(IDR_POPUP_MENU));
+    const auto hSubMenu = ::GetSubMenu(hMenu, 0);
+
+    // メニュー項目を生成
+    MENUITEMINFO mii;
+    mii.cbSize     = sizeof(MENUITEMINFO);
+    mii.fMask      = MIIM_STRING | MIIM_STATE | MIIM_ID | MIIM_DATA;
+
+    UINT wID = 0; // +10'000 しておいて、WM_COMMAND で取り出す
+    for ( auto it = mgr.begin(); it != mgr.end(); ++it )
+    {
+        const auto& plugin = *it;
+        const auto CommandCount = plugin.info()->CommandCount;
+        for ( size_t idx = 0; idx < CommandCount; ++idx, ++wID )
+        {
+            const auto& cmd = plugin.info()->Commands[idx];
+            const auto& DispMenu = cmd.DispMenu;
+            if ( 0 == (DispMenu & dmSystemMenu) ) { continue; }
+
+            mii.dwTypeData = cmd.Caption;
+            mii.fState     = DispMenu & dmMenuChecked ? MFS_CHECKED : MFS_UNCHECKED;
+            mii.wID        = wID + 10'000;
+            mii.dwItemData = (ULONG_PTR)&plugin;
+            InsertMenuItem(hSubMenu, wID, FALSE, &mii);
+        }
+    }
+
+    // ポップアップメニューを表示
+    ::TrackPopupMenu
+    (
+        hSubMenu, TPM_LEFTALIGN, pt.x, pt.y, 0, hwnd, nullptr
+    );
+
+    // 表示したメニューを破棄
+    ::DestroyMenu(hMenu);
+
+    // Article ID: Q135788
+    // ポップアップメニューから処理を戻すために必要
+    ::PostMessage(hwnd, WM_NULL, 0, 0);
 }
 
 //---------------------------------------------------------------------------//

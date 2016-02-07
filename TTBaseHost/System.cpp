@@ -47,24 +47,24 @@ DWORD COMMAND_COUNT { CMD_COUNT };
 PLUGIN_COMMAND_INFO g_cmd_info[] =
 {
     {
-        (LPTSTR)TEXT("Exit"), // コマンド名（英名）
-        (LPTSTR)TEXT("終了"), // コマンド説明（日本語）
-        CMD_EXIT,             // コマンドID
-        0,                    // Attr（未使用）
-        -1,                   // ResTd(未使用）
-        dmHotKeyMenu,         // DispMenu
-        0,                    // TimerInterval[msec] 0で使用しない
-        0                     // TimerCounter（未使用）
+        (LPTSTR)TEXT("Exit"),                  // コマンド名（英名）
+        (LPTSTR)TEXT("終了"),                  // コマンド説明（日本語）
+        CMD_EXIT,                              // コマンドID
+        0,                                     // Attr（未使用）
+        -1,                                    // ResTd(未使用）
+        DISPMENU(dmSystemMenu | dmHotKeyMenu), // DispMenu
+        0,                                     // TimerInterval[msec] 0で使用しない
+        0                                      // TimerCounter（未使用）
     },
     {
-        (LPTSTR)TEXT("Settings"),   // コマンド名（英名）
-        (LPTSTR)TEXT("本体の設定"), // コマンド説明（日本語）
-        CMD_SETTINGS,               // コマンドID
-        0,                          // Attr（未使用）
-        -1,                         // ResTd(未使用）
-        dmHotKeyMenu,               // DispMenu
-        0,                          // TimerInterval[msec] 0で使用しない
-        0                           // TimerCounter（未使用）
+        (LPTSTR)TEXT("Settings"),              // コマンド名（英名）
+        (LPTSTR)TEXT("本体の設定"),            // コマンド説明（日本語）
+        CMD_SETTINGS,                          // コマンドID
+        0,                                     // Attr（未使用）
+        -1,                                    // ResTd(未使用）
+        DISPMENU(dmSystemMenu | dmHotKeyMenu), // DispMenu
+        0,                                     // TimerInterval[msec] 0で使用しない
+        0                                      // TimerCounter（未使用）
     },
     {
         (LPTSTR)TEXT("Open Folder"),                // コマンド名（英名）
@@ -72,7 +72,7 @@ PLUGIN_COMMAND_INFO g_cmd_info[] =
         CMD_OPEN_FOLDER,                            // コマンドID
         0,                                          // Attr（未使用）
         -1,                                         // ResTd(未使用）
-        dmHotKeyMenu,                               // DispMenu
+        DISPMENU(dmSystemMenu | dmHotKeyMenu),      // DispMenu
         0,                                          // TimerInterval[msec] 0で使用しない
         0                                           // TimerCounter（未使用）
     },
@@ -92,7 +92,7 @@ PLUGIN_COMMAND_INFO g_cmd_info[] =
         CMD_TRAYICON,                               // コマンドID
         0,                                          // Attr（未使用）
         -1,                                         // ResTd(未使用）
-        (DISPMENU)(dmHotKeyMenu | dmMenuChecked),   // DispMenu
+        DISPMENU(dmHotKeyMenu | dmMenuChecked),     // DispMenu
         0,                                          // TimerInterval[msec] 0で使用しない
         0                                           // TimerCounter（未使用）
     },
@@ -186,10 +186,10 @@ BOOL Execute(INT32 CmdID, HWND hwnd)
 void Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
     Msg; wParam; lParam;
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("フック / 未実装"));
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %u"), Msg);
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %u"), wParam);
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %i"), lParam);
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("フック / 未実装"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %u"), Msg);
+    WriteLog(ERROR_LEVEL(5), TEXT("  %u"), wParam);
+    WriteLog(ERROR_LEVEL(5), TEXT("  %i"), lParam);
 }
 
 //---------------------------------------------------------------------------//
@@ -201,19 +201,24 @@ extern "C" PLUGIN_INFO* WINAPI TTBPlugin_GetPluginInfo
     DWORD_PTR hPlugin
 )
 {
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの情報を取得"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの情報を取得"));
 
-    auto plugin = reinterpret_cast<TTBasePlugin*>(hPlugin);
-    if ( plugin )
+    // リストに登録されているか調べる
+    auto&& mgr = PluginMgr::GetInstance();
+    for ( auto&& plugin: mgr )
     {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), plugin->info->Name);
-        return CopyPluginInfo(plugin->info());
+        if ( &plugin != (TTBasePlugin*)hPlugin ) { continue; }
+
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), plugin.info()->Name);
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+
+        // コピーしたものを返す
+        return CopyPluginInfo(plugin.info());
     }
-    else
-    {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("?"));
-        return nullptr;
-    }
+
+    // 知らないプラグインなのでどうしようもない
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("Not found"));
+    return nullptr;
 }
 
 //---------------------------------------------------------------------------//
@@ -223,19 +228,24 @@ extern "C" void WINAPI TTBPlugin_SetPluginInfo
     DWORD_PTR hPlugin, PLUGIN_INFO* PLUGIN_INFO
 )
 {
-    ////WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの情報を設定"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの情報を設定"));
 
-    auto plugin = reinterpret_cast<TTBasePlugin*>(hPlugin);
-    if ( nullptr == plugin )
+    // リストに登録されているか調べる
+    auto&& mgr = PluginMgr::GetInstance();
+    for ( auto&& plugin: mgr )
     {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("?"));
+        if ( &plugin != (TTBasePlugin*)hPlugin ) { continue; }
+
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), plugin.info()->Name);
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+
+        // プラグイン情報を差替
+        plugin.info(PLUGIN_INFO); // 内部でコピーを保持 ... PluginMgr.hpp を参照
         return;
     }
 
-    FreePluginInfo(plugin->info());
-    plugin->info(CopyPluginInfo(PLUGIN_INFO));
-
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    // 知らないプラグインなのでどうしようもない
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("Not found"));
 }
 
 //---------------------------------------------------------------------------//
@@ -245,17 +255,31 @@ extern "C" void WINAPI TTBPlugin_FreePluginInfo
     PLUGIN_INFO* PLUGIN_INFO
 )
 {
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの情報を解放"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの情報を解放"));
+
     if ( nullptr == PLUGIN_INFO )
     {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("?"));
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
         return;
     }
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), PLUGIN_INFO->Name);
-    FreePluginInfo(PLUGIN_INFO);
+    const auto Filename = PLUGIN_INFO->Filename;
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    // リストに登録されているプラグインのものか調べる
+    auto&& mgr = PluginMgr::GetInstance();
+    for ( auto&& plugin: mgr )
+    {
+        if ( 0 != lstrcmp(Filename, plugin.info()->Filename) ) { continue; }
+
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), PLUGIN_INFO->Name);
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+
+        FreePluginInfo(PLUGIN_INFO);
+        return;
+    }
+
+    // 知らないプラグインなのでどうしようもない
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("Not found"));
 }
 
 //---------------------------------------------------------------------------//
@@ -265,24 +289,24 @@ extern "C" void WINAPI TTBPlugin_SetMenuProperty
     DWORD_PTR hPlugin, INT32 CommandID, CHANGE_FLAG ChangeFlag, DISPMENU Flag
 )
 {
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("メニューのプロパティを設定"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("メニューのプロパティを設定"));
 
     auto plugin = reinterpret_cast<TTBasePlugin*>(hPlugin);
     if ( nullptr == plugin )
     {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("?"));
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("?"));
         return;
     }
 
     const auto& info = *plugin->info();
-    //WriteLog(ERROR_LEVEL(5), TEXT("  名前: %s"), info.Name);
-    //WriteLog(ERROR_LEVEL(5), TEXT("  ID:   %i"), CommandID);
-    //WriteLog(ERROR_LEVEL(5), TEXT("  Flag: %u"), Flag);
+    WriteLog(ERROR_LEVEL(5), TEXT("  名前: %s"), info.Name);
+    WriteLog(ERROR_LEVEL(5), TEXT("  ID:   %i"), CommandID);
+    WriteLog(ERROR_LEVEL(5), TEXT("  Flag: %u"), Flag);
 
     const auto CommandCount = info.CommandCount;
     if ( (DWORD)CommandID >= CommandCount )
     {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("Bad index"));
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("Bad index"));
         return;
     }
 
@@ -308,14 +332,14 @@ extern "C" void WINAPI TTBPlugin_SetMenuProperty
 
     // チェック状態を再描画する
     ::PostMessage(g_hwnd, WM_SETMENUPROPERTY, (WPARAM)plugin, (LPARAM)CommandID);
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
 
 extern "C" PLUGIN_INFO** WINAPI TTBPlugin_GetAllPluginInfo()
 {
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("すべてのプラグインの情報を取得"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("すべてのプラグインの情報を取得"));
     auto&& mgr = PluginMgr::GetInstance();
 
     auto PluginInfoArray = (PLUGIN_INFO**) new DWORD_PTR[mgr.size() + 1];
@@ -334,7 +358,7 @@ extern "C" PLUGIN_INFO** WINAPI TTBPlugin_GetAllPluginInfo()
     // 配列はヌル終端にする
     PluginInfoArray[idx] = nullptr;
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
     return PluginInfoArray;
 }
 
@@ -345,7 +369,7 @@ extern "C" void WINAPI TTBPlugin_FreePluginInfoArray
     PLUGIN_INFO** PluginInfoArray
 )
 {
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("すべてのプラグインの情報を解放"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("すべてのプラグインの情報を解放"));
     if ( nullptr == PluginInfoArray ) { return; }
 
     size_t idx = 0;
@@ -357,7 +381,7 @@ extern "C" void WINAPI TTBPlugin_FreePluginInfoArray
 
     delete[] PluginInfoArray;
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
@@ -367,12 +391,12 @@ extern "C" void WINAPI TTBPlugin_SetTaskTrayIcon
     HICON hIcon, LPCTSTR Tips
 )
 {
-    //WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("タスクトレイのアイコンを変更"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("タスクトレイのアイコンを変更"));
 
     // メインウィンドウ内のルーチンに処理を投げる
     ::PostMessage(g_hwnd, WM_SETTASKTRAYICON, (WPARAM)hIcon, (LPARAM)Tips);
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
@@ -429,13 +453,13 @@ extern "C" BOOL WINAPI TTBPlugin_ExecuteCommand
     LPCTSTR PluginFilename, INT32 CmdID
 )
 {
-    //WriteLog(ERROR_LEVEL(5), TEXT("実行: %s|%d"), PluginFilename, CmdID);
+    WriteLog(ERROR_LEVEL(5), TEXT("実行: %s|%d"), PluginFilename, CmdID);
 
     // 相対パスからプラグインのインスタンスを検索
     auto plugin = PluginMgr::GetInstance().Find(PluginFilename);
     if ( nullptr == plugin )
     {
-        //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("Not found"));
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("Not found"));
         return FALSE;
     }
 
@@ -445,7 +469,7 @@ extern "C" BOOL WINAPI TTBPlugin_ExecuteCommand
         g_hwnd, WM_EXECUTECOMMAND, (WPARAM)plugin, (LPARAM)CmdID
     );
 
-    //WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
     return result;
 }
 
