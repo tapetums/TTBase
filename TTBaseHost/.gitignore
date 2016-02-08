@@ -77,7 +77,11 @@ ipch/
 *.opensdf
 *.sdf
 *.cachefile
+<<<<<<< HEAD
 *.opendb
+=======
+:.opendb
+>>>>>>> 28325d8762c781b8b9d6295d81647e212e6e6a56
 
 # Visual Studio profiler
 *.psess
