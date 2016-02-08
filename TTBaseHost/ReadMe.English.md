@@ -65,8 +65,8 @@ from the 'TTBase plugin template project'.
 - Loading plugins
 - Executing commands
 - Providing GUI
-- Indication of the task-tray icon
-- Changing the task-tray icon by plugins
+- Indicating task-tray icons
+- Changing task-tray icons by plugins
 - System Menu
 - Logging
 - Saving the settings to the .ini file
@@ -75,9 +75,10 @@ from the 'TTBase plugin template project'.
 - Hotkey function
 - Timer function
 - Windows Hook
+- Command line options
 
 　The concept is baed on peach. This program does not provide some functions that TTBase does as the host services, and let them go with plugins.  
-　The main difference from peach is serving task-tray icon as a function of the host program. You can switch the visibility of the icon by settings.  
+　The main difference from peach is serving the task-tray icon as a function of the host application. You can switch the visibility of the icon by settings.  
 　If you want to show the UI window when the icon is invisible, call the command with the hotkey of plugins or simply double-start the application.
 
 ---
