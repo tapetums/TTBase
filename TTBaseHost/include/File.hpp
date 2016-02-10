@@ -71,7 +71,7 @@ public:
     };
 
 protected:
-    TCHAR m_name[MAX_PATH];
+    wchar_t m_name[MAX_PATH] { '\0' };
 
     HANDLE   m_handle { INVALID_HANDLE_VALUE };
     HANDLE   m_map    { nullptr };
@@ -89,62 +89,42 @@ public:
     File(File&& rhs)             noexcept = default;
     File& operator =(File&& rhs) noexcept = default;
 
-    File(LPCTSTR lpFileName, ACCESS accessMode, SHARE shareMode, OPEN createMode)
+    File(int64_t size, LPCWSTR lpFileName, ACCESS accessMode)
+    { Map(size, lpFileName, accessMode); }
+
+    File(LPCWSTR lpFileName, ACCESS accessMode)
+    { Open(lpFileName, accessMode); }
+
+    File(LPCWSTR lpFileName, ACCESS accessMode, SHARE shareMode, OPEN createMode)
     { Open(lpFileName, accessMode, shareMode, createMode); }
 
 public:
     bool     is_open()   const noexcept { return m_handle != INVALID_HANDLE_VALUE; }
     bool     is_mapped() const noexcept { return m_map != nullptr; }
-    LPCTSTR  name()      const noexcept { return m_name; }
+    LPCWSTR  name()      const noexcept { return m_name; }
     HANDLE   handle()    const noexcept { return m_handle; }
     int64_t  position()  const noexcept { return m_map ? (intptr_t)m_ptr + m_pos : m_pos; }
     uint8_t* pointer()   const noexcept { return m_map ? m_ptr + m_pos : nullptr; }
     int64_t  size()      const noexcept { return m_size; }
 
 public:
-    bool    Open(LPCTSTR lpFileName, ACCESS accessMode, SHARE shareMode, OPEN createMode);
-    bool    Open(LPCTSTR lpName, ACCESS accessMode);
+    bool    Open(LPCWSTR lpFileName, ACCESS accessMode, SHARE shareMode, OPEN createMode);
+    bool    Open(LPCWSTR lpName, ACCESS accessMode);
     void    Close();
     bool    Map(ACCESS accessMode);
-    bool    Map(int64_t size, LPCTSTR lpName, ACCESS accessMode);
+    bool    Map(int64_t size, LPCWSTR lpName, ACCESS accessMode);
     void    UnMap();
     size_t  Read(void* buf, size_t size);
     size_t  Write(const void* const buf, size_t size);
-    int64_t Seek(int64_t distance, ORIGIN origin);
+    int64_t Seek(int64_t distance, ORIGIN origin = ORIGIN::BEGIN);
     bool    SetEndOfFile();
-    void    Flush(size_t dwNumberOfBytesToFlush = 0);
+    bool    Flush(size_t dwNumberOfBytesToFlush = 0);
 
-    size_t Read(int8_t*      d) { return Read(d, sizeof(int8_t));      }
-    size_t Read(int16_t*     d) { return Read(d, sizeof(int16_t));     }
-    size_t Read(int32_t*     d) { return Read(d, sizeof(int32_t));     }
-    size_t Read(int64_t*     d) { return Read(d, sizeof(int64_t));     }
-    size_t Read(uint8_t*     d) { return Read(d, sizeof(uint8_t));     }
-    size_t Read(uint16_t*    d) { return Read(d, sizeof(uint16_t));    }
-    size_t Read(uint32_t*    d) { return Read(d, sizeof(uint32_t));    }
-    size_t Read(uint64_t*    d) { return Read(d, sizeof(uint64_t));    }
-    size_t Read(char*        d) { return Read(d, sizeof(char));        }
-    size_t Read(wchar_t*     d) { return Read(d, sizeof(wchar_t));     }
-    size_t Read(char16_t*    d) { return Read(d, sizeof(char16_t));    }
-    size_t Read(char32_t*    d) { return Read(d, sizeof(char32_t));    }
-    size_t Read(float*       d) { return Read(d, sizeof(float));       }
-    size_t Read(double*      d) { return Read(d, sizeof(double));      }
-    size_t Read(long double* d) { return Read(d, sizeof(long double)); }
+    template<typename T>
+    size_t Read(T* t) { return Read(t, sizeof(T)); }
 
-    size_t Write(int8_t      d) { return Write((const void* const)&d, sizeof(int8_t));      }
-    size_t Write(int16_t     d) { return Write((const void* const)&d, sizeof(int16_t));     }
-    size_t Write(int32_t     d) { return Write((const void* const)&d, sizeof(int32_t));     }
-    size_t Write(int64_t     d) { return Write((const void* const)&d, sizeof(int64_t));     }
-    size_t Write(uint8_t     d) { return Write((const void* const)&d, sizeof(uint8_t));     }
-    size_t Write(uint16_t    d) { return Write((const void* const)&d, sizeof(uint16_t));    }
-    size_t Write(uint32_t    d) { return Write((const void* const)&d, sizeof(uint32_t));    }
-    size_t Write(uint64_t    d) { return Write((const void* const)&d, sizeof(uint64_t));    }
-    size_t Write(char        d) { return Write((const void* const)&d, sizeof(char));        }
-    size_t Write(wchar_t     d) { return Write((const void* const)&d, sizeof(wchar_t));     }
-    size_t Write(char16_t    d) { return Write((const void* const)&d, sizeof(char16_t));    }
-    size_t Write(char32_t    d) { return Write((const void* const)&d, sizeof(char32_t));    }
-    size_t Write(float       d) { return Write((const void* const)&d, sizeof(float));       }
-    size_t Write(double      d) { return Write((const void* const)&d, sizeof(double));      }
-    size_t Write(long double d) { return Write((const void* const)&d, sizeof(long double)); }
+    template<typename T>
+    size_t Write(const T& t) { return Write((const T* const)&t, sizeof(T)); }
 };
 
 //---------------------------------------------------------------------------//
@@ -154,7 +134,7 @@ public:
 // ファイルを開く
 inline bool tapetums::File::Open
 (
-    LPCTSTR lpFileName,
+    LPCWSTR lpFileName,
     ACCESS  accessMode,
     SHARE   shareMode,
     OPEN    createMode
@@ -162,16 +142,15 @@ inline bool tapetums::File::Open
 {
     if ( m_handle != INVALID_HANDLE_VALUE ) { return true; }
 
-    ::StringCchCopy(m_name, MAX_PATH, lpFileName);
+    ::StringCchCopyW(m_name, MAX_PATH, lpFileName);
 
-    m_handle = ::CreateFile
+    m_handle = ::CreateFileW
     (
         lpFileName, (DWORD)accessMode, (DWORD)shareMode, nullptr,
         (DWORD)createMode, FILE_ATTRIBUTE_NORMAL, nullptr
     );
     if ( m_handle == INVALID_HANDLE_VALUE )
     {
-        //ShowLastError(lpFileName);
         return false;
     }
 
@@ -187,19 +166,21 @@ inline bool tapetums::File::Open
 // メモリマップトファイルを開く
 inline bool tapetums::File::Open
 (
-    LPCTSTR lpName, ACCESS accessMode
+    LPCWSTR lpName, ACCESS accessMode
 )
 {
     if ( m_map ) { return true; }
+    if ( m_handle != INVALID_HANDLE_VALUE ) { return false; }
 
-    m_map = ::OpenFileMapping
+    ::StringCchCopyW(m_name, MAX_PATH, lpName);
+
+    m_map = ::OpenFileMappingW
     (
         accessMode == ACCESS::READ ? FILE_MAP_READ : FILE_MAP_WRITE,
         FALSE, lpName
     );
     if ( nullptr == m_map )
     {
-        //ShowLastError(TEXT("CreateFileMapping()"));
         return false;
     }
 
@@ -211,7 +192,6 @@ inline bool tapetums::File::Open
     );
     if ( nullptr == m_ptr )
     {
-        //ShowLastError(TEXT("CreateFileMapping()"));
         UnMap();
         return false;
     }
@@ -255,7 +235,7 @@ inline bool tapetums::File::Map
 // メモリマップトファイルを生成する
 inline bool tapetums::File::Map
 (
-    int64_t size, LPCTSTR lpName, ACCESS accessMode
+    int64_t size, LPCWSTR lpName, ACCESS accessMode
 )
 {
     if ( m_map ) { return true; }
@@ -267,7 +247,12 @@ inline bool tapetums::File::Map
         return false;
     }
 
-    m_map = ::CreateFileMapping
+    if ( m_handle == INVALID_HANDLE_VALUE )
+    {
+        ::StringCchCopyW(m_name, MAX_PATH, lpName);
+    }
+
+    m_map = ::CreateFileMappingW
     (
         m_handle, nullptr,
         accessMode == ACCESS::READ ? PAGE_READONLY : PAGE_READWRITE,
@@ -275,7 +260,6 @@ inline bool tapetums::File::Map
     );
     if ( nullptr == m_map )
     {
-        //ShowLastError(TEXT("CreateFileMapping()"));
         return false;
     }
 
@@ -287,7 +271,6 @@ inline bool tapetums::File::Map
     );
     if ( nullptr == m_ptr )
     {
-        //ShowLastError(TEXT("CreateFileMapping()"));
         UnMap();
         return false;
     }
@@ -413,20 +396,31 @@ inline int64_t tapetums::File::Seek
 // ファイルを終端する
 inline bool tapetums::File::SetEndOfFile()
 {
-    return ::SetEndOfFile(m_handle) ? true : false;
+    if ( m_handle == INVALID_HANDLE_VALUE )
+    {
+        return true;
+    }
+    else
+    {
+        return ::SetEndOfFile(m_handle) ? true : false;
+    }
 }
 
 //---------------------------------------------------------------------------//
 
 // ファイルもしくはメモリマップトファイルをフラッシュする
-inline void tapetums::File::Flush
+inline bool tapetums::File::Flush
 (
     size_t dwNumberOfBytesToFlush
 )
 {
     if ( m_ptr )
     {
-        ::FlushViewOfFile(m_ptr, dwNumberOfBytesToFlush);
+        return ::FlushViewOfFile(m_ptr, dwNumberOfBytesToFlush) ? true : false;
+    }
+    else
+    {
+        return ::FlushFileBuffers(m_handle) ? true : false;
     }
 }
 
