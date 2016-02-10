@@ -81,6 +81,10 @@ from the 'TTBase plugin template project'.
 　The main difference from peach is serving the task-tray icon as a function of the host application. You can switch the visibility of the icon by settings.  
 　If you want to show the UI window when the icon is invisible, call the command with the hotkey of plugins or simply double-start the application.
 
+###Screen Shots
+![System](./ss/System.png)  
+![Plugins](./ss/Plugins.png)  
+![Commands](./ss/Commands.png)  
 ---
 
 ##License
