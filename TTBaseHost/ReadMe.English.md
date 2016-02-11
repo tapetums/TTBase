@@ -55,7 +55,8 @@ from the 'TTBase plugin template project'.
 ##Description
 
 　This is an application compatible with [**TTBase**](https://osdn.jp/projects/ttbase/). This sample is written partially based on the source code of [**peach**](http://white2.php.xdomain.jp/?page_id=27) which is produced by U.  
-　This is nothing but a compatible application, so it does not function the same as TTBase. I don't recommend you to use this as an alternative for TTBase or peach because some functions are not implemented yet. I hope you could find something from this sample as an implementation in C++11.
+　This is nothing but a compatible application, so it does not function the same as TTBase. I don't recommend you to use this as an alternative for TTBase or peach because some functions are not implemented yet. I hope you could find something from this sample as an implementation in C++11.  
+　The biggest feature of this program is that **you can use both 32/64-bit plugins with one 64-bit host application**.
 
 ---
 
@@ -70,6 +71,7 @@ from the 'TTBase plugin template project'.
 - System Menu
 - Logging
 - Saving the settings to the .ini file
+- Loading and executing 32/64-bit plugins with one 64-bit host application
 
 ###Not Implemented
 - Hotkey function
@@ -144,6 +146,9 @@ and the authors who produced the great number of plugins for TTBase.
 ---
 
 ###Change  Log
+
+2016.02.12 v0.2.0.0
+- In 64-bit version, now both 32/64-bit plugins are executable.
 
 2016.02.07  v0.1.0.0
 - First Edition

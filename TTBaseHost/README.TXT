@@ -9,14 +9,31 @@
 TTBase の互換アプリケーションです。
 TTBase用のプラグインを読み込んで実行することができます。
 
+最大の特徴として、64ビット版の本体のみで
+32ビット版と64ビット版 両方のプラグインを使用することができます。
+
 
 【依存関係】
 VC++14 の ランタイムが必要です。
 お持ちでない場合は、Microsoft社 のページからダウンロードをお願い致します。
 
-Visual Studio 2015 Update 1 の Visual C++ 再頒布可能パッケージ
-https://www.microsoft.com/ja-jp/download/details.aspx?id=49984
+[Visual Studio 2015 Update 1 の Visual C++ 再頒布可能パッケージ]
+(https://www.microsoft.com/ja-jp/download/details.aspx?id=49984)
 （デッドリンクの際はご容赦下さい。）
+
+
+【アーカイブ内容】
+├─README.TXT
+├─NYSL.TXT
+├─x64
+│　├─hako.exe
+│　└─TTBbridge.exe
+├─x86
+│　└─hako.exe
+└─src
+　　├...
+
+計 5 ファイル + ソースコード
 
 
 【インストール】
@@ -24,12 +41,9 @@ https://www.microsoft.com/ja-jp/download/details.aspx?id=49984
 レジストリは使用していません。
 
 お使いの OS が 32-bit版 の場合は x86\hako.exe を、
-64-bit版 の場合は x64\hako.exe を それぞれお使いください。
+64-bit版 の場合は x64\hako.exe + x64\TTBbridge.exe を それぞれお使いください。
 
-※32-bit版の hako.exe は 32-bit版のプラグインのみ、
-　64-bit版の hako.exe は 64-bit版のプラグインのみをそれぞれ利用できます。
-　OS が 64-bit であっても 32-bit版の hako.exe を使用できますが、
-　その場合プラグインは 32-bit版 をインストールして下さい。
+※32-bit版の hako.exe は現状、32-bit版のプラグインのみを使用できます。
 
 
 【アンインストール】
@@ -48,10 +62,25 @@ Uさん作の SimpleHotkey.dll などと組み合わせてお使い下さい。
 dll ファイルを配置して下さい。本体の起動時に自動で読み込まれ、使用可能になります。
 なお、.(ドット) で始まるファイル名や隠しファイル、および隠しフォルダからは読み込まれません。
 
-タスクトレイアイコンを表示させるかどうかは、設定で変更することができます。
+タスクトレイアイコンを表示させるかどうかは、本体のコマンドで変更することができます。
 タスクトレイアイコンが表示されていない状態で設定ウィンドウを表示させるには、
 プラグインからホットキーを使ってコマンドを呼び出すか、
 単に hako.exe を二重起動して下さい。
+
+
+【設定】
+・ウィンドウクラス名とウィンドウ名をTTBaseと同じにする
+　一部のプラグインの互換のために実装されている機能です。
+
+・デバッグ情報の出力レベル
+　0 ～ 5 まであります。0 で出力なし、5 ですべての情報を出力します。
+
+・ログをデバッガに送る
+　Win32 API の OutputDebugString() を使っています。ログを見るには DbgView などの対応アプリをお使い下さい。
+　[DebugView for Windows](https://technet.microsoft.com/ja-jp/sysinternals/debugview.aspx)
+
+・ログをファイルに出力する
+　本体のインストールフォルダに hako.log という名前で出力します。
 
 
 【ライセンス】
@@ -60,7 +89,6 @@ http://www.kmonos.net/nysl/
 
 
 【謝辞】
-
 TTBase を生み出された K2 さん、peach を 公開されている U さん、TTBaseCpp の作者さんを始め、
 数多くのプラグインを作られたそれぞれの作者さんたちに深い敬意と感謝を表します。
 http://ttbase.sourceforge.jp/
@@ -69,6 +97,9 @@ http://white2.php.xdomain.jp/?page_id=27
 
 
 【更新履歴】
+2016.02.12 v0.2.0.0
+ ・64ビット版本体に限り、32ビット版と64ビット版 両方のプラグインを動かせるようになった
+
 2016.02.08 v0.1.0.0
  ・初版作成
 
