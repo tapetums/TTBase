@@ -42,7 +42,7 @@ public: // ctor / dtor
     TTBBridgePlugin(TTBBridgePlugin&& rhs)             noexcept { swap(std::move(rhs)); }
     TTBBridgePlugin& operator =(TTBBridgePlugin&& rhs) noexcept { swap(std::move(rhs)); return *this; }
 
-    explicit TTBBridgePlugin(LPCWSTR path) : TTBBridgePlugin() { Load(path ); }
+    explicit TTBBridgePlugin(LPCTSTR path) : TTBBridgePlugin() { Load(path ); }
 
 public: // mtor
     void swap(TTBBridgePlugin&&) noexcept;
@@ -58,13 +58,13 @@ public: // Acessors
     void info(PLUGIN_INFO* info) noexcept;
 
 public:
-    bool Load  (LPCWSTR path) override;
+    bool Load  (LPCTSTR path) override;
     void Free  ()             override;
     bool Reload()             override;
 
-    bool InitInfo(LPWSTR PluginFilename)                    override;
+    bool InitInfo(LPTSTR PluginFilename)                    override;
     void FreeInfo()                                         override;
-    bool Init    (LPWSTR PluginFilename, DWORD_PTR hPlugin) override;
+    bool Init    (LPTSTR PluginFilename, DWORD_PTR hPlugin) override;
     void Unload  ()                                         override;
     bool Execute (INT32 CmdID, HWND hwnd)                   override;
     void Hook    (UINT Msg, WPARAM wParam, LPARAM lParam)   override;

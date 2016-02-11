@@ -513,6 +513,7 @@ void PluginMgr::CollectFile
                     if ( plugin ) { delete plugin; }
                 }
 
+              #if INTPTR_MAX == INT64_MAX
                 plugin = new TTBBridgePlugin(path);
                 if ( plugin->is_loaded() )
                 {
@@ -522,6 +523,7 @@ void PluginMgr::CollectFile
                 {
                     if ( plugin ) { delete plugin; }
                 }
+              #endif
             }
         }
     }
@@ -547,14 +549,7 @@ void PluginMgr::InitAll()
     auto it = ++plugins.begin();
     while ( it != plugins.end() )
     {
-        // ロードに失敗していた DLL は リストから外す
         auto&& plugin = *it;
-        if ( ! plugin->is_loaded() )
-        {
-            it = plugins.erase(it);
-            continue;
-        }
-
         ::PathRelativePathTo
         (
             relative_path.data(),

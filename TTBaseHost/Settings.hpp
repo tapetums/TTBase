@@ -53,39 +53,39 @@ private:
 
 inline settings::settings()
 {
-    std::array<TCHAR, MAX_PATH> path;
+    std::array<wchar_t, MAX_PATH> path;
 
     // iniファイル名取得
-    ::GetModuleFileName(g_hInst, path.data(), (DWORD)path.size());
-    ::PathRenameExtension(path.data(), TEXT(".ini"));
+    ::GetModuleFileNameW(g_hInst, path.data(), (DWORD)path.size());
+    ::PathRenameExtensionW(path.data(), L".ini");
 
     // パラメータの取得
-    TTBaseCompatible = ::GetPrivateProfileInt
+    TTBaseCompatible = ::GetPrivateProfileIntW
     (
-        TEXT("Setting"), TEXT("TTBaseCompatible"), 0, path.data()
+        L"Setting", L"TTBaseCompatible", 0, path.data()
     )
     ? true : false;
 
-    ShowTaskTrayIcon = ::GetPrivateProfileInt
+    ShowTaskTrayIcon = ::GetPrivateProfileIntW
     (
-        TEXT("Setting"), TEXT("ShowTaskTrayIcon"), 1, path.data()
+        L"Setting", L"ShowTaskTrayIcon", 1, path.data()
     ) 
     ? true : false;
 
-    logLevel = ::GetPrivateProfileInt
+    logLevel = ::GetPrivateProfileIntW
     (
-        TEXT("Setting"), TEXT("logLevel"), ERROR_LEVEL::elDebug + 1, path.data()
+        L"Setting", L"logLevel", ERROR_LEVEL::elDebug + 1, path.data()
     );
 
-    logToWindow = ::GetPrivateProfileInt
+    logToWindow = ::GetPrivateProfileIntW
     (
-        TEXT("Setting"), TEXT("logToWindow"), 1, path.data()
+        L"Setting", L"logToWindow", 1, path.data()
     )
     ? true : false;
 
-    logToFile = ::GetPrivateProfileInt
+    logToFile = ::GetPrivateProfileIntW
     (
-        TEXT("Setting"), TEXT("logToFile"), 1, path.data()
+        L"Setting", L"logToFile", 1, path.data()
     )
     ? true : false;
 
@@ -96,7 +96,7 @@ inline settings::settings()
     // ログの出力先がファイルの場合
     if ( logToFile )
     {
-        ::PathRenameExtension(path.data(), TEXT(".log"));
+        ::PathRenameExtensionW(path.data(), L".log");
 
         using namespace tapetums;
         const auto result = file.Open
@@ -106,7 +106,7 @@ inline settings::settings()
         );
         if ( !result )
         {
-            ::MessageBox(nullptr, path.data(), TEXT("ログファイルを作成できません"), MB_OK);
+            ::MessageBoxW(nullptr, path.data(), L"ログファイルを作成できません", MB_OK);
             file.Close();
         }
         else
@@ -122,42 +122,42 @@ inline settings::settings()
 
 inline settings::~settings()
 {
-    std::array<TCHAR, MAX_PATH> path;
-    std::array<TCHAR, 16>       buf;
+    std::array<wchar_t, MAX_PATH> path;
+    std::array<wchar_t, 16>       buf;
 
     // iniファイル名取得
-    ::GetModuleFileName(g_hInst, path.data(), (DWORD)path.size());
-    ::PathRenameExtension(path.data(), TEXT(".ini"));
+    ::GetModuleFileNameW(g_hInst, path.data(), (DWORD)path.size());
+    ::PathRenameExtensionW(path.data(), L".ini");
 
     // パラメータの書き出し
-    ::WritePrivateProfileString
+    ::WritePrivateProfileStringW
     (
-        TEXT("Setting"), TEXT("TTBaseCompatible"),
-        TTBaseCompatible ? TEXT("1") : TEXT("0"), path.data()
+        L"Setting", L"TTBaseCompatible",
+        TTBaseCompatible ? L"1" : L"0", path.data()
     );
 
-    ::WritePrivateProfileString
+    ::WritePrivateProfileStringW
     (
-        TEXT("Setting"), TEXT("ShowTaskTrayIcon"),
-        ShowTaskTrayIcon ? TEXT("1") : TEXT("0"), path.data()
+        L"Setting", L"ShowTaskTrayIcon",
+        ShowTaskTrayIcon ? L"1" : L"0", path.data()
     );
 
-    ::StringCchPrintf(buf.data(), buf.size(), TEXT("%u"), logLevel);
-    ::WritePrivateProfileString
+    ::StringCchPrintfW(buf.data(), buf.size(), L"%u", logLevel);
+    ::WritePrivateProfileStringW
     (
-        TEXT("Setting"), TEXT("logLevel"), buf.data(), path.data()
+        L"Setting", L"logLevel", buf.data(), path.data()
     );
 
-    ::StringCchPrintf(buf.data(), buf.size(), TEXT("%u"), logToWindow);
-    ::WritePrivateProfileString
+    ::StringCchPrintfW(buf.data(), buf.size(), L"%u", logToWindow);
+    ::WritePrivateProfileStringW
     (
-        TEXT("Setting"), TEXT("logToWindow"), buf.data(), path.data()
+        L"Setting", L"logToWindow", buf.data(), path.data()
     );
 
-    ::StringCchPrintf(buf.data(), buf.size(), TEXT("%u"), logToFile);
-    ::WritePrivateProfileString
+    ::StringCchPrintfW(buf.data(), buf.size(), L"%u", logToFile);
+    ::WritePrivateProfileStringW
     (
-        TEXT("Setting"), TEXT("logToFile"), buf.data(), path.data()
+        L"Setting", L"logToFile", buf.data(), path.data()
     );
 }
 

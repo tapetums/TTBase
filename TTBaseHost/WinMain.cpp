@@ -34,7 +34,7 @@ HWND      g_hwnd  { nullptr };
 
 //---------------------------------------------------------------------------//
 
-constexpr LPCTSTR SHARED_MEMORY_NAME { TEXT("tapetums::hako::SharedMemory") };
+constexpr auto SHARED_MEMORY_NAME = L"tapetums::hako::SharedMemory";
 
 //---------------------------------------------------------------------------//
 // アプリケーション エントリポイント

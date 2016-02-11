@@ -33,29 +33,6 @@ extern HINSTANCE g_hInst;
 // ユーティリティ関数
 //---------------------------------------------------------------------------//
 
-// プロセス間通信用データの準備
-/*tapetums::File make_data(PluginMsg msg, size_t data_size)
-{
-    using namespace tapetums;
-
-    std::array<wchar_t, BridgeData::namelen> uuid;
-    GenerateUUIDStringW(uuid.data(), sizeof(wchar_t) * uuid.size());
-
-    File plugin_data;
-    const auto result = plugin_data.Map
-    (
-        sizeof(PluginMsg) + data_size, uuid.data(), File::ACCESS::WRITE
-    );
-    if ( result )
-    {
-        plugin_data.Write(&msg, sizeof(msg));
-    }
-
-    return plugin_data;
-}*/
-
-//---------------------------------------------------------------------------//
-
 // デシリアライズ ヘルパー関数
 template<typename T>
 void desirialize(T* t, const std::vector<uint8_t>& data, size_t* p)
@@ -150,11 +127,11 @@ TTBBridgePlugin::TTBBridgePlugin()
     ::StringCchCatW(path.data(), path.size(), LR"(\TTBBridge.exe)");
 
     // 子プロセスの生成
-    std::array<TCHAR, MAX_PATH> args;
-    ::StringCchCopy(args.data(), args.size(), shrmem.name());
+    std::array<wchar_t, MAX_PATH> args;
+    ::StringCchCopyW(args.data(), args.size(), shrmem.name());
 
-    STARTUPINFO si;
-    ::GetStartupInfo(&si);
+    STARTUPINFOW si;
+    ::GetStartupInfoW(&si);
 
     PROCESS_INFORMATION pi { };
     const auto result = ::CreateProcessW
@@ -232,7 +209,7 @@ void TTBBridgePlugin::info(PLUGIN_INFO* info) noexcept
 
 bool TTBBridgePlugin::Load
 (
-    LPCWSTR path
+    LPCTSTR path
 )
 {
     ::OutputDebugStringW(L"Load\n");
@@ -265,7 +242,12 @@ bool TTBBridgePlugin::Load
 
     // データの書き込み
     std::array<wchar_t, MAX_PATH> buf;
+  #if defined(_UNICODE) && defined(UNICODE)
     ::StringCchCopyW(buf.data(), buf.size(), path);
+  #else
+    std::array<wchar_t, MAX_PATH> path_unicode;
+    ::StringCchCopyW(buf.data(), buf.size(), path_unicode.data());
+  #endif
 
     plugin_data.Write(buf.data(), buf.size() * sizeof(wchar_t));
 
@@ -296,18 +278,18 @@ bool TTBBridgePlugin::Load
     }
 
     // DLLのフルパスを取得
-    ::StringCchCopyW(m_path, MAX_PATH, path);
+    ::StringCchCopy(m_path, MAX_PATH, path);
 
     m_loaded = true;
 
     // 相対パスの生成
-    std::array<wchar_t, MAX_PATH> exe_path;
-    std::array<wchar_t, MAX_PATH> rel_path;
-    ::GetModuleFileNameW
+    std::array<TCHAR, MAX_PATH> exe_path;
+    std::array<TCHAR, MAX_PATH> rel_path;
+    ::GetModuleFileName
     (
-        ::GetModuleHandle(nullptr), exe_path.data(), (DWORD)exe_path.size()
+        g_hInst, exe_path.data(), (DWORD)exe_path.size()
     );
-    ::PathRelativePathToW
+    ::PathRelativePathTo
     (
         rel_path.data(),
         exe_path.data(), FILE_ATTRIBUTE_ARCHIVE,
@@ -331,18 +313,9 @@ void TTBBridgePlugin::Free()
 
     if ( ! shrmem.is_mapped() ) { return; }
 
-    // データの準備
-    /*auto plugin_data = make_data
-    (
-        PluginMsg::Free, 0
-    );
-    if ( ! plugin_data.is_mapped() )
-    {
-        return;
-    }*/
-
     using namespace tapetums;
 
+    // データの準備
     std::array<wchar_t, BridgeData::namelen> uuid;
     GenerateUUIDStringW(uuid.data(), sizeof(wchar_t) * uuid.size());
 
@@ -395,10 +368,13 @@ bool TTBBridgePlugin::Reload()
     }
 
     // 相対パスの生成
-    std::array<wchar_t, MAX_PATH> exe_path;
-    std::array<wchar_t, MAX_PATH> rel_path;
-    ::GetModuleFileNameW(g_hInst, exe_path.data(), (DWORD)exe_path.size());
-    ::PathRelativePathToW
+    std::array<TCHAR, MAX_PATH> exe_path;
+    std::array<TCHAR, MAX_PATH> rel_path;
+    ::GetModuleFileName
+    (
+        g_hInst, exe_path.data(), (DWORD)exe_path.size()
+    );
+    ::PathRelativePathTo
     (
         rel_path.data(),
         exe_path.data(), FILE_ATTRIBUTE_ARCHIVE,
@@ -425,7 +401,7 @@ bool TTBBridgePlugin::Reload()
 
 bool TTBBridgePlugin::InitInfo
 (
-    LPWSTR PluginFilename
+    LPTSTR PluginFilename
 )
 {
     ::OutputDebugStringW(L"InitInfo\n");
@@ -438,18 +414,9 @@ bool TTBBridgePlugin::InitInfo
 
     if ( ! shrmem.is_mapped() ) { return false; }
 
-    // データの準備
-    /*auto plugin_data = make_data
-    (
-        PluginMsg::InitInfo, MAX_PATH * sizeof(wchar_t)
-    );
-    if ( ! plugin_data.is_mapped() )
-    {
-        return false;
-    }*/
-
     using namespace tapetums;
 
+    // データの準備
     std::array<wchar_t, BridgeData::namelen> uuid;
     GenerateUUIDStringW(uuid.data(), sizeof(wchar_t) * uuid.size());
 
@@ -467,7 +434,12 @@ bool TTBBridgePlugin::InitInfo
 
     // データの書き込み
     std::array<wchar_t, MAX_PATH> buf;
+  #if defined(_UNICODE) && defined(UNICODE)
     ::StringCchCopyW(buf.data(), buf.size(), PluginFilename);
+  #else
+    std::array<wchar_t, MAX_PATH> path_unicode;
+    ::StringCchCopyW(buf.data(), buf.size(), path_unicode.data());
+  #endif
 
     plugin_data.Write(buf.data(), buf.size() * sizeof(wchar_t));
 
@@ -506,7 +478,11 @@ bool TTBBridgePlugin::InitInfo
     info_data.Read(serialized.data(), serialized.size());
 
     FreePluginInfo(m_info);
+  #if defined(_UNICODE) || defined(UNICODE)
     m_info = DeserializePluginInfo(serialized);
+  #else
+    m_info = &g_info; // dummy ... ホントは再マーシャリングが必要: TO DO LATER
+  #endif
     ::OutputDebugStringW(L"  OK\n");
 
     if ( m_info->PluginType != ptAlwaysLoad )
@@ -538,18 +514,9 @@ void TTBBridgePlugin::FreeInfo()
 
     if ( ! shrmem.is_mapped() ) { return; }
 
-    // データの準備
-    /*auto plugin_data = make_data
-    (
-        PluginMsg::FreeInfo, 0
-    );
-    if ( ! plugin_data.is_mapped() )
-    {
-        return;
-    }*/
-
     using namespace tapetums;
 
+    // データの準備
     std::array<wchar_t, BridgeData::namelen> uuid;
     GenerateUUIDStringW(uuid.data(), sizeof(wchar_t) * uuid.size());
 
@@ -588,7 +555,7 @@ void TTBBridgePlugin::FreeInfo()
 
 bool TTBBridgePlugin::Init
 (
-    LPWSTR PluginFilename, DWORD_PTR hPlugin
+    LPTSTR PluginFilename, DWORD_PTR hPlugin
 )
 {
     ::OutputDebugStringW(L"Init\n");
@@ -601,18 +568,9 @@ bool TTBBridgePlugin::Init
 
     if ( ! shrmem.is_mapped() ) { return false; }
 
-    // データの準備
-    /*auto plugin_data = make_data
-    (
-        PluginMsg::Init, MAX_PATH * sizeof(wchar_t) + sizeof(DWORD_PTR)
-    );
-    if ( ! plugin_data.is_mapped() )
-    {
-        return false;
-    }*/
-
     using namespace tapetums;
 
+    // データの準備
     std::array<wchar_t, BridgeData::namelen> uuid;
     GenerateUUIDStringW(uuid.data(), sizeof(wchar_t) * uuid.size());
 
@@ -630,7 +588,12 @@ bool TTBBridgePlugin::Init
 
     // データの書き込み
     std::array<wchar_t, MAX_PATH> buf;
+  #if defined(_UNICODE) && defined(UNICODE)
     ::StringCchCopyW(buf.data(), buf.size(), PluginFilename);
+  #else
+    std::array<wchar_t, MAX_PATH> path_unicode;
+    ::StringCchCopyW(buf.data(), buf.size(), path_unicode.data());
+  #endif
 
     plugin_data.Write(buf.data(), sizeof(wchar_t) * buf.size());
     plugin_data.Write(hPlugin);
@@ -675,18 +638,9 @@ void TTBBridgePlugin::Unload()
 
     if ( ! shrmem.is_mapped() ) { return; }
 
-    // データの準備
-    /*auto plugin_data = make_data
-    (
-        PluginMsg::Unload, 0
-    );
-    if ( ! plugin_data.is_mapped() )
-    {
-        return;
-    }*/
-
     using namespace tapetums;
 
+    // データの準備
     std::array<wchar_t, BridgeData::namelen> uuid;
     GenerateUUIDStringW(uuid.data(), sizeof(wchar_t) * uuid.size());
 
@@ -741,18 +695,9 @@ bool TTBBridgePlugin::Execute
 
     if ( ! shrmem.is_mapped() ) { return false; }
 
-    // データの準備
-    /*auto plugin_data = make_data
-    (
-        PluginMsg::Execute, sizeof(INT32) + sizeof(DWORD_PTR)
-    );
-    if ( ! plugin_data.is_mapped() )
-    {
-        return false;
-    }*/
-
     using namespace tapetums;
 
+    // データの準備
     std::array<wchar_t, BridgeData::namelen> uuid;
     GenerateUUIDStringW(uuid.data(), sizeof(wchar_t) * uuid.size());
 
@@ -816,18 +761,9 @@ void TTBBridgePlugin::Hook
 
     if ( ! shrmem.is_mapped() ) { return; }
 
-    // データの準備
-    /*auto plugin_data = make_data
-    (
-        PluginMsg::Hook, sizeof(DWORD) + sizeof(WPARAM) + sizeof(LPARAM)
-    );
-    if ( ! plugin_data.is_mapped() )
-    {
-        return;
-    }*/
-
     using namespace tapetums;
 
+    // データの準備
     std::array<wchar_t, BridgeData::namelen> uuid;
     GenerateUUIDStringW(uuid.data(), sizeof(wchar_t) * uuid.size());
 
