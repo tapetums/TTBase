@@ -103,7 +103,7 @@ public:
     bool     is_mapped() const noexcept { return m_map != nullptr; }
     LPCWSTR  name()      const noexcept { return m_name; }
     HANDLE   handle()    const noexcept { return m_handle; }
-    int64_t  position()  const noexcept { return m_map ? (intptr_t)m_ptr + m_pos : m_pos; }
+    int64_t  position()  const noexcept { return m_pos; }
     uint8_t* pointer()   const noexcept { return m_map ? m_ptr + m_pos : nullptr; }
     int64_t  size()      const noexcept { return m_size; }
 
