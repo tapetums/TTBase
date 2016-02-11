@@ -80,7 +80,7 @@ struct CTRL_TEXT
     static constexpr LPCTSTR Exit        = TEXT("終了");
     static constexpr LPCTSTR OpenFolder  = TEXT("インストールフォルダを開く");
     static constexpr LPCTSTR Compatible  = TEXT("ウィンドウクラス名とウィンドウ名をTTBaseと同じにする*");
-    static constexpr LPCTSTR logToWindow = TEXT("ログをウィンドウに表示する");
+    static constexpr LPCTSTR logToWindow = TEXT("ログをデバッガに送る");
     static constexpr LPCTSTR logToFile   = TEXT("ログをファイルに出力する*");
 };
 

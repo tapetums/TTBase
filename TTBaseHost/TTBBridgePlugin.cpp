@@ -42,10 +42,7 @@ void desirialize(T* t, const std::vector<uint8_t>& data, size_t* p)
     ::memcpy(t, data.data() + *p, size);
     *p += size;
 
-    wchar_t buf[16];
-    ::StringCchPrintfW(buf, 16, L"%x", *t);
-    ::OutputDebugStringW(buf);
-    ::OutputDebugStringW(L"\n");
+    WriteLog(ERROR_LEVEL(5), TEXT("  deserializing... %i"), *t);
 }
 
 // デシリアライズ ヘルパー関数 (文字列版)
@@ -59,8 +56,7 @@ void desirialize<LPWSTR>(LPWSTR* dst, const std::vector<uint8_t>& data, size_t* 
     ::memcpy(*dst, src, size);
     *p += size;
 
-    ::OutputDebugStringW(*dst);
-    ::OutputDebugStringW(L"\n");
+    WriteLog(ERROR_LEVEL(5), TEXT("  deserializing... %s"), *dst);
 }
 
 // プロセス境界を超えるため データをデシリアライズする
@@ -212,15 +208,19 @@ bool TTBBridgePlugin::Load
     LPCTSTR path
 )
 {
-    ::OutputDebugStringW(L"Load\n");
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインを読込"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), path);
 
     if ( m_loaded )
     {
-        ::OutputDebugStringW(L"  読込済み\n");
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("読込済み"));
         return false;
     }
 
     if ( ! shrmem.is_mapped() ) { return false; }
+
+    // DLLのフルパスを取得
+    ::StringCchCopy(m_path, MAX_PATH, path);
 
     using namespace tapetums;
 
@@ -262,52 +262,34 @@ bool TTBBridgePlugin::Load
     const auto ret = ::WaitForSingleObject(evt_done, 3'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        ::OutputDebugStringW(L"  残念\n");
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("子プロセスにデータを送れませんでした"));
         return false;
     }
 
     PluginMsg msg;
     plugin_data.Seek(0);
     plugin_data.Read(&msg);
-    ::OutputDebugStringW(L"  ");
-    ::OutputDebugStringW(PluginMsgTxt[(uint8_t)msg]);
-    ::OutputDebugStringW(L"\n");
-    if ( msg != PluginMsg::OK )
+
+    if ( msg == PluginMsg::OK )
     {
-        return false;
+        // 読み込み済みのフラグをオン
+        m_loaded = true;
     }
 
-    // DLLのフルパスを取得
-    ::StringCchCopy(m_path, MAX_PATH, path);
-
-    m_loaded = true;
-
-    // 相対パスの生成
-    std::array<TCHAR, MAX_PATH> exe_path;
-    std::array<TCHAR, MAX_PATH> rel_path;
-    ::GetModuleFileName
-    (
-        g_hInst, exe_path.data(), (DWORD)exe_path.size()
-    );
-    ::PathRelativePathTo
-    (
-        rel_path.data(),
-        exe_path.data(), FILE_ATTRIBUTE_ARCHIVE,
-        path,            FILE_ATTRIBUTE_ARCHIVE
-    );
-
-    return InitInfo(rel_path.data() + 2);
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), PluginMsgTxt[(uint8_t)msg]);
+    return true;
 }
 
 //---------------------------------------------------------------------------//
 
 void TTBBridgePlugin::Free()
 {
-    ::OutputDebugStringW(L"Free\n");
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインを解放"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), m_path);
 
     if ( ! m_loaded )
     {
-        ::OutputDebugStringW(L"  解放済み\n");
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("解放済み"));
         return;
     }
 
@@ -342,13 +324,14 @@ void TTBBridgePlugin::Free()
     const auto ret = ::WaitForSingleObject(evt_done, 3'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        ::OutputDebugStringW(L"  残念\n");
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("子プロセスにデータを送れませんでした"));
         return;
     }
 
+    // 読み込み済みのフラグをオフ
     m_loaded = false;
 
-    ::OutputDebugStringW(L"  OK\n");
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
     return;
 }
 
@@ -404,11 +387,11 @@ bool TTBBridgePlugin::InitInfo
     LPTSTR PluginFilename
 )
 {
-    ::OutputDebugStringW(L"InitInfo\n");
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグイン情報をコピー"));
 
     if ( ! m_loaded )
     {
-        ::OutputDebugStringW(L"  未読込\n");
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
         return false;
     }
 
@@ -454,7 +437,7 @@ bool TTBBridgePlugin::InitInfo
     const auto ret = ::WaitForSingleObject(evt_done, 3'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        ::OutputDebugStringW(L"  残念\n");
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("子プロセスにデータを送れませんでした"));
         return false;
     }
 
@@ -465,10 +448,11 @@ bool TTBBridgePlugin::InitInfo
     File info_data;
     if ( ! info_data.Open(data.filename, File::ACCESS::WRITE) )
     {
-        ::OutputDebugStringW(L"  共有ファイルが開けません\n");
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("共有ファイルが開けません"));
         return false;
     }
 
+    // プラグイン情報の取得
     uint32_t size; // 32-bit の size_t は 32-bit 幅!!!!
     info_data.Seek(0);
     info_data.Read(&size);
@@ -477,19 +461,15 @@ bool TTBBridgePlugin::InitInfo
     serialized.resize(size);
     info_data.Read(serialized.data(), serialized.size());
 
+    // プラグイン情報のマーシャリング
     FreePluginInfo(m_info);
   #if defined(_UNICODE) || defined(UNICODE)
     m_info = DeserializePluginInfo(serialized);
   #else
     m_info = &g_info; // dummy ... ホントは再マーシャリングが必要: TO DO LATER
   #endif
-    ::OutputDebugStringW(L"  OK\n");
 
-    if ( m_info->PluginType != ptAlwaysLoad )
-    {
-        Free(); return true;
-    }
-
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
     return true;
 }
 
@@ -497,6 +477,8 @@ bool TTBBridgePlugin::InitInfo
 
 void TTBBridgePlugin::FreeInfo()
 {
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグイン情報を解放"));
+
     // プラグイン情報の解放
     if ( m_info )
     {
@@ -504,11 +486,9 @@ void TTBBridgePlugin::FreeInfo()
         m_info = nullptr;
     }
 
-    ::OutputDebugStringW(L"FreeInfo\n");
-
     if ( ! m_loaded )
     {
-        ::OutputDebugStringW(L"  解放済み\n");
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("解放済み"));
         return;
     }
 
@@ -543,11 +523,11 @@ void TTBBridgePlugin::FreeInfo()
     const auto ret = ::WaitForSingleObject(evt_done, 3'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        ::OutputDebugStringW(L"  残念\n");
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("子プロセスにデータを送れませんでした"));
         return;
     }
 
-    ::OutputDebugStringW(L"  OK\n");
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
     return;
 }
 
@@ -558,11 +538,11 @@ bool TTBBridgePlugin::Init
     LPTSTR PluginFilename, DWORD_PTR hPlugin
 )
 {
-    ::OutputDebugStringW(L"Init\n");
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの初期化"));
 
     if ( ! m_loaded )
     {
-        ::OutputDebugStringW(L"  未読込\n");
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
         return false;
     }
 
@@ -609,7 +589,7 @@ bool TTBBridgePlugin::Init
     const auto ret = ::WaitForSingleObject(evt_done, 3'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        ::OutputDebugStringW(L"  残念\n");
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("子プロセスにデータを送れませんでした"));
         return false;
     }
 
@@ -617,10 +597,7 @@ bool TTBBridgePlugin::Init
     plugin_data.Seek(0);
     plugin_data.Read(&msg);
 
-    ::OutputDebugStringW(L"  ");
-    ::OutputDebugStringW(PluginMsgTxt[(uint8_t)msg]);
-    ::OutputDebugStringW(L"\n");
-
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), PluginMsgTxt[(uint8_t)msg]);
     return true;
 }
 
@@ -628,11 +605,11 @@ bool TTBBridgePlugin::Init
 
 void TTBBridgePlugin::Unload()
 {
-    ::OutputDebugStringW(L"Unload\n");
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの終了処理"));
 
     if ( ! m_loaded )
     {
-        ::OutputDebugStringW(L"  未読込\n");
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
         return;
     }
 
@@ -667,13 +644,11 @@ void TTBBridgePlugin::Unload()
     const auto ret = ::WaitForSingleObject(evt_done, 3'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        ::OutputDebugStringW(L"  残念\n");
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("子プロセスにデータを送れませんでした"));
         return;
     }
 
-    ::OutputDebugStringW(L"  ");
-    ::OutputDebugStringW(L"OK\n");
-
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
     return;
 }
 
@@ -684,12 +659,11 @@ bool TTBBridgePlugin::Execute
     INT32 CmdID, HWND hwnd
 )
 {
-    using namespace tapetums;
-    ::OutputDebugStringW(L"Execute\n");
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("コマンドの実行"));
 
     if ( ! m_loaded )
     {
-        ::OutputDebugStringW(L"  未読込\n");
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
         return false;
     }
 
@@ -728,7 +702,7 @@ bool TTBBridgePlugin::Execute
     const auto ret = ::WaitForSingleObject(evt_done, 3'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        ::OutputDebugStringW(L"  残念\n");
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("子プロセスにデータを送れませんでした"));
         return false;
     }
 
@@ -736,10 +710,7 @@ bool TTBBridgePlugin::Execute
     plugin_data.Seek(0);
     plugin_data.Read(&msg);
 
-    ::OutputDebugStringW(L"  ");
-    ::OutputDebugStringW(PluginMsgTxt[(uint8_t)msg]);
-    ::OutputDebugStringW(L"\n");
-
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
     return true;
 }
 
@@ -750,12 +721,11 @@ void TTBBridgePlugin::Hook
     UINT Msg, WPARAM wParam, LPARAM lParam
 )
 {
-    using namespace tapetums;
-    ::OutputDebugStringW(L"Hook\n");
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインをフック"));
 
     if ( ! m_loaded )
     {
-        ::OutputDebugStringW(L"  未読込\n");
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
         return;
     }
 
@@ -795,13 +765,11 @@ void TTBBridgePlugin::Hook
     const auto ret = ::WaitForSingleObject(evt_done, 3'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        ::OutputDebugStringW(L"  残念\n");
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("子プロセスにデータを送れませんでした"));
         return;
     }
 
-    ::OutputDebugStringW(L"  ");
-    ::OutputDebugStringW(L"OK\n");
-
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
     return;
 }
 

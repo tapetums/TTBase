@@ -165,7 +165,7 @@ bool TTBasePlugin::Reload()
     (
         relative_path.data(),
         exe_path.data(), FILE_ATTRIBUTE_ARCHIVE,
-        m_path,            FILE_ATTRIBUTE_ARCHIVE
+        m_path,          FILE_ATTRIBUTE_ARCHIVE
     );
 
     // プラグイン情報の再取得
@@ -288,6 +288,8 @@ void TTBasePlugin::Unload()
 
 bool TTBasePlugin::Execute(INT32 CmdID, HWND hwnd)
 {
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("コマンドの実行"));
+
     if ( nullptr == TTBEvent_Execute )
     {
         WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
@@ -309,6 +311,8 @@ bool TTBasePlugin::Execute(INT32 CmdID, HWND hwnd)
 
 void TTBasePlugin::Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインをフック"));
+
     if ( nullptr == TTBEvent_WindowsHook )
     {
         WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
