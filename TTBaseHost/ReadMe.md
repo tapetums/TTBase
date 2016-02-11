@@ -154,7 +154,7 @@ TTBase を生み出された K2 さん、peach を 公開されている U さ�
 
 以上です。
 
-####文責 Edited by
+####文責
 tapetums
 
 ######この文書のライセンスは NYSL Version 0.9982 とします。  
