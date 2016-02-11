@@ -207,13 +207,13 @@ extern "C" PLUGIN_INFO* WINAPI TTBPlugin_GetPluginInfo
     auto&& mgr = PluginMgr::GetInstance();
     for ( auto&& plugin: mgr )
     {
-        if ( &plugin != (TTBasePlugin*)hPlugin ) { continue; }
+        if ( plugin.get() != (ITTBPlugin*)hPlugin ) { continue; }
 
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), plugin.info()->Name);
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), plugin->info()->Name);
         WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 
         // コピーしたものを返す
-        return CopyPluginInfo(plugin.info());
+        return CopyPluginInfo(plugin->info());
     }
 
     // 知らないプラグインなのでどうしようもない
@@ -234,13 +234,13 @@ extern "C" void WINAPI TTBPlugin_SetPluginInfo
     auto&& mgr = PluginMgr::GetInstance();
     for ( auto&& plugin: mgr )
     {
-        if ( &plugin != (TTBasePlugin*)hPlugin ) { continue; }
+        if ( plugin.get() != (ITTBPlugin*)hPlugin ) { continue; }
 
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), plugin.info()->Name);
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), plugin->info()->Name);
         WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 
         // プラグイン情報を差替
-        plugin.info(PLUGIN_INFO); // 内部でコピーを保持 ... PluginMgr.hpp を参照
+        plugin->info(PLUGIN_INFO); // 内部でコピーを保持 ... PluginMgr.hpp を参照
         return;
     }
 
@@ -269,7 +269,7 @@ extern "C" void WINAPI TTBPlugin_FreePluginInfo
     auto&& mgr = PluginMgr::GetInstance();
     for ( auto&& plugin: mgr )
     {
-        if ( 0 != lstrcmp(Filename, plugin.info()->Filename) ) { continue; }
+        if ( 0 != lstrcmp(Filename, plugin->info()->Filename) ) { continue; }
 
         WriteLog(ERROR_LEVEL(5), TEXT("  %s"), PLUGIN_INFO->Name);
         WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
@@ -291,7 +291,7 @@ extern "C" void WINAPI TTBPlugin_SetMenuProperty
 {
     WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("メニューのプロパティを設定"));
 
-    auto plugin = reinterpret_cast<TTBasePlugin*>(hPlugin);
+    auto plugin = reinterpret_cast<ITTBPlugin*>(hPlugin);
     if ( nullptr == plugin )
     {
         WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("?"));
@@ -351,7 +351,7 @@ extern "C" PLUGIN_INFO** WINAPI TTBPlugin_GetAllPluginInfo()
     size_t idx = 0;
     for ( auto&& plugin: mgr )
     {
-        PluginInfoArray[idx] = CopyPluginInfo(plugin.info());
+        PluginInfoArray[idx] = CopyPluginInfo(plugin->info());
         ++idx;
     }
 
@@ -422,7 +422,7 @@ extern "C" void WINAPI TTBPlugin_WriteLog
     SYSTEMTIME st;
     ::GetLocalTime(&st);
 
-    //reinterpret_cast<TTBasePlugin*>(hPlugin);
+    //reinterpret_cast<ITTBPlugin*>(hPlugin);
 
     static std::array<TCHAR, 4096> buf;
     ::StringCchPrintf

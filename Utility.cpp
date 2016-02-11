@@ -47,7 +47,7 @@ void DeleteString(LPCTSTR Str)
 //---------------------------------------------------------------------------//
 
 // プラグイン情報構造体をディープコピーして返す
-PLUGIN_INFO* CopyPluginInfo(PLUGIN_INFO* Src)
+PLUGIN_INFO* CopyPluginInfo(const PLUGIN_INFO* Src)
 {
     if ( Src == nullptr ) { return nullptr; }
 

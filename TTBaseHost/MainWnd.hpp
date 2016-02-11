@@ -60,7 +60,7 @@ private:
     void    OnNotifyIcon     (HWND hwnd, UINT uMsg);
     void    OnReloadPlugins  ();
     void    OnSetTaskTrayIcon(HICON hIcon, LPCTSTR Tips);
-    bool    OnExecuteCommand (HWND hwnd, TTBasePlugin* plugin, INT32 CmdID);
+    bool    OnExecuteCommand (HWND hwnd, ITTBPlugin* plugin, INT32 CmdID);
 };
 
 //---------------------------------------------------------------------------//

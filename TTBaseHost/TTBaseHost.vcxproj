@@ -181,12 +181,14 @@
     <ClCompile Include="MainWnd.cpp" />
     <ClCompile Include="PluginMgr.cpp" />
     <ClCompile Include="System.cpp" />
+    <ClCompile Include="TTBBridgePlugin.cpp" />
     <ClCompile Include="WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\MessageDef.hpp" />
     <ClInclude Include="..\Plugin.hpp" />
     <ClInclude Include="..\Utility.hpp" />
+    <ClInclude Include="BridgeData.hpp" />
     <ClInclude Include="Command.hpp" />
     <ClInclude Include="include\Application.hpp" />
     <ClInclude Include="include\CollectFile.hpp" />
@@ -198,6 +200,7 @@
     <ClInclude Include="PluginMgr.hpp" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Settings.hpp" />
+    <ClInclude Include="TTBBridgePlugin.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TTBaseHost.rc" />

@@ -128,7 +128,7 @@ LPCTSTR CBX_LOGLEVEL_TEXT[6] =
 void SetPluginNames   (const PluginMgr& mgr, tapetums::ListWnd& list);
 void SetPluginCommands(const PluginMgr& mgr, tapetums::ListWnd& list);
 void ShowPluginInfo   (tapetums::ListWnd& list, tapetums::CtrlWnd& edit);
-void UpdateCheckState (tapetums::ListWnd& list, const TTBasePlugin* plugin, INT32 CmdID);
+void UpdateCheckState (tapetums::ListWnd& list, const ITTBPlugin* plugin, INT32 CmdID);
 void PopupMenu        (HWND hwnd);
 
 //---------------------------------------------------------------------------//
@@ -187,7 +187,7 @@ LRESULT MainWnd::WndProc
     }
     if ( uMsg == WM_SETMENUPROPERTY )
     {
-        UpdateCheckState(list_cmd, (TTBasePlugin*)wParam, (INT32)lParam); return 0;
+        UpdateCheckState(list_cmd, (ITTBPlugin*)wParam, (INT32)lParam); return 0;
     }
     if ( uMsg == WM_SETTASKTRAYICON )
     {
@@ -195,7 +195,7 @@ LRESULT MainWnd::WndProc
     }
     if ( uMsg == WM_EXECUTECOMMAND )
     {
-        OnExecuteCommand(hwnd, (TTBasePlugin*)wParam, (INT32)lParam); return 0;
+        OnExecuteCommand(hwnd, (ITTBPlugin*)wParam, (INT32)lParam); return 0;
     }
 
     switch ( uMsg )
@@ -420,7 +420,7 @@ LRESULT MainWnd::OnNotify
         // コマンドの実行
         const auto index = list_cmd.SelectedIndex();
 
-        auto plugin = (TTBasePlugin*)list_cmd.GetItemLPARAM(index);
+        auto plugin = (ITTBPlugin*)list_cmd.GetItemLPARAM(index);
         const auto CmdID = list_cmd.GetItemToInt(index, LIST_CMD_ITEM::コマンドID);
 
         return OnExecuteCommand(hwnd, plugin, CmdID);
@@ -530,7 +530,7 @@ void MainWnd::OnCommand
         }
 
         // リストビューコントロールから必要なデータを取得
-        const auto plugin = (TTBasePlugin*)list_cmd.GetItemLPARAM(index);
+        const auto plugin = (ITTBPlugin*)list_cmd.GetItemLPARAM(index);
         const auto CmdID = list_cmd.GetItemToInt(index, LIST_CMD_ITEM::コマンドID);
 
         // コマンドを実行
@@ -618,13 +618,13 @@ void MainWnd::OnSetTaskTrayIcon
 
         // プラグイン一覧でのチェックボックスの状態も更新
         auto&& system = PluginMgr::GetInstance().system();
-        auto&& cmd = system.info()->Commands[CMD_TRAYICON];
+        auto&& cmd = system->info()->Commands[CMD_TRAYICON];
 
         auto DispMenu = (DWORD)cmd.DispMenu;
         DispMenu ^= dmMenuChecked;
         cmd.DispMenu = (DISPMENU)DispMenu;
 
-        UpdateCheckState(list_cmd, &system, CMD_TRAYICON);
+        UpdateCheckState(list_cmd, system.get(), CMD_TRAYICON);
     }
     else
     {
@@ -648,7 +648,7 @@ void MainWnd::OnSetTaskTrayIcon
 
 bool MainWnd::OnExecuteCommand
 (
-    HWND hwnd, TTBasePlugin* plugin, INT32 CmdID
+    HWND hwnd, ITTBPlugin* plugin, INT32 CmdID
 )
 {
     WriteLog(ERROR_LEVEL(5), TEXT("実行: %s|%d"), plugin->info()->Name, CmdID);
@@ -693,7 +693,7 @@ void SetPluginNames
     auto index = 0;
     for ( auto&& plugin: mgr )
     {
-        const auto& info = *plugin.info();
+        const auto& info = *plugin->info();
         list.InsertItem(info.Name, index);
         list.SetItem(info.Filename, index, LIST_PLG_ITEM::相対パス);
 
@@ -731,14 +731,14 @@ void SetPluginCommands
     auto index = 0;
     for ( auto&& plugin: mgr )
     {
-        const auto& info = *plugin.info();
+        const auto& info = *plugin->info();
         const auto count = info.CommandCount;
 
         for ( size_t cmd_idx = 0; cmd_idx < count; ++cmd_idx )
         {
             const auto& cmd = info.Commands[cmd_idx];
 
-            list.InsertItem(info.Name, index, (LPARAM)&plugin);
+            list.InsertItem(info.Name, index, (LPARAM)plugin.get());
             list.SetItem(cmd.Caption, index, LIST_CMD_ITEM::コマンド名);
             list.SetItem(info.Filename, index, LIST_CMD_ITEM::相対パス);
 
@@ -804,7 +804,7 @@ void ShowPluginInfo
 
 void UpdateCheckState
 (
-    tapetums::ListWnd& list, const TTBasePlugin* plugin, INT32 CmdID
+    tapetums::ListWnd& list, const ITTBPlugin* plugin, INT32 CmdID
 )
 {
     WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("チェックボックスの表示状態を更新"));
@@ -812,7 +812,7 @@ void UpdateCheckState
     const auto count = list.Count();
     for ( auto index = 0; index < count; ++index )
     {
-        if ( plugin != (TTBasePlugin*)list.GetItemLPARAM(index) )
+        if ( plugin != (ITTBPlugin*)list.GetItemLPARAM(index) )
         {
             continue;
         }
@@ -901,10 +901,10 @@ void PopupMenu(HWND hwnd)
     for ( auto it = mgr.begin(); it != mgr.end(); ++it )
     {
         const auto& plugin = *it;
-        const auto CommandCount = plugin.info()->CommandCount;
+        const auto CommandCount = plugin->info()->CommandCount;
         for ( size_t idx = 0; idx < CommandCount; ++idx, ++wID )
         {
-            const auto& cmd = plugin.info()->Commands[idx];
+            const auto& cmd = plugin->info()->Commands[idx];
             const auto& DispMenu = cmd.DispMenu;
             if ( 0 == (DispMenu & dmSystemMenu) ) { continue; }
 

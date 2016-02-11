@@ -9,6 +9,7 @@
 //---------------------------------------------------------------------------//
 
 #include <list>
+#include <memory>
 
 #include <windows.h>
 
@@ -16,20 +17,47 @@
 
 //---------------------------------------------------------------------------//
 
-class TTBasePlugin;
-class PluginMgr;
+struct ITTBPlugin;
+class  TTBasePlugin;
+class  PluginMgr;
 
 //---------------------------------------------------------------------------//
 // Classes
 //---------------------------------------------------------------------------//
 
-#define package private
-
-class TTBasePlugin
+struct ITTBPlugin
 {
-    friend class PluginMgr;
+// Destructor
+    virtual ~ITTBPlugin() = 0 { };
 
-package: // Members
+// Properties
+    virtual bool is_loaded() const noexcept = 0;
+
+// Acessors
+    virtual const TCHAR*       path()   const noexcept = 0;
+    virtual const HMODULE      handle() const noexcept = 0;
+    virtual const PLUGIN_INFO* info()   const noexcept = 0;
+
+    virtual void info(PLUGIN_INFO* info) noexcept = 0;
+
+// Methods
+    virtual bool Load  (LPCTSTR path) = 0;
+    virtual void Free  () = 0;
+    virtual bool Reload() = 0;
+
+    virtual bool InitInfo(LPTSTR PluginFilename) = 0;
+    virtual void FreeInfo() = 0;
+    virtual bool Init    (LPTSTR PluginFilename, DWORD_PTR hPlugin) = 0;
+    virtual void Unload  () = 0;
+    virtual bool Execute (INT32 CmdID, HWND hwnd) = 0;
+    virtual void Hook    (UINT Msg, WPARAM wParam, LPARAM lParam) = 0;
+};
+
+//---------------------------------------------------------------------------//
+
+class TTBasePlugin : public ITTBPlugin
+{
+protected: // Members
     TCHAR        m_path[MAX_PATH];
     HMODULE      m_handle { nullptr };
     PLUGIN_INFO* m_info   { nullptr };
@@ -53,35 +81,42 @@ public: // ctor / dtor
 
     explicit TTBasePlugin(LPCTSTR path) { Load(path ); }
 
-public: // Move Constructor
+public: // mtor
     void swap(TTBasePlugin&&) noexcept;
 
 public: // Properties
     bool is_loaded() const noexcept { return m_handle != nullptr; }
 
 public: // Acessors
-    const auto path()   const noexcept { return m_path; }
-    const auto handle() const noexcept { return m_handle; }
-    const auto info()   const noexcept { return m_info; }
+    const TCHAR*       path()   const noexcept { return m_path; }
+    const HMODULE      handle() const noexcept { return m_handle; }
+    const PLUGIN_INFO* info()   const noexcept { return m_info; }
 
     void info(PLUGIN_INFO* info) noexcept;
 
 public: // Methods
-    bool Load(LPCTSTR path);
-    void Free();
-    bool Reload();
+    bool Load  (LPCTSTR path) override;
+    void Free  ()             override;
+    bool Reload()             override;
 
-    bool Init   (LPTSTR PluginFilename, DWORD_PTR hPlugin);
-    void Unload ();
-    bool Execute(INT32 CmdID, HWND hwnd);
-    void Hook   (UINT Msg, WPARAM wParam, LPARAM lParam);
-
-package: // Internal Methods
-    bool InitInfo(LPTSTR PluginFilename);
-    void FreeInfo();
+    bool InitInfo(LPTSTR PluginFilename)                    override;
+    void FreeInfo()                                         override;
+    bool Init    (LPTSTR PluginFilename, DWORD_PTR hPlugin) override;
+    void Unload  ()                                         override;
+    bool Execute (INT32 CmdID, HWND hwnd)                   override;
+    void Hook    (UINT Msg, WPARAM wParam, LPARAM lParam)   override;
 };
 
 #undef package
+
+//---------------------------------------------------------------------------//
+
+class SystemPlugin : public TTBasePlugin
+{
+public: // ctor / dtor
+    SystemPlugin();
+    ~SystemPlugin();
+};
 
 //---------------------------------------------------------------------------//
 
@@ -91,7 +126,7 @@ public: // Singleton
     static PluginMgr& GetInstance() { static PluginMgr mgr; return mgr; }
 
 private: // Members
-    std::list<TTBasePlugin> plugins;
+    std::list<std::unique_ptr<ITTBPlugin>> plugins;
 
 public: // ctor / dtor
     PluginMgr();
@@ -120,9 +155,10 @@ public: // Iterators
 public: // Methods
     void LoadAll();
     void FreeAll();
-    const TTBasePlugin* Find(LPCTSTR PluginFilename) const noexcept;
+    const ITTBPlugin* Find(LPCTSTR PluginFilename) const noexcept;
 
 private: // Internal Methods
+    void CollectFile(LPCTSTR dir_path, LPCTSTR ext);
     void InitAll();
 };
 

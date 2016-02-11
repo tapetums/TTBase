@@ -51,6 +51,9 @@
     <ClCompile Include="WinMain.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="TTBBridgePlugin.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainWnd.hpp">
@@ -94,6 +97,12 @@
     </ClInclude>
     <ClInclude Include="include\Font.hpp">
       <Filter>ヘッダー ファイル\include</Filter>
+    </ClInclude>
+    <ClInclude Include="BridgeData.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="TTBBridgePlugin.hpp">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

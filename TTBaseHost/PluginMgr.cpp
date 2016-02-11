@@ -13,10 +13,10 @@
 #include <shlwapi.h>
 #pragma comment(lib, "shlwapi.lib") // PathRemoveFileSpec, PathRelativePathTo
 
-#include "include/CollectFile.hpp"
 #include "../Utility.hpp"
 
 #include "PluginMgr.hpp"
+#include "TTBBridgePlugin.hpp"
 
 //---------------------------------------------------------------------------//
 // Global Variables
@@ -168,9 +168,6 @@ bool TTBasePlugin::Reload()
         m_path,            FILE_ATTRIBUTE_ARCHIVE
     );
 
-    // プラグイン情報を解放
-    FreeInfo();
-
     // プラグイン情報の再取得
     //  relative_path の 先頭2文字 (".\") は要らないので ずらす
     InitInfo(relative_path.data() + 2);
@@ -185,6 +182,67 @@ bool TTBasePlugin::Reload()
 
     WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
     return true;
+}
+
+//---------------------------------------------------------------------------//
+
+bool TTBasePlugin::InitInfo(LPTSTR PluginFilename)
+{
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグイン情報をコピー"));
+
+    if ( nullptr == TTBEvent_InitPluginInfo )
+    {
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
+        return false;
+    }
+
+    // プラグイン情報の取得
+    const auto tmp = TTBEvent_InitPluginInfo(PluginFilename);
+    if ( nullptr == tmp )
+    {
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("情報取得失敗"));
+        return false;
+    }
+
+    // プラグイン情報をコピー
+    FreeInfo();
+    m_info = CopyPluginInfo(tmp);
+
+    // コピーし終わったので 元データを解放
+    TTBEvent_FreePluginInfo(tmp);
+
+    if ( nullptr == m_info )
+    {
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("情報コピー失敗"));
+        return false;
+    }
+
+    // ロードにかかった時間は一律 0 にする
+    //  21世紀のコンピューターでは殆どの場合 1ms 未満になるため
+    m_info->LoadTime = 0;
+
+    WriteLog(ERROR_LEVEL(5), TEXT("  名前:       %s"), m_info->Name);
+    WriteLog(ERROR_LEVEL(5), TEXT("  相対パス:   %s"), m_info->Filename);
+    WriteLog(ERROR_LEVEL(5), TEXT("  タイプ:     %s"), m_info->PluginType == ptAlwaysLoad ? TEXT("常駐") : TEXT("都度"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  コマンド数: %u"), m_info->CommandCount);
+
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+
+void TTBasePlugin::FreeInfo()
+{
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグイン情報を解放"));
+
+    if ( m_info )
+    {
+        FreePluginInfo(m_info);
+        m_info = nullptr;
+    }
+
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
@@ -262,60 +320,46 @@ void TTBasePlugin::Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 }
 
 //---------------------------------------------------------------------------//
+// SystemPlugin
+//---------------------------------------------------------------------------//
 
-bool TTBasePlugin::InitInfo(LPTSTR PluginFilename)
+SystemPlugin::SystemPlugin()
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグイン情報をコピー"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("システムプラグインを生成"));
 
-    if ( nullptr == TTBEvent_InitPluginInfo )
-    {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
-        return false;
-    }
+    m_handle = g_hInst;
+    ::GetModuleFileName(m_handle, m_path, MAX_PATH);
 
-    // プラグイン情報の取得
-    const auto tmp = TTBEvent_InitPluginInfo(PluginFilename);
-    if ( nullptr == tmp )
-    {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("情報取得失敗"));
-        return false;
-    }
+    TTBEvent_InitPluginInfo = ::TTBEvent_InitPluginInfo;
+    TTBEvent_FreePluginInfo = ::TTBEvent_FreePluginInfo;
+    TTBEvent_Init           = ::TTBEvent_Init;
+    TTBEvent_Unload         = ::TTBEvent_Unload;
+    TTBEvent_Execute        = ::TTBEvent_Execute;
+    TTBEvent_WindowsHook    = ::TTBEvent_WindowsHook;
 
-    m_info = CopyPluginInfo(tmp);
-
-    // コピーし終わったので 元データを解放
-    TTBEvent_FreePluginInfo(tmp);
-
-    if ( nullptr == m_info )
-    {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("情報コピー失敗"));
-        return false;
-    }
-
-    // ロードにかかった時間は一律 0 にする
-    //  21世紀のコンピューターでは殆どの場合 1ms 未満になるため
-    m_info->LoadTime = 0;
-
-    WriteLog(ERROR_LEVEL(5), TEXT("  名前:       %s"), m_info->Name);
-    WriteLog(ERROR_LEVEL(5), TEXT("  相対パス:   %s"), m_info->Filename);
-    WriteLog(ERROR_LEVEL(5), TEXT("  タイプ:     %s"), m_info->PluginType == ptAlwaysLoad ? TEXT("常駐") : TEXT("都度"));
-    WriteLog(ERROR_LEVEL(5), TEXT("  コマンド数: %u"), m_info->CommandCount);
+    m_info = &g_info;
+    TTBEvent_Init((LPTSTR)TEXT(":system"), (DWORD_PTR)this);
 
     WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
-    return true;
 }
 
 //---------------------------------------------------------------------------//
 
-void TTBasePlugin::FreeInfo()
+SystemPlugin::~SystemPlugin()
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグイン情報を解放"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("システムプラグインを解放"));
 
-    if ( m_info )
-    {
-        FreePluginInfo(m_info);
-        m_info = nullptr;
-    }
+    TTBEvent_Unload();
+    m_info  = nullptr;
+
+    TTBEvent_InitPluginInfo = nullptr;
+    TTBEvent_FreePluginInfo = nullptr;
+    TTBEvent_Init           = nullptr;
+    TTBEvent_Unload         = nullptr;
+    TTBEvent_Execute        = nullptr;
+    TTBEvent_WindowsHook    = nullptr;
+
+    m_handle = nullptr;
 
     WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 }
@@ -326,25 +370,10 @@ void TTBasePlugin::FreeInfo()
 
 PluginMgr::PluginMgr()
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("システムプラグインを生成"));
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインマネージャを生成"));
 
-    TTBasePlugin system;
-
-    system.m_handle = g_hInst; // 以後、この値をシステムプラグインか否かに使用する
-    ::GetModuleFileName(system.m_handle, system.m_path, MAX_PATH);
-
-    system.TTBEvent_InitPluginInfo = TTBEvent_InitPluginInfo;
-    system.TTBEvent_FreePluginInfo = TTBEvent_FreePluginInfo;
-    system.TTBEvent_Init           = TTBEvent_Init;
-    system.TTBEvent_Unload         = TTBEvent_Unload;
-    system.TTBEvent_Execute        = TTBEvent_Execute;
-    system.TTBEvent_WindowsHook    = TTBEvent_WindowsHook;
-
-    system.m_info = &g_info;
-    TTBEvent_Init((LPTSTR)TEXT(":system"), (DWORD_PTR)&system);
-
-    // プラグインリストの一番最初に登録
-    plugins.push_back(std::move(system));
+    // プラグインリストの一番最初にシステムプラグインを登録
+    plugins.emplace_back(new SystemPlugin);
 
     WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 }
@@ -358,17 +387,11 @@ PluginMgr::~PluginMgr()
     // ロードとは逆順に解放する
     FreeAll();
 
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("システムプラグインを解放"));
-
-    auto&& system = plugins.front();
-    TTBEvent_Unload();
-    system.m_info = nullptr;
-    system.m_handle = nullptr;
-
+    // システムプラグインも解放
     plugins.clear();
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 
     WriteLog(ERROR_LEVEL(5), TEXT("  %u plugin(s)"), plugins.size());
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
@@ -377,13 +400,18 @@ void PluginMgr::LoadAll()
 {
     WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("すべてのプラグインを読み込み"));
 
+    // インストールフォルダのパスを取得
     std::array<TCHAR, MAX_PATH> dir_path;
     ::GetModuleFileName(g_hInst, dir_path.data(), (DWORD)dir_path.size());
     ::PathRemoveFileSpec(dir_path.data());
 
-    CollectFileByExt(dir_path.data(), TEXT(".dll"), true, plugins);
+    // インストールフォルダ以下の DLL ファイルを収集
+    CollectFile(dir_path.data(), TEXT(".dll"));
 
+    // 読み込んだ DLL を初期化
     InitAll();
+
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
@@ -399,11 +427,12 @@ void PluginMgr::FreeAll()
     }
 
     WriteLog(ERROR_LEVEL(5), TEXT("  %u plugin(s)"), plugins.size());
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
 
-const TTBasePlugin* PluginMgr::Find
+const ITTBPlugin* PluginMgr::Find
 (
     LPCTSTR PluginFilename
 )
@@ -411,12 +440,96 @@ const noexcept
 {
     for ( auto&& plugin: plugins )
     {
-        if ( 0 == lstrcmp(PluginFilename, plugin.m_info->Filename) )
+        if ( 0 == lstrcmp(PluginFilename, plugin->info()->Filename) )
         {
-            return &plugin;
+            return plugin.get();
         }
     }
     return nullptr;
+}
+
+//---------------------------------------------------------------------------//
+
+void PluginMgr::CollectFile
+(
+    LPCTSTR dir_path, LPCTSTR ext
+)
+{
+    TCHAR path[MAX_PATH];
+    ::StringCchPrintf(path, MAX_PATH, TEXT(R"(%s\*)"), dir_path);
+
+    WIN32_FIND_DATA fd { };
+    const auto hFindFile = ::FindFirstFile(path, &fd);
+    if ( INVALID_HANDLE_VALUE == hFindFile )
+    {
+        // 指定されたフォルダが見つからなかった
+        return;
+    }
+
+    // フォルダ内にあるものを列挙する
+    do
+    {
+        // 隠しファイルは飛ばす
+        if ( fd.cFileName[0] == '.' )
+        {
+            continue;
+        }
+        if ( fd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN )
+        {
+            continue;
+        }
+
+        // フルパスを合成
+        ::StringCchPrintf
+        (
+            path, MAX_PATH, TEXT(R"(%s\%s)"), dir_path, fd.cFileName
+        );
+
+        if ( fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
+        {
+            // サブフォルダを検索
+            CollectFile(path, ext);
+        }
+        else
+        {
+            // 拡張子を取得
+            TCHAR* s;
+            for ( s = path + lstrlen(path) - 1; *s != '.'; --s );
+            
+            // 目的の拡張子だったら
+            if ( 0 == lstrcmp(s, ext) )
+            {
+                // コンテナに収録
+                ITTBPlugin* plugin;
+
+                plugin = new TTBasePlugin(path);
+                if ( plugin->is_loaded() )
+                {
+                    plugins.emplace_back(plugin);
+                    continue;
+                }
+                else
+                {
+                    if ( plugin ) { delete plugin; }
+                }
+
+                plugin = new TTBBridgePlugin(path);
+                if ( plugin->is_loaded() )
+                {
+                    plugins.emplace_back(plugin);
+                }
+                else
+                {
+                    if ( plugin ) { delete plugin; }
+                }
+            }
+        }
+    }
+    while ( ::FindNextFile(hFindFile, &fd) );
+
+    ::FindClose( hFindFile );
+
+    return;
 }
 
 //---------------------------------------------------------------------------//
@@ -426,6 +539,7 @@ void PluginMgr::InitAll()
     std::array<TCHAR, MAX_PATH> exe_path;
     std::array<TCHAR, MAX_PATH> relative_path;
 
+    // 本体の絶対パスを取得
     ::GetModuleFileName(g_hInst, exe_path.data(), (DWORD)exe_path.size());
 
     // プラグインの初期化
@@ -434,24 +548,23 @@ void PluginMgr::InitAll()
     while ( it != plugins.end() )
     {
         // ロードに失敗していた DLL は リストから外す
-        if ( ! it->is_loaded() )
+        auto&& plugin = *it;
+        if ( ! plugin->is_loaded() )
         {
             it = plugins.erase(it);
             continue;
         }
 
-        auto&& plugin = *it;
-
         ::PathRelativePathTo
         (
             relative_path.data(),
             exe_path.data(), FILE_ATTRIBUTE_ARCHIVE,
-            plugin.m_path,   FILE_ATTRIBUTE_ARCHIVE
+            plugin->path(),  FILE_ATTRIBUTE_ARCHIVE
         );
 
         // プラグイン情報の取得
         //  relative_path の 先頭2文字 (".\") は要らないので ずらす
-        const auto result = plugin.InitInfo(relative_path.data() + 2);
+        const auto result = plugin->InitInfo(relative_path.data() + 2);
         if ( ! result )
         {
             it = plugins.erase(it);
@@ -459,13 +572,13 @@ void PluginMgr::InitAll()
         }
 
         // プラグインの初期化
-        if ( plugin.m_info->PluginType != ptAlwaysLoad )
+        if ( plugin->info()->PluginType != ptAlwaysLoad )
         {
-            plugin.Free();
+            plugin->Free();
         }
         else
         {
-            plugin.Init(plugin.m_info->Filename, (DWORD_PTR)&plugin);
+            plugin->Init(plugin->info()->Filename, (DWORD_PTR)plugin.get());
         }
 
         ++it;
