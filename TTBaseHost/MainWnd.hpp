@@ -27,8 +27,9 @@ class MainWnd : public tapetums::UWnd
     using super = UWnd;
 
 private:
-    HICON icon { nullptr };
-    HTREEITEM tvi[3] { nullptr, nullptr, nullptr };
+    HICON      icon   { nullptr };
+    HIMAGELIST il     { nullptr };
+    HTREEITEM  tvi[3] { nullptr, nullptr, nullptr };
 
     tapetums::Font     font;
     tapetums::TreeWnd  tree;

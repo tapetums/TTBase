@@ -206,7 +206,9 @@
     <ResourceCompile Include="TTBaseHost.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="checked.ico" />
     <Image Include="icon.ico" />
+    <Image Include="nocheck.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\TTBase.def" />

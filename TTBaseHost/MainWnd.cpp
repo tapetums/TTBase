@@ -297,12 +297,24 @@ BOOL MainWnd::OnCreate
     label.SetFont(font);
     label.SetText(CTRL_TEXT::Note);
 
-    styleEx |= LVS_EX_CHECKBOXES;
     list_cmd.Create(style, styleEx, hwnd, CTRL::LIST_COMMAND);
     list_cmd.InsertColumn(LIST_CMD_ITEM::Name,     120, LIST_CMD_ITEM::名前);
     list_cmd.InsertColumn(LIST_CMD_ITEM::CmdName,  120, LIST_CMD_ITEM::コマンド名);
     list_cmd.InsertColumn(LIST_CMD_ITEM::Filename, 170, LIST_CMD_ITEM::相対パス);
     list_cmd.InsertColumn(LIST_CMD_ITEM::CmdID,     60, LIST_CMD_ITEM::コマンドID);
+
+    il = ::ImageList_Create(16, 16, ILC_COLOR24, 3, 0);
+
+    HICON tmp;
+    tmp = ::LoadIcon(g_hInst, MAKEINTRESOURCE(IDI_ICON_NOCHEK));
+    ::ImageList_AddIcon(il, tmp);
+    ::DestroyIcon(tmp);
+
+    tmp = ::LoadIcon(g_hInst, MAKEINTRESOURCE(IDI_ICON_CHECKED));
+    ::ImageList_AddIcon(il, tmp);
+    ::DestroyIcon(tmp);
+
+    list_cmd.SetImageList(il);
 
     // リストビューに項目を登録
     const auto& mgr = PluginMgr::GetInstance();
@@ -322,6 +334,9 @@ void MainWnd::OnDestroy
     HWND
 )
 {
+    // イメージリストを破棄
+    ::ImageList_Destroy(il);
+
     // タスクトレイのアイコンを破棄
     DeleteNotifyIcon(ID_TRAYICON);
     ::DestroyIcon(icon);
