@@ -19,7 +19,9 @@ Compilable with: **Visual Studio Community 2015 (C++11, 32/64-bit)**
 - MainWnd.hpp
 - MainWnd.cpp
 - Settings.hpp
-- TTBaseHost.def
+- BridgeData.hpp
+- TTBBridgePlugin.hpp
+- TTBBridgePlugin.cpp
 - icon.ico
 - resource.h
 - TTBaseHost.rc
@@ -39,6 +41,7 @@ Compilable with: **Visual Studio Community 2015 (C++11, 32/64-bit)**
 
 To compile, you also require files below
 
+- TTBaseHost.def
 - Plugin.hpp
 - Plugin.cpp
 - MessageDef.hpp
@@ -79,8 +82,8 @@ from the 'TTBase plugin template project'.
 - Windows Hook
 - Command line options
 
-　The concept is baed on peach. This program does not provide some functions that TTBase does as the host services, and let them go with plugins.  
-　The main difference from peach is serving the task-tray icon as a function of the host application. You can switch the visibility of the icon by settings.  
+　The concept is baed on _peach_. This program does not provide some functions that TTBase does as the host services, and let them go with plugins.  
+　The main difference from _peach_ is serving the task-tray icon as a function of the host application. You can switch the visibility of the icon by a command.  
 　If you want to show the UI window when the icon is invisible, call the command with the hotkey of plugins or simply double-start the application.
 
 ###Screen Shots
@@ -148,7 +151,7 @@ and the authors who produced the great number of plugins for TTBase.
 ###Change  Log
 
 2016.02.12 v0.2.0.0
-- In 64-bit version, now both 32/64-bit plugins are executable.
+- In the 64-bit version, now both 32/64-bit plugins are executable.
 
 2016.02.07  v0.1.0.0
 - First Edition

@@ -3,6 +3,7 @@
 //---------------------------------------------------------------------------//
 //
 // TTBBridgePlugin.cpp
+//  プロセス間通信を使って別プロセスのプラグインを操作する
 //   Copyright (C) 2016 tapetums
 //
 //---------------------------------------------------------------------------//
@@ -391,7 +392,7 @@ bool TTBBridgePlugin::InitInfo
 
     if ( ! m_loaded )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
+        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未読込"));
         return false;
     }
 

@@ -19,7 +19,9 @@ TTBase 互換プログラムのサンプルです。
 - MainWnd.hpp
 - MainWnd.cpp
 - Settings.hpp
-- TTBaseHost.def
+- BridgeData.hpp
+- TTBBridgePlugin.hpp
+- TTBBridgePlugin.cpp
 - icon.ico
 - resource.h
 - TTBaseHost.rc
@@ -40,6 +42,7 @@ TTBase 互換プログラムのサンプルです。
 コンパイルするためには、上記に加え  
 TTBase プラグインスケルトンプロジェクトから
 
+- TTBaseHost.def
 - Plugin.hpp
 - Plugin.cpp
 - MessageDef.hpp
@@ -83,7 +86,7 @@ TTBase プラグインスケルトンプロジェクトから
 - コマンドラインオプション
 
 　コンセプトは peach を参考にしており、 TTBase では本体の機能として提供していたものであっても、プラグイン側に任せる、という姿勢をとっています。  
-　peach との違いは、本体側でタスクトレイアイコンを実装していることです。タスクトレイアイコンの表示に関しては、設定で ON/OFF を切り替えられます。  
+　peach との違いは、本体側でタスクトレイアイコンを実装していることです。タスクトレイアイコンの表示に関しては、コマンドで ON/OFF を切り替えられます。  
 　なお、タスクトレイアイコンが表示されていない状態で UI ウィンドウを表示させるには、プラグインによるホットキーからコマンドを呼び出すか、アプリケーションを二重起動させて下さい。
 
 ###スクリーンショット
