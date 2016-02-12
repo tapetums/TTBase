@@ -152,7 +152,6 @@ TTBBridgePlugin::TTBBridgePlugin()
     {
         ::MessageBoxW(nullptr, L"TTBBridge.exe を開始できません\n",  L"hako", MB_OK);
         ::TerminateProcess(pi.hProcess, 0);
-        ::Sleep(100);
         return;
     }
 
@@ -164,19 +163,17 @@ TTBBridgePlugin::TTBBridgePlugin()
 
 TTBBridgePlugin::~TTBBridgePlugin()
 {
-    // 子プロセスの終了
-    ::PostThreadMessage(threadId, WM_QUIT, 0, 0);
-
-    if ( ! shrmem.is_open() )
+    if ( is_loaded() )
     {
-        return; // ムーブデストラクタでは余計な処理をしない
+        Unload();
+        FreeInfo();
+        Free();
     }
 
     WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("ブリッヂプラグインを解放"));
 
-    Unload();
-    FreeInfo();
-    Free();
+    // 子プロセスの終了
+    ::PostThreadMessage(threadId, WM_QUIT, 0, 0);
 
     WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 }
