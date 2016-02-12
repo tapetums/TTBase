@@ -687,7 +687,7 @@ bool MainWnd::OnExecuteCommand
         }
 
         result = plugin->Execute(CmdID, hwnd);
-        plugin->Unload();
+        plugin->Free();
     }
 
     WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));

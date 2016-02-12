@@ -140,7 +140,7 @@ TTBBridgePlugin::TTBBridgePlugin()
     );
     if ( ! result )
     {
-        ::MessageBoxW(nullptr, L"子プロセスを起動できません\n",  L"hako", MB_OK);
+        ::MessageBoxW(nullptr, L"TTBBridge.exe を起動できません\n",  L"hako", MB_OK);
         return;
     }
     threadId = pi.dwThreadId;
@@ -150,7 +150,7 @@ TTBBridgePlugin::TTBBridgePlugin()
     ret = ::WaitForSingleObject(evt_done, 5'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        ::MessageBoxW(nullptr, L"子プロセスを開始できません\n",  L"hako", MB_OK);
+        ::MessageBoxW(nullptr, L"TTBBridge.exe を開始できません\n",  L"hako", MB_OK);
         ::TerminateProcess(pi.hProcess, 0);
         ::Sleep(100);
         return;
@@ -164,19 +164,19 @@ TTBBridgePlugin::TTBBridgePlugin()
 
 TTBBridgePlugin::~TTBBridgePlugin()
 {
-    if ( ! m_loaded )
+    // 子プロセスの終了
+    ::PostThreadMessage(threadId, WM_QUIT, 0, 0);
+
+    if ( ! shrmem.is_open() )
     {
         return; // ムーブデストラクタでは余計な処理をしない
     }
 
+    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("ブリッヂプラグインを解放"));
+
     Unload();
     FreeInfo();
     Free();
-
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("ブリッヂプラグインを解放"));
-
-    // 子プロセスの終了
-    ::PostThreadMessage(threadId, WM_QUIT, 0, 0);
 
     WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 }
@@ -697,6 +697,7 @@ bool TTBBridgePlugin::Execute
     ::StringCchCopyW(data.filename, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
+
     ::PostThreadMessage(threadId, WM_COMMAND, 0, 0);
 
     // 受信完了待ち
@@ -711,7 +712,7 @@ bool TTBBridgePlugin::Execute
     plugin_data.Seek(0);
     plugin_data.Read(&msg);
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), PluginMsgTxt[uint8_t(msg)]);
     return true;
 }
 
