@@ -47,6 +47,9 @@
     <ClInclude Include="Main.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Settings.hpp">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="TTBasePlugin.def">

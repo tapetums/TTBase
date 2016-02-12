@@ -12,6 +12,7 @@
 #include "..\Plugin.hpp"
 #include "..\MessageDef.hpp"
 #include "..\Utility.hpp"
+#include "Settings.hpp"
 #include "MouseHook.hpp"
 
 #include "Main.hpp"
@@ -25,6 +26,8 @@
 HINSTANCE g_hInst  { nullptr };
 HANDLE    g_hMutex { nullptr };
 HWND      g_hwnd   { nullptr };
+
+Settings* settings { nullptr };
 
 //---------------------------------------------------------------------------//
 
@@ -377,7 +380,14 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, LPVOID)
     if ( fdwReason == DLL_PROCESS_ATTACH )
     {
         g_hInst = hInstance;
+        settings = new Settings;
     }
+    else if ( fdwReason == DLL_PROCESS_DETACH )
+    {
+        delete settings;
+        g_hInst = nullptr;
+    }
+
     return TRUE;
 }
 

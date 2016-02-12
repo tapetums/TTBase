@@ -303,6 +303,7 @@
     <ClInclude Include="..\Utility.hpp" />
     <ClInclude Include="Main.hpp" />
     <ClInclude Include="MouseHook.hpp" />
+    <ClInclude Include="Settings.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TTBasePlugin.def" />

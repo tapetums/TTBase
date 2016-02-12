@@ -33,6 +33,8 @@ THE SOFTWARE.
 #include "..\Utility.hpp"
 #include "Main.hpp"
 
+#include "Settings.hpp"
+
 #include "MouseHook.hpp"
 
 //---------------------------------------------------------------------------//
@@ -61,7 +63,33 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
         goto Skip;
     }
 
-    // マウスカーソルが閉じるボタンの上にあるか調べる
+    ::SetCapture(hwnd);
+
+    // マウスカーソルがウィンドウ上で設定された範囲にあるか調べる
+    RECT rc;
+    ::GetWindowRect(hwnd, &rc);
+
+    const auto w = settings->w;
+    const auto h = settings->h;
+
+    INT32 x = settings->x;
+    INT32 y = settings->y;
+
+    x = ( x > 0 ) ? rc.left + x : rc.right  + x;
+    y = ( y > 0 ) ? rc.top  + y : rc.bottom + y;
+    WriteLog(elDebug, TEXT("(%i, %i), (%i, %i)"), x, y, w, h);
+
+    if ( pt.x < x || x + w < pt.x )
+    {
+        WriteLog(elDebug, TEXT("%i < %i < %i"), x, pt.x, x + w);
+        goto Skip;
+    }
+    if ( pt.y < y || y + h < pt.y )
+    {
+        WriteLog(elDebug, TEXT("%i < %i < %i"), y, pt.y, y + h);
+        goto Skip;
+    }
+
     const auto ret = ::SendMessage
     (
         hwnd, WM_NCHITTEST, 0, MAKELPARAM(pt.x, pt.y)
@@ -123,9 +151,11 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
         }
     }
 
+    ::ReleaseCapture();
     return 1L;
 
 Skip:
+    ::ReleaseCapture();
     return ::CallNextHookEx(g_hHook, nCode, wp, lp);
 }
 
