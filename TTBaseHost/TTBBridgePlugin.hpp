@@ -49,7 +49,8 @@ public: // mtor
     void swap(TTBBridgePlugin&&) noexcept;
 
 public: // Properties
-    bool is_loaded() const noexcept { return m_loaded; }
+    bool    is_loaded() const noexcept { return m_loaded; }
+    LPCTSTR type()      const noexcept { return TEXT("32"); }
 
 public: // Acessors
     const TCHAR*       path()   const noexcept { return m_path; }

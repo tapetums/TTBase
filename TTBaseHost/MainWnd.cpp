@@ -88,11 +88,12 @@ struct LIST_PLG_ITEM
 {
     enum : INT32
     {
-        名前, 相対パス, バージョン, 常駐, コマンド数,
+        名前, 相対パス, bits, バージョン, 常駐, コマンド数,
     };
 
     static constexpr LPCTSTR Name      = TEXT("名前");
     static constexpr LPCTSTR Filename  = TEXT("相対パス");
+    static constexpr LPCTSTR BitCount  = TEXT("bits");
     static constexpr LPCTSTR Version   = TEXT("バージョン");
     static constexpr LPCTSTR Residence = TEXT("常駐");
     static constexpr LPCTSTR CmdCount  = TEXT("コマンド数");
@@ -291,9 +292,10 @@ BOOL MainWnd::OnCreate
     auto style = WS_VSCROLL | WS_HSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL;
     auto styleEx = LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_HEADERDRAGDROP;
     list_plg.Create(style, styleEx, m_hwnd, CTRL::LIST_PLUGIN);
-    list_plg.InsertColumn(LIST_PLG_ITEM::Name,     120, LIST_PLG_ITEM::名前);
-    list_plg.InsertColumn(LIST_PLG_ITEM::Filename, 170, LIST_PLG_ITEM::相対パス);
-    list_plg.InsertColumn(LIST_PLG_ITEM::Version,   80, LIST_PLG_ITEM::バージョン);
+    list_plg.InsertColumn(LIST_PLG_ITEM::Name,     130, LIST_PLG_ITEM::名前);
+    list_plg.InsertColumn(LIST_PLG_ITEM::Filename, 150, LIST_PLG_ITEM::相対パス);
+    list_plg.InsertColumn(LIST_PLG_ITEM::BitCount,  33, LIST_PLG_ITEM::bits);
+    list_plg.InsertColumn(LIST_PLG_ITEM::Version,   60, LIST_PLG_ITEM::バージョン);
     list_plg.InsertColumn(LIST_PLG_ITEM::Residence, 40, LIST_PLG_ITEM::常駐);
     list_plg.InsertColumn(LIST_PLG_ITEM::CmdCount,  60, LIST_PLG_ITEM::コマンド数);
 
@@ -302,9 +304,9 @@ BOOL MainWnd::OnCreate
     label.SetText(CTRL_TEXT::Note);
 
     list_cmd.Create(style, styleEx, hwnd, CTRL::LIST_COMMAND);
-    list_cmd.InsertColumn(LIST_CMD_ITEM::Name,     120, LIST_CMD_ITEM::名前);
-    list_cmd.InsertColumn(LIST_CMD_ITEM::CmdName,  120, LIST_CMD_ITEM::コマンド名);
-    list_cmd.InsertColumn(LIST_CMD_ITEM::Filename, 170, LIST_CMD_ITEM::相対パス);
+    list_cmd.InsertColumn(LIST_CMD_ITEM::Name,     130, LIST_CMD_ITEM::名前);
+    list_cmd.InsertColumn(LIST_CMD_ITEM::CmdName,  133, LIST_CMD_ITEM::コマンド名);
+    list_cmd.InsertColumn(LIST_CMD_ITEM::Filename, 150, LIST_CMD_ITEM::相対パス);
     list_cmd.InsertColumn(LIST_CMD_ITEM::CmdID,     60, LIST_CMD_ITEM::コマンドID);
 
     il = ::ImageList_Create(16, 16, ILC_COLOR24, 3, 0);
@@ -716,6 +718,7 @@ void SetPluginNames
         list.InsertItem(info.Name, index);
         list.SetItem(info.Filename, index, LIST_PLG_ITEM::相対パス);
 
+        list.SetItem(plugin->type(), index, LIST_PLG_ITEM::bits);
         ::StringCchPrintf
         (
             buf.data(), buf.size(), TEXT("%u.%u.%u.%u"),

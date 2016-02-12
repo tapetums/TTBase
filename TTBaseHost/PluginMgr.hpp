@@ -31,7 +31,8 @@ struct ITTBPlugin
     virtual ~ITTBPlugin() = 0 { };
 
 // Properties
-    virtual bool is_loaded() const noexcept = 0;
+    virtual bool    is_loaded() const noexcept = 0;
+    virtual LPCTSTR type()      const noexcept = 0;
 
 // Acessors
     virtual const TCHAR*       path()   const noexcept = 0;
@@ -85,14 +86,15 @@ public: // mtor
     void swap(TTBasePlugin&&) noexcept;
 
 public: // Properties
-    bool is_loaded() const noexcept { return m_handle != nullptr; }
+    bool    is_loaded() const noexcept override { return m_handle != nullptr; }
+    LPCTSTR type()      const noexcept override { return INTPTR_MAX == INT64_MAX ? TEXT("64") : TEXT("32"); }
 
 public: // Acessors
-    const TCHAR*       path()   const noexcept { return m_path; }
-    const HMODULE      handle() const noexcept { return m_handle; }
-    const PLUGIN_INFO* info()   const noexcept { return m_info; }
+    const TCHAR*       path()   const noexcept override { return m_path; }
+    const HMODULE      handle() const noexcept override { return m_handle; }
+    const PLUGIN_INFO* info()   const noexcept override { return m_info; }
 
-    void info(PLUGIN_INFO* info) noexcept;
+    void info(PLUGIN_INFO* info) noexcept override;
 
 public: // Methods
     bool Load  (LPCTSTR path) override;
