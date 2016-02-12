@@ -165,6 +165,10 @@ LRESULT MainWnd::WndProc
     HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 )
 {
+    if ( uMsg == WM_LBUTTONDBLCLK )
+    {
+        return ::DefWindowProc(hwnd, uMsg, wParam, lParam);
+    }
     if ( uMsg == WM_SHOWWINDOW && wParam == SW_SHOWNORMAL)
     {
         ToCenter(); Show(); ::SetForegroundWindow(hwnd); return 0;
