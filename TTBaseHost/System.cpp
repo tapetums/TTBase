@@ -12,6 +12,7 @@
 #include <strsafe.h>
 
 #include "../Plugin.hpp"
+#include "../MessageDef.hpp"
 #include "../Utility.hpp"
 #include "PluginMgr.hpp"
 #include "Settings.hpp"
@@ -26,12 +27,11 @@ extern HINSTANCE g_hInst;
 extern HWND      g_hwnd;
 
 // MainWnd.cpp で宣言
-extern UINT WM_OPENFOLDER;
-extern UINT WM_RELOADPLUGINS;
-extern UINT WM_SETTASKTRAYICON;
-extern UINT WM_SETMENUPROPERTY;
-extern UINT WM_SETTASKTRAYICON;
-extern UINT WM_EXECUTECOMMAND;
+extern UINT TTB_OPEN_FOLDER;
+extern UINT TTB_RELOAD_PLUGINS;
+extern UINT TTB_SET_MENU_PROPERTY;
+extern UINT TTB_SET_TASK_TRAY_ICON;
+extern UINT TTB_EXECUTE_COMMAND;
 
 //---------------------------------------------------------------------------//
 
@@ -161,17 +161,17 @@ BOOL Execute(INT32 CmdID, HWND hwnd)
         }
         case CMD_OPEN_FOLDER:
         {
-            ::PostMessage(hwnd, WM_OPENFOLDER, 0, 0);
+            ::PostMessage(hwnd, TTB_OPEN_FOLDER, 0, 0);
             return TRUE;
         }
         case CMD_RELOAD:
         {
-            ::PostMessage(hwnd, WM_RELOADPLUGINS, 0, 0);
+            ::PostMessage(hwnd, TTB_RELOAD_PLUGINS, 0, 0);
             return TRUE;
         }
         case CMD_TRAYICON:
         {
-            ::PostMessage(hwnd, WM_SETTASKTRAYICON, 0, (LPARAM)TEXT("TOGGLE"));
+            ::PostMessage(hwnd, TTB_SET_TASK_TRAY_ICON, 0, (LPARAM)TEXT("TOGGLE"));
             return TRUE;
         }
         default:
@@ -331,7 +331,7 @@ extern "C" void WINAPI TTBPlugin_SetMenuProperty
   #endif
 
     // チェック状態を再描画する
-    ::PostMessage(g_hwnd, WM_SETMENUPROPERTY, (WPARAM)plugin, (LPARAM)CommandID);
+    ::PostMessage(g_hwnd, TTB_SET_MENU_PROPERTY, (WPARAM)plugin, (LPARAM)CommandID);
     WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 }
 
@@ -394,7 +394,7 @@ extern "C" void WINAPI TTBPlugin_SetTaskTrayIcon
     WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("タスクトレイのアイコンを変更"));
 
     // メインウィンドウ内のルーチンに処理を投げる
-    ::PostMessage(g_hwnd, WM_SETTASKTRAYICON, (WPARAM)hIcon, (LPARAM)Tips);
+    ::PostMessage(g_hwnd, TTB_SET_TASK_TRAY_ICON, (WPARAM)hIcon, (LPARAM)Tips);
 
     WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
 }
@@ -421,8 +421,6 @@ extern "C" void WINAPI TTBPlugin_WriteLog
 
     SYSTEMTIME st;
     ::GetLocalTime(&st);
-
-    //reinterpret_cast<ITTBPlugin*>(hPlugin);
 
     static std::array<TCHAR, 4096> buf;
     ::StringCchPrintf
@@ -466,7 +464,7 @@ extern "C" BOOL WINAPI TTBPlugin_ExecuteCommand
     // あとはメインウィンドウ内のルーチンに処理を任せる
     const auto result = ::PostMessage
     (
-        g_hwnd, WM_EXECUTECOMMAND, (WPARAM)plugin, (LPARAM)CmdID
+        g_hwnd, TTB_EXECUTE_COMMAND, (WPARAM)plugin, (LPARAM)CmdID
     );
 
     WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));

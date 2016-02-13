@@ -21,6 +21,7 @@
 #include "resource.h"
 
 #include "../Plugin.hpp"
+#include "../MessageDef.hpp"
 #include "../Utility.hpp"
 #include "Settings.hpp"
 #include "Command.hpp"
@@ -37,11 +38,11 @@ extern HINSTANCE g_hInst;
 
 //---------------------------------------------------------------------------//
 
-UINT WM_OPENFOLDER      { 0 };
-UINT WM_RELOADPLUGINS   { 0 };
-UINT WM_SETMENUPROPERTY { 0 };
-UINT WM_SETTASKTRAYICON { 0 };
-UINT WM_EXECUTECOMMAND  { 0 };
+UINT TTB_OPEN_FOLDER        { 0 };
+UINT TTB_RELOAD_PLUGINS     { 0 };
+UINT TTB_SET_MENU_PROPERTY  { 0 };
+UINT TTB_SET_TASK_TRAY_ICON { 0 };
+UINT TTB_EXECUTE_COMMAND    { 0 };
 
 constexpr UINT ID_TRAYICON { 1 };
 
@@ -138,6 +139,13 @@ void PopupMenu        (HWND hwnd);
 
 MainWnd::MainWnd()
 {
+    // 独自ウィンドウメッセージの登録
+    TTB_OPEN_FOLDER        = ::RegisterWindowMessage(TEXT("TTB_OPEN_FOLDER"));
+    TTB_RELOAD_PLUGINS     = ::RegisterWindowMessage(TEXT("TTB_RELOAD_PLUGINS"));
+    TTB_SET_MENU_PROPERTY  = ::RegisterWindowMessage(TEXT("TTB_SET_MENU_PROPERTY"));
+    TTB_SET_TASK_TRAY_ICON = ::RegisterWindowMessage(TEXT("TTB_SET_TASK_TRAY_ICON"));
+    TTB_EXECUTE_COMMAND    = ::RegisterWindowMessage(TEXT("TTB_EXECUTE_COMMAND"));
+
     // TTBase 互換設定の読み込み
     const auto lpszClassName  = settings::get().TTBaseCompatible ?
                                 TEXT("TTBaseMain") : TEXT("UWnd");
@@ -182,23 +190,32 @@ LRESULT MainWnd::WndProc
     {
         OnNotifyIcon(hwnd, (UINT)lParam); return 0;
     }
-    if ( uMsg == WM_OPENFOLDER )
-    {
-        OnCommand(hwnd, CTRL::BTN_OPEN_INST_FOLDER, nullptr, 0); return 0;
-    }
-    if ( uMsg == WM_RELOADPLUGINS )
+    if ( uMsg == TTB_LOAD_DATA_FILE )
     {
         OnReloadPlugins(); return 0;
     }
-    if ( uMsg == WM_SETMENUPROPERTY )
+    if ( uMsg == TTB_SAVE_DATA_FILE )
+    {
+        WriteLog(elError, TEXT("%s"), TEXT("TTB_SAVE_DATA_FILE は実装していません"));
+        return 0;
+    }
+    if ( uMsg == TTB_OPEN_FOLDER )
+    {
+        OnCommand(hwnd, CTRL::BTN_OPEN_INST_FOLDER, nullptr, 0); return 0;
+    }
+    if ( uMsg == TTB_RELOAD_PLUGINS )
+    {
+        OnReloadPlugins(); return 0;
+    }
+    if ( uMsg == TTB_SET_MENU_PROPERTY )
     {
         UpdateCheckState(list_cmd, (ITTBPlugin*)wParam, (INT32)lParam); return 0;
     }
-    if ( uMsg == WM_SETTASKTRAYICON )
+    if ( uMsg == TTB_SET_TASK_TRAY_ICON )
     {
         OnSetTaskTrayIcon((HICON)wParam, (LPCTSTR)lParam); return 0;
     }
-    if ( uMsg == WM_EXECUTECOMMAND )
+    if ( uMsg == TTB_EXECUTE_COMMAND )
     {
         OnExecuteCommand(hwnd, (ITTBPlugin*)wParam, (INT32)lParam); return 0;
     }
@@ -223,13 +240,6 @@ BOOL MainWnd::OnCreate
     HWND hwnd, LPCREATESTRUCT
 )
 {
-    // 独自ウィンドウメッセージの登録
-    WM_OPENFOLDER      = ::RegisterWindowMessage(TEXT("tapetums::WM_OPENFOLDER"));
-    WM_RELOADPLUGINS   = ::RegisterWindowMessage(TEXT("tapetums::WM_RELOADPLUGINS"));
-    WM_SETMENUPROPERTY = ::RegisterWindowMessage(TEXT("tapetums::WM_SETMENUPROPERTY"));
-    WM_SETTASKTRAYICON = ::RegisterWindowMessage(TEXT("tapetums::WM_SETTASKTRAYICON"));
-    WM_EXECUTECOMMAND  = ::RegisterWindowMessage(TEXT("tapetums::WM_EXECUTECOMMAND"));
-
     // ウィンドウにアイコンを登録
     icon = (HICON)::LoadImage
     (
@@ -652,7 +662,8 @@ void MainWnd::OnSetTaskTrayIcon
         // タスクトレイアイコンを差替
         if ( nullptr == hIcon )
         {
-            ::MessageBox(nullptr, TEXT("無効なアイコンです"), Tips, MB_OK);
+            WriteLog(elError, TEXT("%s"), TEXT("TTBPlugin_SetTaskTrayIcon(%p, %s)"), hIcon, Tips);
+            WriteLog(elError, TEXT("  %s"), TEXT("無効なアイコンです"));
             return;
         }
 
