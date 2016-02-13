@@ -660,19 +660,15 @@ void MainWnd::OnSetTaskTrayIcon
     else
     {
         // タスクトレイアイコンを差替
-        if ( nullptr == hIcon )
-        {
-            WriteLog(elError, TEXT("%s"), TEXT("TTBPlugin_SetTaskTrayIcon(%p, %s)"), hIcon, Tips);
-            WriteLog(elError, TEXT("  %s"), TEXT("無効なアイコンです"));
-            return;
-        }
-
         DeleteNotifyIcon(ID_TRAYICON);
         ::DestroyIcon(icon);
         icon = hIcon;
 
-        AddNotifyIcon(ID_TRAYICON, icon);
-        SetNotifyIconTip(ID_TRAYICON, Tips);
+        if ( hIcon )
+        {
+            AddNotifyIcon(ID_TRAYICON, icon);
+            SetNotifyIconTip(ID_TRAYICON, Tips);
+        }
     }
 }
 
