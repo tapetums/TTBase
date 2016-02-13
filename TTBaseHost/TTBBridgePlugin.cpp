@@ -23,6 +23,8 @@
 
 #include "TTBBridgePlugin.hpp"
 
+#pragma warning(disable: 4366)
+
 //---------------------------------------------------------------------------//
 // Global Variables
 //---------------------------------------------------------------------------//
@@ -140,7 +142,7 @@ TTBBridgePlugin::TTBBridgePlugin()
     );
     if ( ! result )
     {
-        ::MessageBoxW(nullptr, L"TTBBridge.exe を起動できません\n",  L"hako", MB_OK);
+        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe を起動できません"));
         return;
     }
     threadId = pi.dwThreadId;
@@ -150,7 +152,7 @@ TTBBridgePlugin::TTBBridgePlugin()
     ret = ::WaitForSingleObject(evt_done, 5'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        ::MessageBoxW(nullptr, L"TTBBridge.exe を開始できません\n",  L"hako", MB_OK);
+        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe を開始できません"));
         ::TerminateProcess(pi.hProcess, 0);
         return;
     }
@@ -260,7 +262,7 @@ bool TTBBridgePlugin::Load
     const auto ret = ::WaitForSingleObject(evt_done, 3'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("子プロセスにデータを送れませんでした"));
+        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe にデータを送れませんでした"));
         return false;
     }
 
@@ -322,7 +324,7 @@ void TTBBridgePlugin::Free()
     const auto ret = ::WaitForSingleObject(evt_done, 3'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("子プロセスにデータを送れませんでした"));
+        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe にデータを送れませんでした"));
         return;
     }
 
@@ -435,7 +437,7 @@ bool TTBBridgePlugin::InitInfo
     const auto ret = ::WaitForSingleObject(evt_done, 3'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("子プロセスにデータを送れませんでした"));
+        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe にデータを送れませんでした"));
         return false;
     }
 
@@ -446,7 +448,7 @@ bool TTBBridgePlugin::InitInfo
     File info_data;
     if ( ! info_data.Open(data.filename, File::ACCESS::WRITE) )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("共有ファイルが開けません"));
+        WriteLog(elError, TEXT("  %s"), TEXT("共有ファイルが開けません"));
         return false;
     }
 
@@ -521,7 +523,7 @@ void TTBBridgePlugin::FreeInfo()
     const auto ret = ::WaitForSingleObject(evt_done, 3'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("子プロセスにデータを送れませんでした"));
+        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe にデータを送れませんでした"));
         return;
     }
 
@@ -587,7 +589,7 @@ bool TTBBridgePlugin::Init
     const auto ret = ::WaitForSingleObject(evt_done, 3'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("子プロセスにデータを送れませんでした"));
+        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe にデータを送れませんでした"));
         return false;
     }
 
@@ -642,7 +644,7 @@ void TTBBridgePlugin::Unload()
     const auto ret = ::WaitForSingleObject(evt_done, 3'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("子プロセスにデータを送れませんでした"));
+        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe にデータを送れませんでした"));
         return;
     }
 
@@ -701,7 +703,7 @@ bool TTBBridgePlugin::Execute
     const auto ret = ::WaitForSingleObject(evt_done, 3'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("子プロセスにデータを送れませんでした"));
+        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe にデータを送れませんでした"));
         return false;
     }
 
@@ -764,7 +766,7 @@ void TTBBridgePlugin::Hook
     const auto ret = ::WaitForSingleObject(evt_done, 3'000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("子プロセスにデータを送れませんでした"));
+        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe にデータを送れませんでした"));
         return;
     }
 
