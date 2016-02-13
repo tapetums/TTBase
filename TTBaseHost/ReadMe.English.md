@@ -150,6 +150,13 @@ and the authors who produced the great number of plugins for TTBase.
 
 ###Change  Log
 
+2016.02.13 v0.3.0.0
+- Does not show unnecessary checkboxes
+- Improved the measure for forbidding double-start in some case
+- Improved the system menu
+- Shows the bit count of plugins in the plugin list
+- Corrected the memory leak in 32/64-bridge
+
 2016.02.12 v0.2.0.0
 - In the 64-bit version, now both 32/64-bit plugins are executable.
 
