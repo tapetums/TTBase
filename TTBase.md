@@ -412,7 +412,7 @@ _**※TTBase 1.1.0 では CommandID が コマンドの ID ではなく、プラ
 
 ChangeFlag: 変更する属性の種類を指定します。複数のフラグを論理和で指定することもできます。
 
-    DISPMENU_MENU   : システムメニュー・ツールメニューの種類変更します。  
+    DISPMENU_MENU   : システムメニュー・ツールメニューの種類を変更します。  
                       このフラグをセットした時に dmToolMenu、dmSystemMenu の両方を指定しないと、メニューに表示されません。
     DISPMENU_ENABLED: メニューをグレーアウトするかどうか指定できます。
     DISPMENU_CHECKED: メニューにチェックを入れるかどうかを指定できます。

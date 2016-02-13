@@ -24,10 +24,10 @@ To enable this software, you need plugins (DLLs) to be loaded by TTBase.
 　Read this specification carefully and let's make plugins!
 
 ##The concept  
-　When we want to make a slight resident tools, we usually write a whole application from scratch. But if we have such many tools, we are not happy with the unexpected phenimenons such as having many processes, using a lot of resources, slowing down the boot time of the PC.  
-　Therefore, if we make a one resident tool which calls tiny DLLs or lets them resident in its own process, we may have an ideal tool which is friendly to the environment. The origin of TTBase is from such an idea.  
-　Using plugin SDK, you can write tiny tools immediately and simplify the process such as indicating task tray icon and/or constructing hotkeys and menus. So it is suitabe for making small applications.  
-　Some of global hooks are also available for plugins. You can use merely all function of WH\_SHELL and some part of WH\_MOUSE without thinking about bothering DLL hooks and shared memory.
+　When we want to make a slight resident tools, we usually write a whole application from scratch. But if we have such many tools, we are not happy with unexpected phenimenons such as having many processes, using a lot of resources, slowing down the boot time of the PC.  
+　Therefore, if we make a one resident tool which calls small DLLs or lets them resident in its own process, we may have an ideal tool which is friendly to the environment. The origin of TTBase is from such an idea.  
+　Using plugin SDK, you can write tiny tools immediately and it simplifies the process such as indicating task tray icon and/or constructing hotkeys and menus. So it is suitabe for making small applications.  
+　Some of global hooks are also available for plugins. You can use almost all function of WH\_SHELL and some part of WH\_MOUSE without thinking about bothering DLL hooks and shared memory.
 
 ---
 
@@ -38,11 +38,11 @@ To enable this software, you need plugins (DLLs) to be loaded by TTBase.
 ---
 
 ##The sort of pluguins  
-###Always-loaded Type and At-use Type  
-　プラグイン情報構造体の PluginType に、ptAlwaysLoad を設定すると、常駐型になります。TTBase が起動している間は常にプラグインがプロセスにロードされます。マウスをフックしたりする場合は、こちらを使ってください。  
-　ptLoadAtUse を設定すると、一発起動型になります。ユーザーがコマンドを呼ぶか、タイマーによって起動された場合、その都度プラグインは ロードされ、TTBPlugin\_Init が呼ばれ、その後 TTBPlugin\_Execute が呼ばれ、最後に TTBPlugin\_Unload が呼ばれてプロセスからアンロードされます。  
-　一発起動型の方が、起動時だけメモリにロードされますから、メモリの節約になります。その代わり、コマンド実行が若干遅れます。大きなデータファイルを読まなければならないようなプラグインの場合は、常駐型にするべきでしょう。  
-　TTBPlugin\_WindowsHook を使用する場合は、必ず常駐型にする必要があります。常駐型を作る場合は、できるだけ WindowsAPI だけを使ったコーディングを行い、ファイルサイズを小さくまとめてください。小さい常駐型と大きい一発起動型の２つのプラグインが連携するように作るのも一つの方法です。
+###Residental Type and At-use Type  
+　Set _ptAlwaysLoad_ into _PluginType_ of the Plugin Information Structure, and it is the residental type. While TTBase is running, the plugin is always loaded in the process. If you want to hook mouse messages, choose this type.  
+　When you set _ptLoadAtUse_, now it is the at-use type. It will be loaded at the time when users or the timer call commands, following _TTBPlugin\_Init_, _TTBPlugin\_Execute_, and then _TTBPlugin\_Unload_ is called and the plugin will be unloaded.  
+　The at-use type saves memory because it is loaded on the memory only when the commands are executed. However, it takes more time to execute commands. If you want to make a plugin for such a use of reading a big data file, you should choose the residental type.  
+　If you call _TTBPlugin\_WindowsHook_, you must choose the residental type. When making a residental plugin, you should use WindowsAPIs as you can and let the file size small. It is one of the option that a small residental type and a big at-use type collaborates with each other.
 
 ###The ways of how a command is called  
 　TTBase calls commands in 5 ways below:  
@@ -51,16 +51,16 @@ To enable this software, you need plugins (DLLs) to be loaded by TTBase.
 - System Menu (Right click on the task tray or hoykeys)
 - Hotkeys
 - Timer
-- WindowsHook（Now WH\_SHELL and some part of WH\_MOUSE are available)
+- WindowsHook（Now _WH\_SHELL_ and some part of _WH\_MOUSE_ are available)
 
 　ツールメニュー・システムメニューに出すかどうかは、プラグインコマンド情報構造体の DispMenu に適切な値を設定することで決定されます。  
 またホットキーの設定メニューの中にコマンドを出すかどうかも、DispMenu の設定で左右されます。  
 　タイマーに関しては、PluginCommandInfo の IntervalTime に呼ばれる時間間隔を設定することで機能するようになります。使わない場合は 0 を設定します。  
 　WindowsHook は、面倒な Hook.dll を作成しなくても、TTBase が Hook用 の手続きを踏んで、Plugin関数 を呼んでくれます。現在のところ、WH\_SHELL の全機能と、WH\_MOUSE の一部機能が使用できます。
 
-###プラグインが本体に対してどうやって情報を伝えているのか  
-　TTBase は、起動時に実行フォルダ以下の DLL ファイルを検索し、いったんロードします。その後、DLL の TTBPlugin\_InitPluginInfo イベントを呼んで、プラグイン情報構造体 (PLUGIN\_INFO) をプラグインから取得します。これによって、そのプラグインの名前・種類・コマンド情報をプラグインから得ます。その後、常駐型でない場合は、アンロードします。  
-　常駐型の場合は、Plugin\_Init が呼ばれ、そのままプロセスにロードされ続けます。  
+###How plugins send a message to the host  
+　TTBase は、起動時に実行フォルダ以下の DLL ファイルを検索し、いったんロードします。その後、DLL の _TTBPlugin\_InitPluginInfo_ イベントを呼んで、プラグイン情報構造体 (PLUGIN\_INFO) をプラグインから取得します。これによって、そのプラグインの名前・種類・コマンド情報をプラグインから得ます。その後、常駐型でない場合は、アンロードします。  
+　常駐型の場合は、_Plugin\_Init_ が呼ばれ、そのままプロセスにロードされ続けます。  
 　なお、TTBase の起動を速くするため、インストール後、２回目の起動以降は、TTBase.dat に保存されたプラグイン情報キャッシュを使ってプラグイン情報を得るようになります。DLL のファイルタイムが更新された場合以外は、そのままその情報が使用され続けます。 
 
 ---
@@ -99,7 +99,7 @@ enum DISPMENU : DWORD
     dmEnabled     = 0,      // Enabled
 };
 
-// for ChangeFlag argument in TTBPlugin_SetMenuProperty()
+// for ChangeFlag argument in TTBPlugin_SetMenuProperty
 enum CHANGE_FLAG : DWORD
 {
     DISPMENU_MENU    = dmSystemMenu | dmToolMenu,
@@ -182,7 +182,7 @@ struct PLUGIN_INFO_A
 
 #pragma pack(pop)
 
-// Switch the structure w/ or w/o the definition of the UNICODE macro
+// Switch the structure with or without the definition of the UNICODE macro
 #if defined(_UNICODE) || defined(UNICODE)
   using PLUGIN_COMMAND_INFO = PLUGIN_COMMAND_INFO_W;
   using PLUGIN_INFO         = PLUGIN_INFO_W;
@@ -198,95 +198,95 @@ struct PLUGIN_INFO_A
 There are two kinds of structures.
 
 ##[PLUGIN\_INFO Structure]
-　プラグイン情報を格納します。 TTBase にプラグインのプロパティを教えるために、Plugin\_SetPluginInfo 関数を使って、この構造体を渡します。一緒にコマンド情報 (PLUGIN\_COMMAND\_INFO) も渡します。
+　The storage for plugin informatin. To tell the information to TTBase, call _Plugin\_SetPluginInfo_ and pass this structure. This includes command information (_PLUGIN\_COMMAND\_INFO_).
 
 ###WORD NeedVersion
-　必要とする TTBase プラグイン仕様のバージョンです。  
-現時点では **0 を指定**してください。
+　Plugin API version that it requires.  
+Set **0** at this time.
 
 ###LPTSTR Name
-　プラグインの名前です。任意の文字が使えます。
+　Name of the plugin. You can use any letter in addition to ascii.
 
 ###LPTSTR Filename
-　プラグインのファイル名を TTBase インストールフォルダからの**相対パス**で格納します。
+　Set the file name as **the relative path** from the installaion path.
 
 ###WORD PluginType
-　常駐型か、一発起動型かを指定します。  
+　Specify the plugin type whether residental or at-use.  
 
     ptAlwaysLoad:    Resident Plugin
     ptLoadAtUse:     Load-at-use Plugin
     ptSpecViolation: The DLLs but TTBase. DO NOT USE THIS VALUE.
 
-　コマンド駆動の機能しか持たないプラグインは、できるだけ ptLoadAtUse を指定してください。  
-これによって、TTBase の使用メモリ量を抑制することができます。
+　Choose _ ptLoadAtUse_ as possible if it works only at use.  
+It saves the memory usage of TTBase.
 
 ###DWORD VersionMS, VersionLS
-　プラグインのバージョンを格納します。  
+　Set the version of the plugin.  
 
     HIWORD(VersionMS): Major Version
     LOWORD(VersionMS): Minor Version
     HIWORD(VersionLS): Release Number
     LOWORD(VersionLS): Build Number
 
-　これを推奨しますが、意味付けは強制はしません。
+　I reccomend the patern above, but you don't have to obey it.
 
 ###DWORD CommandCount
-　プラグインが持つコマンドの数です。  
-コマンドの数は合計で **256個以下** である必要があります。
+　The number of the commands that the plugin has.  
+The total number must be **eaqual or less than 256**.
 
 ###PLUGIN\_COMMAND\_INFO Commands
-　プラグインコマンド情報を格納します。  
-この構造体へのポインタ配列へのポインタを用意し、そこに、必要なメモリを確保してポインタを指定してください。
+　Set the command information. 
+Prepare a pointer for the array of the commands, then reserve the memory and set it into the pointer.
 
 ###DWORD LoadTime
-　このメンバーは、TTBase 内部で使用されるだけで、個別プラグイン には関係ありません。 そのプラグインの情報取得にかかった時間が msec で格納されます。  
-　値は、QueryPerformanceTimer() を使用して取得しますので、分解能は msec 以下です。
+　This member is used in the TTBase. So you don't have to care about it. The time that it takes to retrieve the information of the plugin will be set in milliseconds.  
+　The value is less than msec in resolution since _QueryPerformanceTimer()_ is used.
 
-詳細調査中 _※peach では **一律 0**_
+※_peach_ and _hako_ always sets it **0**
 
 ---
 
 ##[PLUGIN\_COMMAND\_INFO Structure]
-　PLUGIN\_INFO の Commands メンバに設定する構造体です。
-コマンドの情報を格納して TTBase に渡します。
+　The structure for _Commands_ member of _PLUGIN\_INFO_.  
+Set the infomations of the plugin and pass it.
 
 ###LPTSTR Name
-　コマンドの名前です。**半角英数と \_ を使用**して記述してください。
+　The name of the command. Use **ratin alphabets, numbers**, and **\_** only.
 
 ###LPTSTR Caption
-　コマンドの説明です。メニューなどに表示されます。任意の文字が使えます。
+　The caption of the command. It is displayed on the menu and so on. You can use any letter.
 
 ###INT32 CommandID
-　コマンド番号です。コマンド一つに付き一つ、ユニークな値を定義します。
+　The number of the command. Set a unique number a command.
 
 ###INT32 Attr
-　コマンドアトリビュート。現在未使用です。
+　The attribute of the command. Now this value is not is used.
 
 ###INT32 ResID
-　リソース ID。現在未使用です。
+　The resource ID of the command. Now this value is not is used.
 
 ###DWORD DispMenu
-　TTBase のツール・システムメニューに、このコマンドを表示するかどうかを指定します。システムメニューには設定系のメニューを、ツールメニューには、そのプラグインの基本機能を割り当てるのが原則です。  
-　また、ホットキー設定ができるかどうかもここに設定します。 2 つ以上の設定を行うときは、論理和を使ってください。  
+　Specify whether the command is displayed on the system/tool menu of TTBase. The principle is that settings are to be set as a system menu and the basic functions of the command are to be set as a tool menu.  
+　In addition set whether the command is available as a hotkey. If you set 2 of them or more, please use the logical sum.  
 
-    dmNone:        表示しない
-    dmSystemMenu:  システムメニューに表示
-    dmToolMenu:    ツールメニューに表示
-    dmHotKeyMenu:  ホットキー設定の選択可能コマンドに表示
-    dmMenuChecked: メニューにチェックマークが入るかどうか
+    dmNone:        Shows nothing
+    dmSystemMenu:  Displays on the system menu
+    dmToolMenu:    Displays on the tool menu
+    dmHotKeyMenu:  Displays on the hotkey list
+    dmMenuChecked: Whether it has a checkmark or not
   
 ###DWORD TimerInterval
-　タイマーによる連続起動コマンド指定です。
-時間を [msec] で設定します。  
-タイマー機能を使用しないときは 0 を設定します。  
-　TTBase 内部では、約 100msec ごとに Timer イベントが発生しています。この分解能でコマンドを実行しますので、あまり細かい時間を設定しても意味がありません。100msec 単位程度で指定しましょう。
+　The specification of sequential command execution with a timer.
+Specify the interval time in [msec].  
+If you don't use the timer function, set it 0.  
+　Inside TTBase,  the timer event occurs in every about 100msec. Commads are executed in this time resolution, so it is meaningless if you set a too small value. Set it at about 100msec unit.
 
 ###DWORD TimerCounter
-　TTBase 内部で使用します。  
+　Using inside TTBase. 
 
 ---
 
-##イベントハンドラ
+##Event Handlers
 　必ず定義しなければならないイベントハンドラは、以下のものです。DLL で関数の名前をエクスポートしてください。  
 エクスポートされていない場合は、その DLL をプラグインとは認識しません。
 
@@ -369,7 +369,7 @@ void WINAPI TTBEvent_WindowsHook(UINT Msg, WPARAM wParam, LPARAM lParam);
 
 ---
 
-##API 関数
+##API Functions
 
 ================================================================
 ###TTBPlugin\_GetPluginInfo
@@ -408,7 +408,7 @@ extern void (WINAPI* TTBPlugin_SetMenuChecked)(DWORD_PTR hPlugin, INT32 CommandI
 ```
 　hPlugin で指定したプラグインの、CommandID で示されるコマンドの、メニュー関係の属性を変更します。
 
-_**※TTBase 1.1.0 では CommandID が コマンドの ID ではなく、プラグイン内部におけるインデックスを指してしまうバグが存在する。**_
+_**※in TTBase 1.1.0, there is a bug that CommandID is not understood as the command ID but as the command index in the plugin.**_
 
 ChangeFlag: 変更する属性の種類を指定します。複数のフラグを論理和で指定することもできます。
 
@@ -435,8 +435,8 @@ Flag: フラグには、以下の値の論理和として指定します。
 ```c
 PLUGIN_INFO** WINAPI TTBPlugin_GetAllPluginInfo(void);
 ```
-　TTBase に読み込まれているすべてのプラグインのプラグイン情報構造体へのポインタ配列へのポインタを返します。  
-最後のプラグイン情報構造体へのポインタの次の配列要素には、nullptr が格納されていますので、これで最後を判定してください。
+　Returns the pointer of the pointer array that consists of all the information of the pluguin information structure of the pluguins in TTBase.  
+The last value is set to be nullptr. You can detect the tail of the array with it.
 
 ================================================================
 ###TTBPlugin\_FreePluginInfoArray
@@ -444,7 +444,7 @@ PLUGIN_INFO** WINAPI TTBPlugin_GetAllPluginInfo(void);
 ```c
 void WINAPI TTBPlugin_FreePluginInfoArray(PLUGIN_INFO** PluginInfoArray);
 ```
-　Release PLUGIN\_INFO\_ARRAY that is retrieved by TTBPlugin\_GetAllPluginInfo().
+　Releases PLUGIN\_INFO\_ARRAY that is retrieved by _TTBPlugin\_GetAllPluginInfo_.
 
 ***
 
@@ -488,7 +488,7 @@ logLevel are below:
 BOOL WINAPI TTBPlugin_ExecuteCommand(LPCTSTR PluginFilename, INT32 CmdID);
 ```
 　Executes commands from other plugins.  
-　Specify PluginFilename as the relative path from TTBase. You can get the path by TTBPlugin\_GetPluginInfo() or TTBPlugin\_GetAllPluginInfo().  
+　Specify PluginFilename as the relative path from TTBase. You can get the path by _TTBPlugin\_GetPluginInfo_ or _TTBPlugin\_GetAllPluginInfo_.  
 　Return value is to be returned from the plugin that executs the command. If system could not find the plugin you specified, it returns FALSE.
 
 ---
