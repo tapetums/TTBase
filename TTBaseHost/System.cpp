@@ -27,7 +27,9 @@ extern HINSTANCE g_hInst;
 extern HWND      g_hwnd;
 
 // MainWnd.cpp で宣言
+extern UINT TTB_SHOW_SETTINGS;
 extern UINT TTB_OPEN_FOLDER;
+extern UINT TTB_SHOW_VER_INFO;
 extern UINT TTB_RELOAD_PLUGINS;
 extern UINT TTB_SET_MENU_PROPERTY;
 extern UINT TTB_SET_TASK_TRAY_ICON;
@@ -48,7 +50,7 @@ PLUGIN_COMMAND_INFO g_cmd_info[] =
 {
     {
         (LPTSTR)TEXT("Exit"),                  // コマンド名（英名）
-        (LPTSTR)TEXT("終了"),                  // コマンド説明（日本語）
+        (LPTSTR)TEXT("本体の終了"),            // コマンド説明（日本語）
         CMD_EXIT,                              // コマンドID
         0,                                     // Attr（未使用）
         -1,                                    // ResTd(未使用）
@@ -67,14 +69,14 @@ PLUGIN_COMMAND_INFO g_cmd_info[] =
         0                                      // TimerCounter（未使用）
     },
     {
-        (LPTSTR)TEXT("Open Folder"),                // コマンド名（英名）
-        (LPTSTR)TEXT("インストールフォルダを開く"), // コマンド説明（日本語）
-        CMD_OPEN_FOLDER,                            // コマンドID
-        0,                                          // Attr（未使用）
-        -1,                                         // ResTd(未使用）
-        DISPMENU(dmSystemMenu | dmHotKeyMenu),      // DispMenu
-        0,                                          // TimerInterval[msec] 0で使用しない
-        0                                           // TimerCounter（未使用）
+        (LPTSTR)TEXT("Show Version Info"),     // コマンド名（英名）
+        (LPTSTR)TEXT("本体のバージョン情報"),  // コマンド説明（日本語）
+        CMD_SHOW_VER_INFO,                     // コマンドID
+        0,                                     // Attr（未使用）
+        -1,                                    // ResTd(未使用）
+        DISPMENU(dmSystemMenu | dmHotKeyMenu), // DispMenu
+        0,                                     // TimerInterval[msec] 0で使用しない
+        0                                      // TimerCounter（未使用）
     },
     {
         (LPTSTR)TEXT("Reload all plugins"),    // コマンド名（英名）
@@ -85,6 +87,16 @@ PLUGIN_COMMAND_INFO g_cmd_info[] =
         dmHotKeyMenu,                          // DispMenu
         0,                                     // TimerInterval[msec] 0で使用しない
         0                                      // TimerCounter（未使用）
+    },
+    {
+        (LPTSTR)TEXT("Open Installation Folder"),   // コマンド名（英名）
+        (LPTSTR)TEXT("インストールフォルダを開く"), // コマンド説明（日本語）
+        CMD_OPEN_FOLDER,                            // コマンドID
+        0,                                          // Attr（未使用）
+        -1,                                         // ResTd(未使用）
+        DISPMENU(dmSystemMenu | dmHotKeyMenu),      // DispMenu
+        0,                                          // TimerInterval[msec] 0で使用しない
+        0                                           // TimerCounter（未使用）
     },
     {
         (LPTSTR)TEXT("Show/Hide tray icon"),        // コマンド名（英名）
@@ -156,17 +168,22 @@ BOOL Execute(INT32 CmdID, HWND hwnd)
         }
         case CMD_SETTINGS:
         {
-            ::PostMessage(hwnd, WM_SHOWWINDOW, SW_SHOWNORMAL, 0);
+            ::PostMessage(hwnd, TTB_SHOW_SETTINGS, 0, 0);
             return TRUE;
         }
-        case CMD_OPEN_FOLDER:
+        case CMD_SHOW_VER_INFO:
         {
-            ::PostMessage(hwnd, TTB_OPEN_FOLDER, 0, 0);
+            ::PostMessage(hwnd, TTB_SHOW_VER_INFO, 0, 0);
             return TRUE;
         }
         case CMD_RELOAD:
         {
             ::PostMessage(hwnd, TTB_RELOAD_PLUGINS, 0, 0);
+            return TRUE;
+        }
+        case CMD_OPEN_FOLDER:
+        {
+            ::PostMessage(hwnd, TTB_OPEN_FOLDER, 0, 0);
             return TRUE;
         }
         case CMD_TRAYICON:

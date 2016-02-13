@@ -59,6 +59,8 @@ private:
     LRESULT OnNotify         (HWND hwnd, INT32 idCtrl, LPNMHDR pNMHdr);
     void    OnCommand        (HWND hwnd, UINT id, HWND hwndCtrl, UINT codeNotify);
     void    OnNotifyIcon     (HWND hwnd, UINT uMsg);
+    void    OnShowSettings   (HWND hwnd);
+    void    OmShowVerInfo    (HWND hwnd);
     void    OnReloadPlugins  ();
     void    OnSetTaskTrayIcon(HICON hIcon, LPCTSTR Tips);
     bool    OnExecuteCommand (HWND hwnd, ITTBPlugin* plugin, INT32 CmdID);

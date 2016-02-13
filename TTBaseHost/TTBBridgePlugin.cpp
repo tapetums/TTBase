@@ -421,6 +421,7 @@ bool TTBBridgePlugin::InitInfo
     ::StringCchCopyW(buf.data(), buf.size(), PluginFilename);
   #else
     std::array<wchar_t, MAX_PATH> path_unicode;
+    PluginFilename;
     ::StringCchCopyW(buf.data(), buf.size(), path_unicode.data());
   #endif
 
@@ -572,6 +573,7 @@ bool TTBBridgePlugin::Init
     ::StringCchCopyW(buf.data(), buf.size(), PluginFilename);
   #else
     std::array<wchar_t, MAX_PATH> path_unicode;
+    PluginFilename;
     ::StringCchCopyW(buf.data(), buf.size(), path_unicode.data());
   #endif
 

@@ -38,7 +38,9 @@ extern HINSTANCE g_hInst;
 
 //---------------------------------------------------------------------------//
 
+UINT TTB_SHOW_SETTINGS      { 0 };
 UINT TTB_OPEN_FOLDER        { 0 };
+UINT TTB_SHOW_VER_INFO      { 0 };
 UINT TTB_RELOAD_PLUGINS     { 0 };
 UINT TTB_SET_MENU_PROPERTY  { 0 };
 UINT TTB_SET_TASK_TRAY_ICON { 0 };
@@ -140,7 +142,9 @@ void PopupMenu        (HWND hwnd);
 MainWnd::MainWnd()
 {
     // 独自ウィンドウメッセージの登録
+    TTB_SHOW_SETTINGS      = ::RegisterWindowMessage(TEXT("TTB_SHOW_SETTINGS"));
     TTB_OPEN_FOLDER        = ::RegisterWindowMessage(TEXT("TTB_OPEN_FOLDER"));
+    TTB_SHOW_VER_INFO      = ::RegisterWindowMessage(TEXT("TTB_SHOW_VER_INFO"));
     TTB_RELOAD_PLUGINS     = ::RegisterWindowMessage(TEXT("TTB_RELOAD_PLUGINS"));
     TTB_SET_MENU_PROPERTY  = ::RegisterWindowMessage(TEXT("TTB_SET_MENU_PROPERTY"));
     TTB_SET_TASK_TRAY_ICON = ::RegisterWindowMessage(TEXT("TTB_SET_TASK_TRAY_ICON"));
@@ -178,7 +182,7 @@ LRESULT MainWnd::WndProc
     {
         return ::DefWindowProc(hwnd, uMsg, wParam, lParam);
     }
-    if ( uMsg == WM_SHOWWINDOW && wParam == SW_SHOWNORMAL)
+    if ( uMsg == WM_SHOWWINDOW && wParam == SW_SHOWNORMAL )
     {
         ToCenter(); Show(); ::SetForegroundWindow(hwnd); return 0;
     }
@@ -199,9 +203,17 @@ LRESULT MainWnd::WndProc
         WriteLog(elError, TEXT("%s"), TEXT("TTB_SAVE_DATA_FILE は実装していません"));
         return 0;
     }
+    if ( uMsg == TTB_SHOW_SETTINGS )
+    {
+        OnShowSettings(hwnd); return 0;
+    }
     if ( uMsg == TTB_OPEN_FOLDER )
     {
         OnCommand(hwnd, CTRL::BTN_OPEN_INST_FOLDER, nullptr, 0); return 0;
+    }
+    if ( uMsg == TTB_SHOW_VER_INFO )
+    {
+        OmShowVerInfo(hwnd); return 0;
     }
     if ( uMsg == TTB_RELOAD_PLUGINS )
     {
@@ -598,6 +610,28 @@ void MainWnd::OnNotifyIcon
 
 //---------------------------------------------------------------------------//
 
+void MainWnd::OnShowSettings(HWND hwnd)
+{
+    // 「設定」設定項目を選択
+    tree.Select(tvi[0]);
+
+    ::PostMessage(hwnd, WM_SHOWWINDOW, SW_SHOWNORMAL, 0);
+}
+
+//---------------------------------------------------------------------------//
+
+void MainWnd::OmShowVerInfo(HWND hwnd)
+{
+    // 「プラグイン」設定項目を選択
+    tree.Select(tvi[1]);
+    list_plg.Select(0);
+    ShowPluginInfo(list_plg, edit);
+
+    ::PostMessage(hwnd, WM_SHOWWINDOW, SW_SHOWNORMAL, 0);
+}
+
+//---------------------------------------------------------------------------//
+
 void MainWnd::OnReloadPlugins()
 {
     auto&& mgr = PluginMgr::GetInstance();
@@ -944,6 +978,15 @@ void PopupMenu(HWND hwnd)
             InsertMenuItem(hSubMenu, wID, FALSE, &mii);
         }
     }
+
+    // セパレータの位置を移動
+    //  メニューリソースでは項目が予め最低一つないと
+    //  メニューが表示されないバグがあるため、
+    //  最初にダミーとして一つセパレータを入れてある
+    DeleteMenu(hSubMenu, 1, MF_BYPOSITION);
+    mii.fMask = MIIM_FTYPE;
+    mii.fType = MFT_SEPARATOR;
+    InsertMenuItem(hSubMenu, 4, TRUE, &mii);
 
     // ポップアップメニューを表示
     ::TrackPopupMenu
