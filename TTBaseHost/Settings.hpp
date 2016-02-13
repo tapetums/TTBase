@@ -13,7 +13,7 @@
 #include <windows.h>
 
 #include <shlwapi.h>
-#pragma comment(lib, "shlwapi.lib") // PathRemoveFileSpec
+#pragma comment(lib, "shlwapi.lib") // PathRenameExtension, PathRemoveFileSpec
 
 #include "include/File.hpp"
 

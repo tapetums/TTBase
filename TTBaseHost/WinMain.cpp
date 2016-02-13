@@ -63,6 +63,10 @@ INT32 APIENTRY _tWinMain
         ::PostMessage(hwnd, WM_SHOWWINDOW, SW_SHOWNORMAL, 0);
         return 0;
     }
+    if ( ! shared.Map(sizeof(HWND), SHARED_MEMORY_NAME, File::ACCESS::WRITE) )
+    {
+        return 0;
+    }
 
     // プラグインマネージャの初期化
     auto&& mgr = PluginMgr::GetInstance();
@@ -73,10 +77,7 @@ INT32 APIENTRY _tWinMain
     g_hwnd = wnd.handle();
 
     // ウィンドウハンドルを共有メモリに保存
-    if ( shared.Map(sizeof(HWND), SHARED_MEMORY_NAME, File::ACCESS::WRITE) )
-    {
-        shared.Write(&g_hwnd, sizeof(HWND));
-    }
+    shared.Write(&g_hwnd, sizeof(HWND));
 
     // メッセージループ
     return Application::Run();
