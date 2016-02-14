@@ -47,6 +47,12 @@
     <ClInclude Include="Main.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Settings.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="TTBasePlugin.def">
@@ -54,8 +60,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="TTBasePlugin.res">
+    <ResourceCompile Include="TTBasePlugin.rc">
       <Filter>Resource Files</Filter>
-    </Resource>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

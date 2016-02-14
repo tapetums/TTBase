@@ -12,6 +12,7 @@
 #include "..\Plugin.hpp"
 #include "..\MessageDef.hpp"
 #include "..\Utility.hpp"
+#include "Settings.hpp"
 #include "MouseHook.hpp"
 
 #include "Main.hpp"
@@ -25,6 +26,8 @@
 HINSTANCE g_hInst  { nullptr };
 HANDLE    g_hMutex { nullptr };
 HWND      g_hwnd   { nullptr };
+
+Settings* settings { nullptr };
 
 //---------------------------------------------------------------------------//
 
@@ -165,6 +168,46 @@ BOOL OpenAppFolder(HWND hwnd)
     WriteLog(elDebug, TEXT("%s: %s"), PLUGIN_NAME, path);
 
     ::ShellExecute(nullptr, TEXT("open"), path, nullptr, nullptr, SW_SHOWNOACTIVATE);
+
+    return TRUE;
+}
+
+//---------------------------------------------------------------------------//
+
+BOOL SetOpaque(HWND hwnd, BYTE alpha)
+{
+    auto styleEx = ::GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+    SetWindowLongPtr(hwnd, GWL_EXSTYLE, styleEx | WS_EX_LAYERED);
+
+    WriteLog(elDebug, TEXT("%s: %u"), PLUGIN_NAME, alpha);
+    ::SetLayeredWindowAttributes
+    (
+        hwnd, 0, alpha, LWA_ALPHA
+    );
+
+    return TRUE;
+}
+
+//---------------------------------------------------------------------------//
+
+BOOL SetPriority(HWND hwnd, INT32 priority)
+{
+    constexpr DWORD priority_sheet[] =
+    {
+        REALTIME_PRIORITY_CLASS,
+        HIGH_PRIORITY_CLASS,
+        ABOVE_NORMAL_PRIORITY_CLASS,
+        NORMAL_PRIORITY_CLASS,
+        BELOW_NORMAL_PRIORITY_CLASS,
+        IDLE_PRIORITY_CLASS,
+    };
+
+    DWORD dwProcessId;
+    ::GetWindowThreadProcessId(hwnd, &dwProcessId);
+
+    const auto hProcess = ::OpenProcess(PROCESS_SET_INFORMATION, 0, dwProcessId);
+    SetPriorityClass(hProcess, priority_sheet[priority]);
+    ::CloseHandle(hProcess);
 
     return TRUE;
 }
@@ -377,7 +420,14 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, LPVOID)
     if ( fdwReason == DLL_PROCESS_ATTACH )
     {
         g_hInst = hInstance;
+        settings = new Settings;
     }
+    else if ( fdwReason == DLL_PROCESS_DETACH )
+    {
+        delete settings;
+        g_hInst = nullptr;
+    }
+
     return TRUE;
 }
 

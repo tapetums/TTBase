@@ -18,6 +18,8 @@ extern HWND      g_hwnd;
 BOOL CheckTopMost (HWND hwnd);
 BOOL ToggleTopMost(HWND hwnd, BOOL topmost);
 BOOL OpenAppFolder(HWND hwnd);
+BOOL SetOpaque    (HWND hwnd, BYTE alpha);
+BOOL SetPriority  (HWND hwnd, INT32 priority);
 
 //---------------------------------------------------------------------------//
 
