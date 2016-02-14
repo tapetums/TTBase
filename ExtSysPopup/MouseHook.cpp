@@ -26,7 +26,6 @@ THE SOFTWARE.
 
 ******************************************************************************/
 
-
 #include <windows.h>
 
 #include "..\Plugin.hpp"
@@ -130,6 +129,7 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
     // Article ID: Q135788
     // ポップアップメニューから処理を戻すために必要
     ::PostMessage(hwnd, WM_NULL, 0, 0);
+    ::PostMessage(g_hwnd, WM_NULL, 0, 0);
 
     // コマンドを実行
     if ( CmdID == 40000 )

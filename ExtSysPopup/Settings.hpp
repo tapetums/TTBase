@@ -8,8 +8,6 @@
 //
 //---------------------------------------------------------------------------//
 
-#include <array>
-
 #include <windows.h>
 
 #include <shlwapi.h>
@@ -51,42 +49,42 @@ extern Settings* settings;
 
 inline void Settings::load()
 {
-    std::array<wchar_t, MAX_PATH> path;
+    wchar_t path [MAX_PATH];
 
     // iniファイル名取得
-    ::GetModuleFileNameW(g_hInst, path.data(), (DWORD)path.size());
-    ::PathRenameExtensionW(path.data(), L".ini");
+    ::GetModuleFileNameW(g_hInst, path, MAX_PATH);
+    ::PathRenameExtensionW(path, L".ini");
 
     // パラメータの取得
-    x = ::GetPrivateProfileIntW(L"Setting", L"x", -32, path.data());
-    y = ::GetPrivateProfileIntW(L"Setting", L"y",   0, path.data());
-    w = ::GetPrivateProfileIntW(L"Setting", L"w",  32, path.data());
-    h = ::GetPrivateProfileIntW(L"Setting", L"h",  32, path.data());
+    x = ::GetPrivateProfileIntW(L"Setting", L"x", -32, path);
+    y = ::GetPrivateProfileIntW(L"Setting", L"y",   0, path);
+    w = ::GetPrivateProfileIntW(L"Setting", L"w",  32, path);
+    h = ::GetPrivateProfileIntW(L"Setting", L"h",  32, path);
 }
 
 //---------------------------------------------------------------------------//
 
 inline void Settings::save()
 {
-    std::array<wchar_t, MAX_PATH> path;
-    std::array<wchar_t, 16>       buf;
+    wchar_t path [MAX_PATH];
+    wchar_t buf  [16];
 
     // iniファイル名取得
-    ::GetModuleFileNameW(g_hInst, path.data(), (DWORD)path.size());
-    ::PathRenameExtensionW(path.data(), L".ini");
+    ::GetModuleFileNameW(g_hInst, path, MAX_PATH);
+    ::PathRenameExtensionW(path, L".ini");
 
     // パラメータの書き出し
-    ::wsprintfW(buf.data(), L"%i", x);
-    ::WritePrivateProfileStringW(L"Setting", L"x", buf.data(), path.data());
+    ::wsprintfW(buf, L"%i", x);
+    ::WritePrivateProfileStringW(L"Setting", L"x", buf, path);
 
-    ::wsprintfW(buf.data(), L"%i", y);
-    ::WritePrivateProfileStringW(L"Setting", L"y", buf.data(), path.data());
+    ::wsprintfW(buf, L"%i", y);
+    ::WritePrivateProfileStringW(L"Setting", L"y", buf, path);
 
-    ::wsprintfW(buf.data(), L"%i", w);
-    ::WritePrivateProfileStringW(L"Setting", L"w", buf.data(), path.data());
+    ::wsprintfW(buf, L"%i", w);
+    ::WritePrivateProfileStringW(L"Setting", L"w", buf, path);
 
-    ::wsprintfW(buf.data(), L"%i", h);
-    ::WritePrivateProfileStringW(L"Setting", L"h", buf.data(), path.data());
+    ::wsprintfW(buf, L"%i", h);
+    ::WritePrivateProfileStringW(L"Setting", L"h", buf, path);
 }
 
 //---------------------------------------------------------------------------//
