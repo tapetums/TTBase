@@ -47,7 +47,8 @@ namespace{ HHOOK g_hHook { nullptr }; }
 // フックプロシージャ
 static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
 {
-    if ( nCode != HC_ACTION || wp != WM_NCRBUTTONUP )
+    //if ( nCode != HC_ACTION || wp != WM_NCRBUTTONUP )
+    if ( wp != WM_NCRBUTTONUP && wp != WM_RBUTTONUP )
     {
         return ::CallNextHookEx(g_hHook, nCode, wp, lp);
     }
@@ -60,10 +61,8 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
     auto hwnd = ::WindowFromPoint(pt);
     if ( hwnd == nullptr )
     {
-        goto Skip;
+        return ::CallNextHookEx(g_hHook, nCode, wp, lp);
     }
-
-    ::SetCapture(hwnd);
 
     // マウスカーソルがウィンドウ上で設定された範囲にあるか調べる
     RECT rc;
@@ -75,36 +74,34 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
     INT32 x = settings->x;
     INT32 y = settings->y;
 
-    x = ( x > 0 ) ? rc.left + x : rc.right  + x;
-    y = ( y > 0 ) ? rc.top  + y : rc.bottom + y;
-    WriteLog(elDebug, TEXT("(%i, %i), (%i, %i)"), x, y, w, h);
+    x = ( x >= 0 ) ? rc.left + x : rc.right  + x;
+    y = ( y >= 0 ) ? rc.top  + y : rc.bottom + y;
 
+    WriteLog(elDebug, TEXT("%s: %i < %i < %i"), PLUGIN_NAME, x, pt.x, x + w);
     if ( pt.x < x || x + w < pt.x )
     {
-        WriteLog(elDebug, TEXT("%i < %i < %i"), x, pt.x, x + w);
-        goto Skip;
+        return ::CallNextHookEx(g_hHook, nCode, wp, lp);
     }
+    WriteLog(elDebug, TEXT("%s: %i < %i < %i"), PLUGIN_NAME, y, pt.y, y + h);
     if ( pt.y < y || y + h < pt.y )
     {
-        WriteLog(elDebug, TEXT("%i < %i < %i"), y, pt.y, y + h);
-        goto Skip;
+        return ::CallNextHookEx(g_hHook, nCode, wp, lp);
     }
 
-    const auto ret = ::SendMessage
+    /*const auto ret = ::SendMessage
     (
         hwnd, WM_NCHITTEST, 0, MAKELPARAM(pt.x, pt.y)
     );
     if ( ret != HTCLOSE )
     {
         goto Skip;
-    }
+    }*/
 
     // リソースからメニューを取得
     const auto hMenu    = ::LoadMenu(g_hInst, MAKEINTRESOURCE(100));
     const auto hSubMenu = ::GetSubMenu(hMenu, 0);
 
     const auto topmost = CheckTopMost(hwnd);
-    if ( topmost )
     {
         // チェックマークを付ける
         MENUITEMINFO mii;
@@ -115,13 +112,17 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
         ::SetMenuItemInfo(hSubMenu, 0, TRUE, &mii);
     }
 
+    // Article ID: Q135788
+    // ポップアップメニューから処理を戻すために必要
+    ::SetForegroundWindow(g_hwnd);
+
     // ポップアップメニューを表示
-    const auto CmdId = ::TrackPopupMenu
+    const auto CmdID = ::TrackPopupMenu
     (
         hSubMenu, TPM_LEFTALIGN | TPM_NONOTIFY | TPM_RETURNCMD,
         pt.x, pt.y, 0, g_hwnd, nullptr
     );
-    WriteLog(elDebug, TEXT("%s: CmdId = %d"), PLUGIN_NAME, CmdId);
+    WriteLog(elDebug, TEXT("%s: CmdId = %d"), PLUGIN_NAME, CmdID);
 
     // 表示したメニューを破棄
     ::DestroyMenu(hMenu);
@@ -131,32 +132,32 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
     ::PostMessage(hwnd, WM_NULL, 0, 0);
 
     // コマンドを実行
-    switch ( CmdId )
+    if ( CmdID == 40000 )
     {
-        case 40000:
-        {
-            ToggleTopMost(hwnd, topmost); break;
-        }
-        case 40001:
-        {
-            OpenAppFolder(hwnd); break;
-        }
-        case 40002: case 40004: case 40003: case 40005:
-        {
-            ExecutePluginCommand(TEXT(":system"), CmdId - 40002 ); break;
-        }
-        default:
-        {
-            break;
-        }
+        ToggleTopMost(hwnd, topmost);
+    }
+    else if ( CmdID == 40001 )
+    {
+        OpenAppFolder(hwnd);
+    }
+    else if ( 40002 <= CmdID && CmdID <= 40005 )
+    {
+        ExecutePluginCommand(TEXT(":system"), CmdID - 40002);
+    }
+    else if ( CmdID == 40006 )
+    {
+        settings->load();
+    }
+    else if ( 41000 < CmdID && CmdID < 42000 )
+    {
+        SetOpaque(hwnd, BYTE(256 * (CmdID - 41000) / 100 - 1));
+    }
+    else if ( 42000 < CmdID && CmdID < 43000 )
+    {
+        SetPriority(hwnd, CmdID - 42001);
     }
 
-    ::ReleaseCapture();
     return 1L;
-
-Skip:
-    ::ReleaseCapture();
-    return ::CallNextHookEx(g_hHook, nCode, wp, lp);
 }
 
 //---------------------------------------------------------------------------//

@@ -35,8 +35,12 @@ public:
     INT32 h;
 
 public:
-    Settings();
-    ~Settings();
+    Settings()  { load(); }
+    ~Settings() { save(); }
+
+public:
+    void load();
+    void save();
 };
 
 extern Settings* settings;
@@ -45,7 +49,7 @@ extern Settings* settings;
 // Methods
 //---------------------------------------------------------------------------//
 
-inline Settings::Settings()
+inline void Settings::load()
 {
     std::array<wchar_t, MAX_PATH> path;
 
@@ -54,15 +58,15 @@ inline Settings::Settings()
     ::PathRenameExtensionW(path.data(), L".ini");
 
     // パラメータの取得
-    x = ::GetPrivateProfileIntW(L"Setting", L"x", -24, path.data());
+    x = ::GetPrivateProfileIntW(L"Setting", L"x", -32, path.data());
     y = ::GetPrivateProfileIntW(L"Setting", L"y",   0, path.data());
-    w = ::GetPrivateProfileIntW(L"Setting", L"w",  24, path.data());
-    h = ::GetPrivateProfileIntW(L"Setting", L"h",  24, path.data());
+    w = ::GetPrivateProfileIntW(L"Setting", L"w",  32, path.data());
+    h = ::GetPrivateProfileIntW(L"Setting", L"h",  32, path.data());
 }
 
 //---------------------------------------------------------------------------//
 
-inline Settings::~Settings()
+inline void Settings::save()
 {
     std::array<wchar_t, MAX_PATH> path;
     std::array<wchar_t, 16>       buf;

@@ -303,13 +303,14 @@
     <ClInclude Include="..\Utility.hpp" />
     <ClInclude Include="Main.hpp" />
     <ClInclude Include="MouseHook.hpp" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Settings.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TTBasePlugin.def" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="TTBasePlugin.res" />
+    <ResourceCompile Include="TTBasePlugin.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
