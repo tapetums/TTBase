@@ -979,6 +979,10 @@ void PopupMenu(HWND hwnd)
         }
     }
 
+    // Article ID: Q135788
+    // ポップアップメニューから処理を戻すために必要
+    ::SetForegroundWindow(hwnd);
+
     // セパレータの位置を移動
     //  メニューリソースでは項目が予め最低一つないと
     //  メニューが表示されないバグがあるため、
