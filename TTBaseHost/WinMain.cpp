@@ -68,6 +68,9 @@ INT32 APIENTRY _tWinMain
         return 0;
     }
 
+    // COM の初期化
+    ::CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+
     // プラグインマネージャの初期化
     auto&& mgr = PluginMgr::GetInstance();
     mgr.LoadAll();
@@ -80,7 +83,12 @@ INT32 APIENTRY _tWinMain
     shared.Write(&g_hwnd, sizeof(HWND));
 
     // メッセージループ
-    return Application::Run();
+    const auto ret = Application::Run();
+
+    // COM の終了処理
+    ::CoUninitialize();
+
+    return ret;
 }
 
 //---------------------------------------------------------------------------//

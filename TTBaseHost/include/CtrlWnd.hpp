@@ -251,7 +251,7 @@ public:
 public:
     HWND Create(DWORD style, HWND hwndParent, INT16 id)
     {
-        style |= WS_CHILD | WS_VISIBLE | WS_VSCROLL | CBS_DROPDOWNLIST;
+        style |= WS_CHILD | WS_VISIBLE | WS_VSCROLL;
 
         return super::Create(style, hwndParent, id);
     }
