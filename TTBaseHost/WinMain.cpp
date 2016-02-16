@@ -69,7 +69,11 @@ INT32 APIENTRY _tWinMain
     }
 
     // COM の初期化
-    ::CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    const auto hr = ::CoInitialize(nullptr);
+    if ( FAILED(hr) )
+    {
+        return 0;
+    }
 
     // プラグインマネージャの初期化
     auto&& mgr = PluginMgr::GetInstance();
