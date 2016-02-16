@@ -150,6 +150,9 @@ and the authors who produced the great number of plugins for TTBase.
 
 ###Change  Log
 
+2016.02.16 v0.3.0.0
+- Improved stability
+
 2016.02.13 v0.3.0.0
 - Does not show unnecessary checkboxes
 - Improved the measure for forbidding double-start in some case
