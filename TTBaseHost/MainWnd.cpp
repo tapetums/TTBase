@@ -173,7 +173,7 @@ MainWnd::MainWnd()
 
 //---------------------------------------------------------------------------//
 
-LRESULT MainWnd::WndProc
+LRESULT CALLBACK MainWnd::WndProc
 (
     HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 )

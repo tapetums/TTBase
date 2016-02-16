@@ -152,10 +152,11 @@ public:
         return wnd->WndProc(hwnd, uMsg, wp, lp);
     }
 
-    LRESULT WndProc
+    LRESULT CALLBACK WndProc
     (
         HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp
     )
+    override
     {
         return ::DefSubclassProc(hwnd, uMsg, wp, lp);
     }
@@ -481,10 +482,11 @@ public:
     }
 
 public:
-    LRESULT WndProc
+    LRESULT CALLBACK WndProc
     (
         HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp
     )
+    override
     {
         switch ( uMsg )
         {
@@ -565,10 +567,11 @@ public:
     }
 
 public:
-    LRESULT WndProc
+    LRESULT CALLBACK WndProc
     (
         HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp
     )
+    override
     {
         switch ( uMsg )
         {

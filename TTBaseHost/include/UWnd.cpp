@@ -131,7 +131,7 @@ void tapetums::GetDpiForMonitorUnderCursor
 // UWnd 静的メソッド
 //---------------------------------------------------------------------------//
 
-LRESULT WINAPI tapetums::UWnd::WndMapProc
+LRESULT CALLBACK tapetums::UWnd::WndMapProc
 (
     HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp
 )
@@ -734,7 +734,7 @@ bool tapetums::UWnd::ShowNotifyIconInfo
 // UWnd ウィンドウプロシージャ
 //---------------------------------------------------------------------------//
 
-LRESULT tapetums::UWnd::WndProc
+LRESULT CALLBACK tapetums::UWnd::WndProc
 (
     HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp
 )

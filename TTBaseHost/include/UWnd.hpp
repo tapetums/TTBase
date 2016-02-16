@@ -76,7 +76,7 @@ public: // operator
     operator HWND() { return m_hwnd; }
 
 public: // static methods
-    static LRESULT WINAPI WndMapProc(HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp);
+    static LRESULT CALLBACK WndMapProc(HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp);
 
 public: // methods
     ATOM Register(LPCTSTR lpszClassName);
@@ -119,7 +119,7 @@ public: // methods
     bool ShowNotifyIconInfo(UINT uID, DWORD dwInfoFlags, LPCTSTR szInfoTitle, LPCTSTR szInfo, UINT uTimeout = -1);
 
 public: // window procedures
-    virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp);
+    virtual LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp);
 };
 
 //---------------------------------------------------------------------------//

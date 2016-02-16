@@ -48,7 +48,7 @@ public:
     MainWnd();
 
 public:
-    LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
+    LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 
 private:
     BOOL    OnCreate         (HWND hwnd, LPCREATESTRUCT lpCreateStruct);
