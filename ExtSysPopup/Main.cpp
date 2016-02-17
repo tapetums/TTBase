@@ -31,20 +31,20 @@ Settings* settings { nullptr };
 
 //---------------------------------------------------------------------------//
 
+// コマンドID
+enum CMD : INT32
+{
+    CMD_SHOWPOPUP,
+    CMD_COUNT
+};
+
+//---------------------------------------------------------------------------//
+
 // プラグインの名前
 LPCTSTR PLUGIN_NAME { TEXT("ExtSysPopup") };
 
 // コマンドの数
-DWORD COMMAND_COUNT { 2 };
-
-//---------------------------------------------------------------------------//
-
-// コマンドID
-enum CMD : INT32
-{
-    CMD_ALWAYS_ON_TOP,
-    CMD_OPEN_APP_FOLDER,
-};
+DWORD COMMAND_COUNT { CMD_COUNT };
 
 //---------------------------------------------------------------------------//
 
@@ -52,24 +52,14 @@ enum CMD : INT32
 PLUGIN_COMMAND_INFO g_cmd_info[] =
 {
     {
-        TEXT("AlwaysOnTop"), // コマンド名（英名）
-        TEXT("常に手前"),    // コマンド説明（日本語）
-        CMD_ALWAYS_ON_TOP,   // コマンドID
-        0,                   // Attr（未使用）
-        -1,                  // ResTd(未使用）
-        dmNone,              // DispMenu
-        0,                   // TimerInterval[msec] 0で使用しない
-        0                    // TimerCounter（未使用）
-    },
-    {
-        TEXT("OpenAppFolder"),  // コマンド名（英名）
-        TEXT("フォルダを開く"), // コマンド説明（日本語）
-        CMD_OPEN_APP_FOLDER,    // コマンドID
-        0,                      // Attr（未使用）
-        -1,                     // ResTd(未使用）
-        dmNone,                 // DispMenu
-        0,                      // TimerInterval[msec] 0で使用しない
-        0                       // TimerCounter（未使用）
+        TEXT("Show ExtSysPopup"),           // コマンド名（英名）
+        TEXT("ポップアップメニューを表示"), // コマンド説明（日本語）
+        CMD_SHOWPOPUP,                      // コマンドID
+        0,                                  // Attr（未使用）
+        -1,                                 // ResTd(未使用）
+        dmHotKeyMenu,                       // DispMenu
+        0,                                  // TimerInterval[msec] 0で使用しない
+        0                                   // TimerCounter（未使用）
     },
 };
 
@@ -104,8 +94,10 @@ BOOL ToggleTopMost(HWND hwnd, BOOL topmost)
 {
     BOOL ret;
 
+    // 現在の状態から逆にする
     if ( topmost )
     {
+        // 「常に手前」を解除
         ret = ::SetWindowPos
         (
             hwnd, HWND_NOTOPMOST,
@@ -115,12 +107,15 @@ BOOL ToggleTopMost(HWND hwnd, BOOL topmost)
     }
     else
     {
+        // 「常に手前」を設定
         ret = ::SetWindowPos
         (
             hwnd, HWND_TOPMOST,
             0, 0, 0, 0,
             SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE
         );
+
+        ::SetForegroundWindow(hwnd);
     }
 
     return ret;
@@ -214,6 +209,85 @@ BOOL SetPriority(HWND hwnd, INT32 priority)
 
 //---------------------------------------------------------------------------//
 
+BOOL ShowPopup(HWND hwnd, HWND target_hwnd)
+{
+    // リソースからメニューを取得
+    const auto hMenu    = ::LoadMenu(g_hInst, MAKEINTRESOURCE(100));
+    const auto hSubMenu = ::GetSubMenu(hMenu, 0);
+
+    const auto topmost = CheckTopMost(target_hwnd);
+    {
+        // チェックマークを付ける
+        MENUITEMINFO mii;
+        ::GetMenuItemInfo(hSubMenu, 0, TRUE, &mii);
+        mii.cbSize = sizeof(mii);
+        mii.fMask  = MIIM_STATE;
+        mii.fState = topmost ? MFS_CHECKED : MFS_UNCHECKED;
+        ::SetMenuItemInfo(hSubMenu, 0, TRUE, &mii);
+    }
+
+    // Article ID: Q135788
+    // ポップアップメニューから処理を戻すために必要
+    ::SetForegroundWindow(hwnd);
+
+    // ポップアップメニューを表示
+    POINT pt;
+    ::GetCursorPos(&pt);
+
+    const auto CmdID = ::TrackPopupMenu
+    (
+        hSubMenu, TPM_LEFTALIGN | TPM_NONOTIFY | TPM_RETURNCMD,
+        pt.x, pt.y, 0, hwnd, nullptr
+    );
+    WriteLog(elDebug, TEXT("%s: CmdId = %d"), PLUGIN_NAME, CmdID);
+
+    // 表示したメニューを破棄
+    ::DestroyMenu(hMenu);
+
+    // Article ID: Q135788
+    // ポップアップメニューから処理を戻すために必要
+    ::PostMessage(hwnd, WM_NULL, 0, 0);
+
+    // コマンドを実行
+    if ( CmdID == 40000 )
+    {
+        ToggleTopMost(target_hwnd, topmost);
+    }
+    else if ( CmdID == 40001 )
+    {
+        OpenAppFolder(target_hwnd);
+    }
+    else if ( 40002 <= CmdID && CmdID <= 40005 )
+    {
+        ExecutePluginCommand(TEXT(":system"), CmdID - 40002);
+    }
+    else if ( CmdID == 40006 )
+    {
+        settings->load();
+    }
+    else if ( 41000 < CmdID && CmdID < 42000 )
+    {
+        SetOpaque(target_hwnd, BYTE(256 * (CmdID - 41000) / 100 - 1));
+    }
+    else if ( 42000 < CmdID && CmdID < 43000 )
+    {
+        SetPriority(target_hwnd, CmdID - 42001);
+    }
+
+    return TRUE;
+}
+
+//---------------------------------------------------------------------------//
+
+LRESULT CALLBACK OnCommand(HWND hwnd, HWND target_hwnd)
+{
+    ShowPopup(hwnd, target_hwnd);
+
+    return 0;
+}
+
+//---------------------------------------------------------------------------//
+
 // ウィンドウクラスを登録
 ATOM Register(LPCTSTR lpszClassName)
 {
@@ -231,7 +305,8 @@ ATOM Register(LPCTSTR lpszClassName)
     wc.hIconSm       = nullptr;
     wc.lpfnWndProc   = [](HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp)
     {
-        return ::DefWindowProc(hwnd, uMsg, wp, lp);
+        if ( uMsg == WM_COMMAND ) { return OnCommand(hwnd, HWND(lp)); }
+        else { return ::DefWindowProc(hwnd, uMsg, wp, lp); }
     };
 
     return ::RegisterClassEx(&wc);
@@ -283,10 +358,16 @@ BOOL Init(void)
             nullptr, nullptr, g_hInst, nullptr
         );
     }
-    if ( g_hwnd == nullptr )
+    if ( nullptr == g_hwnd )
     {
         WriteLog(elError, TEXT("%s: CreateWindowEx() failed"), PLUGIN_NAME);
         goto UNLOAD;
+    }
+
+    // 設定ファイルの読み込み
+    if ( nullptr == settings )
+    {
+        settings = new Settings;
     }
 
     // マウスフックを登録
@@ -316,15 +397,21 @@ void Unload(void)
     // マウスフックを解除
     WMEndHook();
 
+    // 設定ファイルの書き出し
+    if ( settings )
+    {
+        delete settings; settings = nullptr;
+    }
+
     // ウィンドウを破棄
-    if ( g_hwnd != nullptr )
+    if ( g_hwnd )
     {
         ::DestroyWindow(g_hwnd);
         g_hwnd = nullptr;
     }
 
     // ミューテックスを削除
-    if ( g_hMutex != nullptr )
+    if ( g_hMutex )
     {
         ::ReleaseMutex(g_hMutex);
         ::CloseHandle(g_hMutex);
@@ -337,19 +424,38 @@ void Unload(void)
 //---------------------------------------------------------------------------//
 
 // TTBEvent_Execute() の内部実装
-BOOL Execute(INT32 CmdId, HWND hWnd)
+BOOL Execute(INT32 CmdId, HWND hwnd)
 {
     WriteLog(elDebug, TEXT("%s|%d"), g_info.Filename, CmdId);
 
+    // コマンドを実行する
     switch ( CmdId )
     {
-        case CMD_ALWAYS_ON_TOP:
+        case CMD_SHOWPOPUP:
         {
-            return ToggleTopMost(hWnd, CheckTopMost(hWnd));
-        }
-        case CMD_OPEN_APP_FOLDER:
-        {
-            return OpenAppFolder(hWnd);
+            POINT pt;
+            ::GetCursorPos(&pt);
+
+            // マウスカーソル直下にあるウィンドウのハンドルを取得
+            auto hwnd_target = ::WindowFromPoint(pt);
+            if ( nullptr == hwnd_target )
+            {
+                return FALSE;
+            }
+
+            // トップレベルのオーナーウィンドウをさがす
+            HWND parent = hwnd_target;
+            do
+            {
+                parent = ::GetParent(parent);
+                if ( parent )
+                {
+                    hwnd_target = parent;
+                }
+            }
+            while ( parent );
+
+            return ShowPopup(hwnd, hwnd_target);
         }
         default:
         {
@@ -417,16 +523,7 @@ void __cdecl operator delete[](void* p, size_t) // C++14
 // DLL エントリポイント
 BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, LPVOID)
 {
-    if ( fdwReason == DLL_PROCESS_ATTACH )
-    {
-        g_hInst = hInstance;
-        settings = new Settings;
-    }
-    else if ( fdwReason == DLL_PROCESS_DETACH )
-    {
-        delete settings;
-        g_hInst = nullptr;
-    }
+    if ( fdwReason == DLL_PROCESS_ATTACH ) { g_hInst = hInstance; }
 
     return TRUE;
 }

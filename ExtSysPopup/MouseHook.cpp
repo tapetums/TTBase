@@ -58,7 +58,7 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
 
     // マウスカーソル直下にあるウィンドウのハンドルを取得
     auto hwnd = ::WindowFromPoint(pt);
-    if ( hwnd == nullptr )
+    if ( nullptr == hwnd )
     {
         return ::CallNextHookEx(g_hHook, nCode, wp, lp);
     }
@@ -87,75 +87,8 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
         return ::CallNextHookEx(g_hHook, nCode, wp, lp);
     }
 
-    /*const auto ret = ::SendMessage
-    (
-        hwnd, WM_NCHITTEST, 0, MAKELPARAM(pt.x, pt.y)
-    );
-    if ( ret != HTCLOSE )
-    {
-        goto Skip;
-    }*/
-
-    // リソースからメニューを取得
-    const auto hMenu    = ::LoadMenu(g_hInst, MAKEINTRESOURCE(100));
-    const auto hSubMenu = ::GetSubMenu(hMenu, 0);
-
-    const auto topmost = CheckTopMost(hwnd);
-    {
-        // チェックマークを付ける
-        MENUITEMINFO mii;
-        ::GetMenuItemInfo(hSubMenu, 0, TRUE, &mii);
-        mii.cbSize = sizeof(mii);
-        mii.fMask  = MIIM_STATE;
-        mii.fState = topmost ? MFS_CHECKED : MFS_UNCHECKED;
-        ::SetMenuItemInfo(hSubMenu, 0, TRUE, &mii);
-    }
-
-    // Article ID: Q135788
-    // ポップアップメニューから処理を戻すために必要
-    ::SetForegroundWindow(g_hwnd);
-
     // ポップアップメニューを表示
-    const auto CmdID = ::TrackPopupMenu
-    (
-        hSubMenu, TPM_LEFTALIGN | TPM_NONOTIFY | TPM_RETURNCMD,
-        pt.x, pt.y, 0, g_hwnd, nullptr
-    );
-    WriteLog(elDebug, TEXT("%s: CmdId = %d"), PLUGIN_NAME, CmdID);
-
-    // 表示したメニューを破棄
-    ::DestroyMenu(hMenu);
-
-    // Article ID: Q135788
-    // ポップアップメニューから処理を戻すために必要
-    ::PostMessage(hwnd, WM_NULL, 0, 0);
-    ::PostMessage(g_hwnd, WM_NULL, 0, 0);
-
-    // コマンドを実行
-    if ( CmdID == 40000 )
-    {
-        ToggleTopMost(hwnd, topmost);
-    }
-    else if ( CmdID == 40001 )
-    {
-        OpenAppFolder(hwnd);
-    }
-    else if ( 40002 <= CmdID && CmdID <= 40005 )
-    {
-        ExecutePluginCommand(TEXT(":system"), CmdID - 40002);
-    }
-    else if ( CmdID == 40006 )
-    {
-        settings->load();
-    }
-    else if ( 41000 < CmdID && CmdID < 42000 )
-    {
-        SetOpaque(hwnd, BYTE(256 * (CmdID - 41000) / 100 - 1));
-    }
-    else if ( 42000 < CmdID && CmdID < 43000 )
-    {
-        SetPriority(hwnd, CmdID - 42001);
-    }
+    PostMessage(g_hwnd, WM_COMMAND, 0, LPARAM(hwnd));
 
     return 1L;
 }
