@@ -247,7 +247,7 @@ LRESULT CALLBACK MainWnd::WndProc
 
 //---------------------------------------------------------------------------//
 
-BOOL MainWnd::OnCreate
+BOOL CALLBACK MainWnd::OnCreate
 (
     HWND hwnd, LPCREATESTRUCT
 )
@@ -357,7 +357,7 @@ BOOL MainWnd::OnCreate
 
 //---------------------------------------------------------------------------//
 
-void MainWnd::OnDestroy
+void CALLBACK MainWnd::OnDestroy
 (
     HWND
 )
@@ -375,7 +375,7 @@ void MainWnd::OnDestroy
 
 //---------------------------------------------------------------------------//
 
-void MainWnd::OnSize
+void CALLBACK MainWnd::OnSize
 (
     HWND, UINT , INT32 cx, INT32 cy
 )
@@ -401,7 +401,7 @@ void MainWnd::OnSize
 
 //---------------------------------------------------------------------------//
 
-void MainWnd::OnPaint
+void CALLBACK MainWnd::OnPaint
 (
     HWND hwnd
 )
@@ -429,7 +429,7 @@ void MainWnd::OnPaint
 
 //---------------------------------------------------------------------------//
 
-void MainWnd::OnClose
+void CALLBACK MainWnd::OnClose
 (
     HWND
 )
@@ -439,7 +439,7 @@ void MainWnd::OnClose
 
 //---------------------------------------------------------------------------//
 
-LRESULT MainWnd::OnNotify
+LRESULT CALLBACK MainWnd::OnNotify
 (
     HWND hwnd, INT32, LPNMHDR pNMHdr
 )
@@ -518,7 +518,7 @@ LRESULT MainWnd::OnNotify
 
 //---------------------------------------------------------------------------//
 
-void MainWnd::OnCommand
+void CALLBACK MainWnd::OnCommand
 (
     HWND hwnd, UINT id, HWND hwndCtrl, UINT codeNotify
 )
@@ -589,7 +589,7 @@ void MainWnd::OnCommand
 
 //---------------------------------------------------------------------------//
 
-void MainWnd::OnNotifyIcon
+void CALLBACK MainWnd::OnNotifyIcon
 (
     HWND hwnd, UINT uMsg
 )
@@ -610,7 +610,7 @@ void MainWnd::OnNotifyIcon
 
 //---------------------------------------------------------------------------//
 
-void MainWnd::OnShowSettings(HWND hwnd)
+void CALLBACK MainWnd::OnShowSettings(HWND hwnd)
 {
     // 「設定」設定項目を選択
     tree.Select(tvi[0]);
@@ -620,7 +620,7 @@ void MainWnd::OnShowSettings(HWND hwnd)
 
 //---------------------------------------------------------------------------//
 
-void MainWnd::OmShowVerInfo(HWND hwnd)
+void CALLBACK MainWnd::OmShowVerInfo(HWND hwnd)
 {
     // 「プラグイン」設定項目を選択
     tree.Select(tvi[1]);
@@ -632,7 +632,7 @@ void MainWnd::OmShowVerInfo(HWND hwnd)
 
 //---------------------------------------------------------------------------//
 
-void MainWnd::OnReloadPlugins()
+void CALLBACK MainWnd::OnReloadPlugins()
 {
     auto&& mgr = PluginMgr::GetInstance();
 
@@ -659,7 +659,7 @@ void MainWnd::OnReloadPlugins()
 
 //---------------------------------------------------------------------------//
 
-void MainWnd::OnSetTaskTrayIcon
+void CALLBACK MainWnd::OnSetTaskTrayIcon
 (
     HICON hIcon, LPCTSTR Tips
 )
@@ -708,7 +708,7 @@ void MainWnd::OnSetTaskTrayIcon
 
 //---------------------------------------------------------------------------//
 
-bool MainWnd::OnExecuteCommand
+bool CALLBACK MainWnd::OnExecuteCommand
 (
     HWND hwnd, ITTBPlugin* plugin, INT32 CmdID
 )

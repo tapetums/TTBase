@@ -51,19 +51,19 @@ public:
     LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 
 private:
-    BOOL    OnCreate         (HWND hwnd, LPCREATESTRUCT lpCreateStruct);
-    void    OnDestroy        (HWND hwnd);
-    void    OnSize           (HWND hwnd, UINT state, INT32 cx, INT32 cy);
-    void    OnPaint          (HWND hwnd);
-    void    OnClose          (HWND hwnd);
-    LRESULT OnNotify         (HWND hwnd, INT32 idCtrl, LPNMHDR pNMHdr);
-    void    OnCommand        (HWND hwnd, UINT id, HWND hwndCtrl, UINT codeNotify);
-    void    OnNotifyIcon     (HWND hwnd, UINT uMsg);
-    void    OnShowSettings   (HWND hwnd);
-    void    OmShowVerInfo    (HWND hwnd);
-    void    OnReloadPlugins  ();
-    void    OnSetTaskTrayIcon(HICON hIcon, LPCTSTR Tips);
-    bool    OnExecuteCommand (HWND hwnd, ITTBPlugin* plugin, INT32 CmdID);
+    BOOL    CALLBACK OnCreate         (HWND hwnd, LPCREATESTRUCT lpCreateStruct);
+    void    CALLBACK OnDestroy        (HWND hwnd);
+    void    CALLBACK OnSize           (HWND hwnd, UINT state, INT32 cx, INT32 cy);
+    void    CALLBACK OnPaint          (HWND hwnd);
+    void    CALLBACK OnClose          (HWND hwnd);
+    LRESULT CALLBACK OnNotify         (HWND hwnd, INT32 idCtrl, LPNMHDR pNMHdr);
+    void    CALLBACK OnCommand        (HWND hwnd, UINT id, HWND hwndCtrl, UINT codeNotify);
+    void    CALLBACK OnNotifyIcon     (HWND hwnd, UINT uMsg);
+    void    CALLBACK OnShowSettings   (HWND hwnd);
+    void    CALLBACK OmShowVerInfo    (HWND hwnd);
+    void    CALLBACK OnReloadPlugins  ();
+    void    CALLBACK OnSetTaskTrayIcon(HICON hIcon, LPCTSTR Tips);
+    bool    CALLBACK OnExecuteCommand (HWND hwnd, ITTBPlugin* plugin, INT32 CmdID);
 };
 
 //---------------------------------------------------------------------------//
