@@ -53,15 +53,17 @@ To enable this software, you need plugins (DLLs) to be loaded by TTBase.
 - Timer
 - WindowsHook（Now _WH\_SHELL_ and some part of _WH\_MOUSE_ are available)
 
-　ツールメニュー・システムメニューに出すかどうかは、プラグインコマンド情報構造体の DispMenu に適切な値を設定することで決定されます。  
-またホットキーの設定メニューの中にコマンドを出すかどうかも、DispMenu の設定で左右されます。  
-　タイマーに関しては、PluginCommandInfo の IntervalTime に呼ばれる時間間隔を設定することで機能するようになります。使わない場合は 0 を設定します。  
-　WindowsHook は、面倒な Hook.dll を作成しなくても、TTBase が Hook用 の手続きを踏んで、Plugin関数 を呼んでくれます。現在のところ、WH\_SHELL の全機能と、WH\_MOUSE の一部機能が使用できます。
+　Displaying tool menu / system menu or not is determined by setting the value properly into DispMenu of the plugin information structure.  
+Moreover, displaying commands in the hotkey setting menu is also determined by the value of DispMenu.  
+　About the timer, it gets function by setting the interval time into IntervalTime of PluginCommandInfo. Set 0 if not use.  
+　On WindowsHook, TTBase goes through a procedure for Hook and calls for plugin functions without paniful works for Hook.dll. At now, you can use almost all function of _WH\_SHELL_ and some part of _WH\_MOUSE_.  
+
+※ _peach_ and _hako_ do not provide timer nor hook by itself
 
 ###How plugins send a message to the host  
-　TTBase は、起動時に実行フォルダ以下の DLL ファイルを検索し、いったんロードします。その後、DLL の _TTBPlugin\_InitPluginInfo_ イベントを呼んで、プラグイン情報構造体 (PLUGIN\_INFO) をプラグインから取得します。これによって、そのプラグインの名前・種類・コマンド情報をプラグインから得ます。その後、常駐型でない場合は、アンロードします。  
-　常駐型の場合は、_Plugin\_Init_ が呼ばれ、そのままプロセスにロードされ続けます。  
-　なお、TTBase の起動を速くするため、インストール後、２回目の起動以降は、TTBase.dat に保存されたプラグイン情報キャッシュを使ってプラグイン情報を得るようになります。DLL のファイルタイムが更新された場合以外は、そのままその情報が使用され続けます。 
+　TTBase searches DLL files in the installation folder and the subfolders, and once load them when it is started. Then it calls _TTBPlugin\_InitPluginInfo_ event of the plugin and gets the plugin information structure (PLUGIN\_INFO) from the plugin. By this, it obtains the name, sort, and command informations of the plugin. After that, unload plugins if they are not residental.  
+　If it is residental type, TTBase calls _Plugin\_Init_ and it will stay loaded in the process.  
+　By the way, to accelerate the boot time, TTBase uses the cache of the plugin information which is stored in TTBase.dat after the first installation of the plugin. Unless the file time of the plugin is updated, it keeps using the cache.
 
 ---
 
@@ -287,8 +289,8 @@ If you don't use the timer function, set it 0.
 ---
 
 ##Event Handlers
-　必ず定義しなければならないイベントハンドラは、以下のものです。DLL で関数の名前をエクスポートしてください。  
-エクスポートされていない場合は、その DLL をプラグインとは認識しません。
+　The event handlers that you must define are below. Export the names of the function in your DLL.  
+If not exported the functions, TTBase does not recognize the DLL as a plugin.
 
 ================================================================
 ###TTBEvent\_InitPluginInfo
@@ -296,8 +298,8 @@ If you don't use the timer function, set it 0.
 ```c
 PLUGIN_INFO* WINAPI TTBEvent_InitPluginInfo(LPTSTR PluginFilename);
 ```
-　プラグイン情報構造体のメモリを確保し、情報をセットして返します。コマンドを持つ場合は、コマンド情報構造体のメモリも確保し、渡します。  
-　PluginFilename には、そのプラグイン実行ファイル名が、 TTBase のインストールフォルダからの**相対パス**として格納されています。これは、プラグインの内部でも使用できますが、プラグイン情報構造体の Filename メンバにメモリを確保して、コピーして TTBase 本体に返してください。 
+　Allocate the memory for the plugin information structure, set the information and return it. If the plugin has commands, allocate the memory for the command information too.  
+　In PluginFilename, the execution path of the plugin is set as a **relative path** from TTBase. You can use it in your plugin, but copy it after allocating the memory for the _Filename_ member of the plugin information structure, and return it to TTBase. 
 
 ================================================================
 ###TTBEvent\_FreePluginInfo
@@ -305,12 +307,13 @@ PLUGIN_INFO* WINAPI TTBEvent_InitPluginInfo(LPTSTR PluginFilename);
 ```c
 void WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PluginInfo);
 ```
-　渡されたプラグイン情報構造体のメモリを解放します。  
-　コマンド個数を見て、コマンド情報構造体のメモリも正確に解放するようにしてください。 このコマンドで解放するのは、TTBEvent\_InifPluginInfo 等プラグイン側で確保されたメモリ領域です。
+　Free the memory of the plugin information structure that is passed.  
+　See the command count and free all the memory of the command information correctly.  
+The memory that is freed by this event is the memory allocated by _TTBEvent\_InifPluginInfo_ of your plugin.
 
 ***
 
-　以下、必要に応じて定義するイベントハンドラです。
+　The followings are the event handers to define as needed.
 
 ================================================================
 ###TTBEvent\_Init
@@ -318,10 +321,10 @@ void WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PluginInfo);
 ```c
 BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin);
 ```
-　プラグインの初期化関数です。ロードされた後、最初に呼ばれます。  
-　TTBase のプラグイン情報キャッシュ機構のため、TTBEvent\_InitPluginInfo が**毎回呼ばれるわけではありません**。そこで、PluginFilename を使って、DLLは自分のファイル名を知ることができます。  
-　hPlugin は、TTBase がプラグインを識別するための識別コードです。一部の API 関数で使用するので、グローバル変数等に保存するようにしてください。  
-　初期化が成功したら、TRUE を返します。
+　Initialize the plugin. This event is called at the first time after the plugin is loaded.  
+　Because of the cache mechanism of TTBase, _TTBEvent\_InitPluginInfo_ **would not be called every time**. So, you can get your DLL's file name by _PluginFilename_.  
+　_hPlugin_ is the identity code that TTBase distinguish plugins. You need this in some functions, so please store it in a gloabal variable.  
+　Return TRUE when initialization has been succeeded.
 
 ================================================================
 ###TTBEvent\_Unload
@@ -329,7 +332,7 @@ BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin);
 ```c
 void WINAPI TTBEvent_Unload(void);
 ```
-　プラグインがアンロードされるときに呼ばれます。
+　This event is called when the plugin is to unload.
 
 ================================================================
 ###TTBEvent\_Execute
@@ -337,17 +340,17 @@ void WINAPI TTBEvent_Unload(void);
 ```c
 BOOL WINAPI TTBEvent_Execute(INT32 CommandID, HWND hWnd);
 ```
-　コマンドが、何らかの形で呼ばれる場合、この関数が呼ばれます。  
-　プラグイン情報構造体で、CommandCount を 1 以上に設定した場合は、このハンドラは必ず必要です。  
-CommandID には、そのコマンドの ID が入っています。  
-　hWnd には、TTBase が持っている NotifyWindow（表示はされませんが、メッセージ処理をするために必要です）のウィンドウハンドルが格納されています。  
-　正常に処理を終了したら TRUE を返すようにしてください。  
+　This event is called when a command is about to execute in some way.  
+　If you set _CommandCount_ of the plugin information structure 1 or greater, this handler is necessary.  
+In _CommandID_, the command ID is set.  
+　In _hWnd_, the window handle of the NotifyWindow which TTBase has is stored. (Though it is not shown, it is necessary to handle window messages.)  
+　If you finish the process successfully, return TRUE.  
 
-　この関数が呼ばれるのは、以下の条件です。  
+　The conditions that this event handler is called are below:  
 
-- TTBaseのツールメニューかシステムメニューが選択された  
-- ユーザーが設定したホットキーからコマンドが呼ばれた  
-- タイマー型のコマンド（PluginInfo の IntervalTime が 1 以上に設定されているコマンド）の場合、設定時間ごとに自動的に呼ばれる
+- The tool menu or the system menu in TTBase is selected  
+- The command is called from the hotkey that user had set  
+- The timer calls time the timer-type command automatically every setting time, which _IntervalTime_ of _PluginInfo_ is set 1 or greater.
 
 ================================================================
 ###TTBEvent\_WindowsHook
@@ -355,8 +358,8 @@ CommandID には、そのコマンドの ID が入っています。
 ```c
 void WINAPI TTBEvent_WindowsHook(UINT Msg, WPARAM wParam, LPARAM lParam);
 ```
-　TTBase本体が、Hook 用の DLL を持っています。これを使って、Hook で得られるイベントを、プラグインでも使うことができます。  
-　現在サポートされているのは、ShellHook(WH\_SHELL) と、MouseHook(WH\_MOUSE) の２つがあります。
+　TTBase itself has DLL for Hook. Using this, the plugin can handle the events which can be retrieved by Hook.  
+　At now th supported is two messages, ShellHook(WH\_SHELL) and MouseHook(WH\_MOUSE).
 
 [WH\_SHELL]  
 　コールバック関数で得られる nCode ごとに、"TTB\_HSHELL\_" で始まるユーザー定義メッセージが定義されています。これはテンプレートの MessageDef.cpp を参照してください。  
@@ -377,8 +380,8 @@ void WINAPI TTBEvent_WindowsHook(UINT Msg, WPARAM wParam, LPARAM lParam);
 ```c
 extern PLUGIN_INFO* (WINAPI* TTBPlugin_GetPluginInfo)(DWORD_PTR hPlugin);
 ```
-　hPlugin で指定したプラグインのプラグイン情報構造体を取得します。取得時点で、TTBase が管理している情報が引き出せます。メニューのチェック状態などを得るのに使います。  
-　この API 関数で取得した (PLUGIN\_INFO*) 型のポインタは、TTBPlugin\_FreePluginInfo 関数で解放する必要があります。
+　To get the information structure of the plugin which is designated by _hPlugin_. You can get the information that TTBase has at the time. Used this when you check the condition of the check state of the menu.  
+　It is necessary to free the (PLUGIN\_INFO\*) type pointer with _TTBPlugin\_FreePluginInfo_ function.
 
 ================================================================
 ###TTBPlugin\_SetPluginInfo
@@ -386,10 +389,10 @@ extern PLUGIN_INFO* (WINAPI* TTBPlugin_GetPluginInfo)(DWORD_PTR hPlugin);
 ```c
 extern void (WINAPI* TTBPlugin_SetPluginInfo)(DWORD_PTR hPlugin, PLUGIN_INFO* PluginInfo);
 ```
-　hPlugin で指定したプラグインのプラグイン情報構造体を再設定します。プラグイン側から動的にプラグイン情報構造体の内容を変更したいときに使用します。  
-　PluginInfo は、新たにメモリを確保して使用してください。**TTBPlugin\_GetPluginInfo で取得したものを使用してはいけません**。  
-（プラグインテンプレートには、ユーティリティルーチンとして、CopyPluginInfo 関数が用意されているので、これで TTBPlugin\_GetPluginInfo 関数で得たプラグイン情報構造体をコピーして使用するようにします。もちろん TTBPlugin\_GetPluginInfo を使用しないでプラグイン情報構造体を作成しても構いません）  
-　この関数が使用されると、TTBase は、渡されたプラグイン構造体をコピーして、内部で使用するようになります。そのため、プラグイン側で確保した PluginInfo は、**プラグイン側で明示的に解放**するようにしてください。
+　Reset the plugin information structure of the plugin which is designated by _hPlugin_. Use this function when you want to change the information dynamically from the plugin side.  
+　Allocate new memory for _PluginInfo_. **Never use the memory that is got by _TTBPlugin\_GetPluginInfo_**。  
+（In the plugin template, CopyPluginInfo function is served as a utility routine. You can use it to copy the information structure which is got by _TTBPlugin\_GetPluginInfo_. Off course you can copy by yourself without using it）  
+　After the function is called, TTBase will copy the information structure and then use it inside. So **free the memory of _PluginInfo_ explicitly that is allocated in the plugin side**.
 
 ================================================================
 ###TTBPlugin\_FreePluginInfo
@@ -397,8 +400,8 @@ extern void (WINAPI* TTBPlugin_SetPluginInfo)(DWORD_PTR hPlugin, PLUGIN_INFO* Pl
 ```c
 extern void (WINAPI* TTBPlugin_FreePluginInfo)(PLUGIN_INFO* PluginInfo);
 ```
-　TTBase 側で確保された (PLUGIN\_INFO*) 型のメモリを解放させます。  
-　TTBPlugin\_GetPluginInfo で取得したメモリは、この API 関数を使って解放してください。
+　Let the (PLUGIN\_INFO\*) type memory free that is allocated by TTBase.  
+　Use this API function to free the memory that is got by _TTBPlugin\_GetPluginInfo_.
 
 ================================================================
 ###TTBPlugin_SetMenuProperty
@@ -406,18 +409,19 @@ extern void (WINAPI* TTBPlugin_FreePluginInfo)(PLUGIN_INFO* PluginInfo);
 ```c
 extern void (WINAPI* TTBPlugin_SetMenuChecked)(DWORD_PTR hPlugin, INT32 CommandID, DWORD ChagneFlag, DWORD Flag);
 ```
-　hPlugin で指定したプラグインの、CommandID で示されるコマンドの、メニュー関係の属性を変更します。
+　Change the attibute of the command which is indicated by _CommandID_ of the plugin which is designated by _hPlugin_.
 
 _**※in TTBase 1.1.0, there is a bug that CommandID is not understood as the command ID but as the command index in the plugin.**_
 
-ChangeFlag: 変更する属性の種類を指定します。複数のフラグを論理和で指定することもできます。
+ChangeFlag: to determine the attribute to cahnge. Use logical sum when more than one flag are to be set.
 
-    DISPMENU_MENU   : システムメニュー・ツールメニューの種類変更します。  
-                      このフラグをセットした時に dmToolMenu、dmSystemMenu の両方を指定しないと、メニューに表示されません。
-    DISPMENU_ENABLED: メニューをグレーアウトするかどうか指定できます。
-    DISPMENU_CHECKED: メニューにチェックを入れるかどうかを指定できます。
+    DISPMENU_MENU   : Change the sort of system menu / tool menu  
+                      If this flag is set, it is not displayed
+                      unless both of dmToolMenu and dmSystemMenu is to be set.
+    DISPMENU_ENABLED: To determine to gray out the menu or not
+    DISPMENU_CHECKED: To determine to check the menu item or not
 
-Flag: フラグには、以下の値の論理和として指定します。
+Flag: set the value as a logical sum of the values below
 
     dmNone       =  0; // Show nothing
     dmSystemMenu =  1; // System Menu
@@ -427,7 +431,7 @@ Flag: フラグには、以下の値の論理和として指定します。
     dmEnabled    =  0; // the menu is enabled
     dmDisabled   = 16; // the menu is grayed out
 
-　ChangeFlag との組み合わせで、効果を発揮するかどうかが決まります。たとえば、DISPMENU\_ENABLED だけを指定している時、dmToolMenu などを Flag にセットしても、効果を発揮しません。
+　In combination with _ChangeFlag_, it is decided whether it will take effect or not. For example, if you set only _DISPMENU\_ENABLED_, it won't take effect even if you set _dmToolMenu_ in the _Flag_.
 
 ================================================================
 ###TTBPlugin\_GetAllPluginInfo
