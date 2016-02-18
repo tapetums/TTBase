@@ -63,6 +63,8 @@
 　常駐型の場合は、Plugin\_Init が呼ばれ、そのままプロセスにロードされ続けます。  
 　なお、TTBase の起動を速くするため、インストール後、２回目の起動以降は、TTBase.dat に保存されたプラグイン情報キャッシュを使ってプラグイン情報を得るようになります。DLL のファイルタイムが更新された場合以外は、そのままその情報が使用され続けます。 
 
+※_pbox_、_peach_、_hako_ など キャッシュ機構を持たない本体もあります
+
 ---
 
 #定数と構造体定義  
@@ -242,7 +244,7 @@ struct PLUGIN_INFO_A
 　このメンバーは、TTBase 内部で使用されるだけで、個別プラグイン には関係ありません。 そのプラグインの情報取得にかかった時間が msec で格納されます。  
 　値は、QueryPerformanceTimer() を使用して取得しますので、分解能は msec 以下です。
 
-詳細調査中 _※peach では **一律 0**_
+※_peach_ および _hako_ では **一律 0**
 
 ---
 
@@ -323,6 +325,8 @@ BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin);
 　hPlugin は、TTBase がプラグインを識別するための識別コードです。一部の API 関数で使用するので、グローバル変数等に保存するようにしてください。  
 　初期化が成功したら、TRUE を返します。
 
+※_pbox_、_peach_、_hako_ など キャッシュ機構を持たない本体もあります
+
 ================================================================
 ###TTBEvent\_Unload
 ================================================================
@@ -367,6 +371,8 @@ void WINAPI TTBEvent_WindowsHook(UINT Msg, WPARAM wParam, LPARAM lParam);
 　Msgに TTB\_HMOUSE\_ACTION が設定されます（MessageDef.cpp 参照）。  
 　wParam にマウスメッセージの種類、lParam にそのマウスイベントが起こったウィンドウのハンドルが設定されます。実際の WH\_MOUSE では、lParam に MOUSEHOOKSTRUCT へのポインタが設定されますが、これをすべてプラグインで受け取ることはできません。ウィンドウハンドルのみが提供されています。
 
+※_hako_ は フック機構を提供しません
+
 ---
 
 ##API 関数
@@ -378,7 +384,7 @@ void WINAPI TTBEvent_WindowsHook(UINT Msg, WPARAM wParam, LPARAM lParam);
 extern PLUGIN_INFO* (WINAPI* TTBPlugin_GetPluginInfo)(DWORD_PTR hPlugin);
 ```
 　hPlugin で指定したプラグインのプラグイン情報構造体を取得します。取得時点で、TTBase が管理している情報が引き出せます。メニューのチェック状態などを得るのに使います。  
-　この API 関数で取得した (PLUGIN\_INFO*) 型のポインタは、TTBPlugin\_FreePluginInfo 関数で解放する必要があります。
+　この API 関数で取得した (PLUGIN\_INFO\*) 型のポインタは、TTBPlugin\_FreePluginInfo 関数で解放する必要があります。
 
 ================================================================
 ###TTBPlugin\_SetPluginInfo
@@ -397,7 +403,7 @@ extern void (WINAPI* TTBPlugin_SetPluginInfo)(DWORD_PTR hPlugin, PLUGIN_INFO* Pl
 ```c
 extern void (WINAPI* TTBPlugin_FreePluginInfo)(PLUGIN_INFO* PluginInfo);
 ```
-　TTBase 側で確保された (PLUGIN\_INFO*) 型のメモリを解放させます。  
+　TTBase 側で確保された (PLUGIN\_INFO\*) 型のメモリを解放させます。  
 　TTBPlugin\_GetPluginInfo で取得したメモリは、この API 関数を使って解放してください。
 
 ================================================================
@@ -459,7 +465,7 @@ void WINAPI TTBPlugin_SetTaskTrayIcon(HICON hIcon, LPCTSTR Tips);
 ```
 　TTBase のシステムトレイアイコンを変更します。  
 
-_※peach では実装予定なし_
+※_peach_ では実装予定なし
 
 ***
 

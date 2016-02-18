@@ -24,7 +24,7 @@ To enable this software, you need plugins (DLLs) to be loaded by TTBase.
 　Read this specification carefully and let's make plugins!
 
 ##The concept  
-　When we want to make a slight resident tools, we usually write a whole application from scratch. But if we have such many tools, we are not happy with unexpected phenimenons such as having many processes, using a lot of resources, slowing down the boot time of the PC.  
+　When we want to make a slight resident tools, we usually write a whole application from scratch. But if we have such many tools, we are not happy with unexpected phenomenons such as having many processes, using a lot of resources, slowing down the boot time of the PC.  
 　Therefore, if we make a one resident tool which calls small DLLs or lets them resident in its own process, we may have an ideal tool which is friendly to the environment. The origin of TTBase is from such an idea.  
 　Using plugin SDK, you can write tiny tools immediately and it simplifies the process such as indicating task tray icon and/or constructing hotkeys and menus. So it is suitabe for making small applications.  
 　Some of global hooks are also available for plugins. You can use almost all function of WH\_SHELL and some part of WH\_MOUSE without thinking about bothering DLL hooks and shared memory.
@@ -33,7 +33,7 @@ To enable this software, you need plugins (DLLs) to be loaded by TTBase.
 
 ##Development Environment  
 　The plugin interface works in any processing system beacuae the plugin is to be loaded dynamically  as a dynamic link library (DLL). Any plugin should be used in a processing system which supports DLL.  
-　Now there is a template project for _**Visual Studio Community 2015 (C++11, 32/64-bit)**_.
+　Now there is a project template for _**Visual Studio Community 2015 (C++11, 32/64-bit)**_.
 
 ---
 
@@ -87,7 +87,7 @@ enum PLUGINTYPE : WORD
    ptSpecViolation = 0xFFFF, // The DLLs but TTBase
 };
 
-// メニュー表示に関する定数
+// The constants about displaying menus
 enum DISPMENU : DWORD
 {
     dmNone        = 0,      // Show nothing
@@ -269,7 +269,7 @@ Set the infomations of the plugin and pass it.
 
 ###DWORD DispMenu
 　Specify whether the command is displayed on the system/tool menu of TTBase. The principle is that settings are to be set as a system menu and the basic functions of the command are to be set as a tool menu.  
-　In addition set whether the command is available as a hotkey. If you set 2 of them or more, please use the logical sum.  
+　In addition set whether the command is available as a hotkey. If you are to set 2 of them or more, please use the logical sum.  
 
     dmNone:        Shows nothing
     dmSystemMenu:  Displays on the system menu
@@ -362,13 +362,13 @@ void WINAPI TTBEvent_WindowsHook(UINT Msg, WPARAM wParam, LPARAM lParam);
 　At now th supported is two messages, ShellHook(WH\_SHELL) and MouseHook(WH\_MOUSE).
 
 [WH\_SHELL]  
-　コールバック関数で得られる nCode ごとに、"TTB\_HSHELL\_" で始まるユーザー定義メッセージが定義されています。これはテンプレートの MessageDef.cpp を参照してください。  
-　このメッセージ番号が Msg に設定されます。またコールバック関数で得られる wParam と lParam も得ることができます。
+　Every _nCode_ which can be obtained from the callback function, the user-defined messages followed by "TTB\_HSHELL\_" are defined. See MessageDef.cpp in the project template.  
+　The message number is set into _Msg_. In addition, _wParam_ and _lParam_ can also be obtained from the callback function.
 
 [WH\_MOUSE]  
-　コールバック関数で得られる nCode が HC\_ACTION の場合だけ通知されます。  
-　Msgに TTB\_HMOUSE\_ACTION が設定されます（MessageDef.cpp 参照）。  
-　wParam にマウスメッセージの種類、lParam にそのマウスイベントが起こったウィンドウのハンドルが設定されます。実際の WH\_MOUSE では、lParam に MOUSEHOOKSTRUCT へのポインタが設定されますが、これをすべてプラグインで受け取ることはできません。ウィンドウハンドルのみが提供されています。
+　This is notified only when _nCode_ which can be got by the callback function is _HC\_ACTION_.  
+　_TTB\_HMOUSE\_ACTION_ will be set in _Msg_ (See MessageDef.cpp).  
+　The sort of mouse message will be in _wParam_, the window handle that the event occured in will be set in _lParam_. Even though the actual _WH\_MOUSE_ sets a pointer to _MOUSEHOOKSTRUCT_ in _lParam_, you cannot get everything in your plugin.TTBase provides only window handle.
 
 ---
 
