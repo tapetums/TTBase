@@ -62,14 +62,14 @@ public:
 public:
     INT16 id() const noexcept { return m_id; }
 
-    LONG_PTR id(INT16 id) noexcept
+    void id(INT16 id) noexcept
     {
         m_id = id;
-        return ::SetWindowLongPtr(m_hwnd, GWLP_ID, (LONG_PTR)id);
+        ::SetWindowLongPtr(m_hwnd, GWLP_ID, (LONG_PTR)id);
     }
 
 public:
-    HWND Create(DWORD style, HWND hwndParent, INT16 id)
+    HWND WINAPI Create(DWORD style, HWND hwndParent, INT16 id)
     {
         m_id = id;
 
@@ -110,7 +110,7 @@ public:
     }
 
 public:
-    static LRESULT WINAPI SubclassWndProc
+    static LRESULT CALLBACK SubclassWndProc
     (
         HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp,
         UINT_PTR /*uIdSubclass*/, DWORD_PTR dwRefData
@@ -152,6 +152,7 @@ public:
         return wnd->WndProc(hwnd, uMsg, wp, lp);
     }
 
+public:
     LRESULT CALLBACK WndProc
     (
         HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp
@@ -173,7 +174,7 @@ public:
     ~LabelWnd() = default;
 
 public:
-    HWND Create(DWORD style, HWND hwndParent, INT16 id)
+    HWND WINAPI Create(DWORD style, HWND hwndParent, INT16 id)
     {
         style |= WS_CHILD | WS_VISIBLE;
 
@@ -192,29 +193,29 @@ public:
     ~BtnWnd() = default;
 
 public:
-    HWND Create(DWORD style, HWND hwndParent, INT16 id)
+    HWND WINAPI Create(DWORD style, HWND hwndParent, INT16 id)
     {
         style |= WS_CHILD | WS_VISIBLE;
 
         return super::Create(style, hwndParent, id);
     }
 
-    bool IsChecked()
+    bool WINAPI IsChecked()
     {
         Send(BM_GETCHECK, 0, 0) ? true : false;
     }
 
-    void Check(bool checked)
+    void WINAPI Check(bool checked)
     {
         Send(BM_SETCHECK, checked ? (WPARAM)BST_CHECKED : (WPARAM)BST_UNCHECKED, 0);
     }
 
-    void Check()
+    void WINAPI Check()
     {
         Send(BM_SETCHECK, (WPARAM)BST_CHECKED, 0);
     }
 
-    void Uncheck()
+    void WINAPI Uncheck()
     {
         Send(BM_SETCHECK, (WPARAM)BST_UNCHECKED, 0);
     }
@@ -231,7 +232,7 @@ public:
     ~EditWnd() = default;
 
 public:
-    HWND Create(DWORD style, HWND hwndParent, INT16 id)
+    HWND WINAPI Create(DWORD style, HWND hwndParent, INT16 id)
     {
         style |= WS_CHILD | WS_VISIBLE;
 
@@ -250,29 +251,29 @@ public:
     ~ComboBox() = default;
 
 public:
-    HWND Create(DWORD style, HWND hwndParent, INT16 id)
+    HWND WINAPI Create(DWORD style, HWND hwndParent, INT16 id)
     {
         style |= WS_CHILD | WS_VISIBLE | WS_VSCROLL;
 
         return super::Create(style, hwndParent, id);
     }
 
-    void AddString(LPCTSTR text)
+    void WINAPI AddString(LPCTSTR text)
     {
         Send(CB_ADDSTRING, 0, (LPARAM)text);
     }
 
-    INT32 SelectedIndex()
+    INT32 WINAPI SelectedIndex()
     {
         return (INT32)Send(CB_GETCURSEL, 0, 0);
     }
 
-    void Select(INT32 index)
+    void WINAPI Select(INT32 index)
     {
         Send(CB_SETCURSEL, index, 0);
     }
 
-    INT32 Count()
+    INT32 WINAPI Count()
     {
         return (INT32)Send(CB_GETCOUNT, 0, 0);
     }
@@ -289,7 +290,7 @@ public:
     ~ListWnd() = default;
 
 public:
-    HWND Create(DWORD style, DWORD styleEx, HWND hwndParent, INT16 id)
+    HWND WINAPI Create(DWORD style, DWORD styleEx, HWND hwndParent, INT16 id)
     {
         style |= WS_CHILD | WS_VISIBLE;
 
@@ -300,7 +301,7 @@ public:
         return hwnd;
     }
 
-    INT32 InsertColumn(LPCTSTR text, INT32 width, INT32 index = 0)
+    INT32 WINAPI InsertColumn(LPCTSTR text, INT32 width, INT32 index = 0)
     {
         LVCOLUMN col;
         col.mask     = LVCF_FMT | LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
@@ -311,17 +312,17 @@ public:
         return ListView_InsertColumn(m_hwnd, index , &col);
     }
 
-    INT32 InsertItem(LPCTSTR text, INT32 index)
+    INT32 WINAPI InsertItem(LPCTSTR text, INT32 index)
     {
         return InsertItem(text, index, 0, 0) ? true : false;
     }
 
-    INT32 InsertItem(LPCTSTR text, INT32 index, LPARAM lp)
+    INT32 WINAPI InsertItem(LPCTSTR text, INT32 index, LPARAM lp)
     {
         return InsertItem(text, index, 0, lp) ? true : false;
     }
 
-    INT32 InsertItem(LPCTSTR text, INT32 index, INT32 image, LPARAM lp)
+    INT32 WINAPI InsertItem(LPCTSTR text, INT32 index, INT32 image, LPARAM lp)
     {
         LVITEM item;
         item.mask     = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
@@ -333,7 +334,7 @@ public:
         return ListView_InsertItem(m_hwnd, &item) ? true : false;
     }
 
-    INT32 SetItem(LPCTSTR text, INT32 index, INT32 sub_index)
+    INT32 WINAPI SetItem(LPCTSTR text, INT32 index, INT32 sub_index)
     {
         LVITEM item;
         item.mask     = LVIF_TEXT;
@@ -343,22 +344,22 @@ public:
         return ListView_SetItem(m_hwnd, &item) ? true : false;
     }
 
-    void DeleteAllItems()
+    void WINAPI DeleteAllItems()
     {
         ListView_DeleteAllItems(m_hwnd);
     }
 
-    void SetImageList(HIMAGELIST list)
+    void WINAPI SetImageList(HIMAGELIST list)
     {
-        ListView_SetImageList(m_hwnd, list, LVSIL_STATE);
+        ListView_SetImageList(m_hwnd, list, LVSIL_NORMAL);
     }
 
-    INT32 Count()
+    INT32 WINAPI Count()
     {
         return ListView_GetItemCount(m_hwnd);
     }
 
-    void Select(INT32 index)
+    void WINAPI Select(INT32 index)
     {
         ListView_SetItemState
         (
@@ -367,12 +368,12 @@ public:
         );
     }
 
-    INT32 SelectedIndex()
+    INT32 WINAPI SelectedIndex()
     {
         return ListView_GetNextItem(m_hwnd, -1, LVNI_ALL | LVNI_SELECTED);
     }
 
-    void GetItemText(INT32 index, INT32 sub_index, LPTSTR pszText, INT32 cchTextMax)
+    void WINAPI GetItemText(INT32 index, INT32 sub_index, LPTSTR pszText, INT32 cchTextMax)
     {
         LVITEM item;
         item.mask       = LVIF_TEXT;
@@ -383,7 +384,7 @@ public:
         ListView_GetItem(m_hwnd, &item);
     }
 
-    INT32 GetItemToInt(INT32 index, INT32 sub_index)
+    INT32 WINAPI GetItemToInt(INT32 index, INT32 sub_index)
     {
         constexpr size_t cchTextMax { 16 };
         TCHAR buf[cchTextMax];
@@ -399,7 +400,7 @@ public:
         return ::StrToInt(buf);
     }
 
-    UINT GetItemSatte(INT32 index, INT32 sub_index)
+    UINT WINAPI GetItemSatte(INT32 index, INT32 sub_index)
     {
         LVITEM item;
         item.mask       = LVIF_TEXT;
@@ -410,7 +411,7 @@ public:
         return item.state;
     }
 
-    LPARAM GetItemLPARAM(INT32 index)
+    LPARAM WINAPI GetItemLPARAM(INT32 index)
     {
         LVITEM item;
         item.mask     = LVIF_PARAM;
@@ -421,17 +422,17 @@ public:
         return item.lParam;
     }
 
-    bool IsChecked(INT32 index)
+    bool WINAPI IsChecked(INT32 index)
     {
         return ListView_GetCheckState(m_hwnd, index) ? true : false;
     }
 
-    void Check(INT32 index)
+    void WINAPI Check(INT32 index)
     {
         ListView_SetCheckState(m_hwnd, index, true);
     }
 
-    void Uncheck(INT32 index)
+    void WINAPI Uncheck(INT32 index)
     {
         ListView_SetCheckState(m_hwnd, index, false);
     }
@@ -448,7 +449,7 @@ public:
     ~TreeWnd() = default;
 
 public:
-    HWND Create(HWND hwndParent, INT16 id)
+    HWND WINAPI Create(HWND hwndParent, INT16 id)
     {
         const auto style = WS_CHILD | WS_VISIBLE |
             TVS_FULLROWSELECT | TVS_SHOWSELALWAYS;
@@ -456,7 +457,7 @@ public:
         return super::Create(style, hwndParent, id);
     }
 
-    HTREEITEM InsertItem(LPCTSTR text, HTREEITEM parent = TVI_ROOT)
+    HTREEITEM WINAPI InsertItem(LPCTSTR text, HTREEITEM parent = TVI_ROOT)
     {
         TVINSERTSTRUCT tvis;
         tvis.hParent      = parent;
@@ -466,17 +467,17 @@ public:
         return TreeView_InsertItem(m_hwnd, &tvis);
     }
 
-    void SetImageList(HIMAGELIST list)
+    void WINAPI SetImageList(HIMAGELIST list)
     {
         TreeView_SetImageList(m_hwnd, list, TVSIL_NORMAL);
     }
 
-    void Select(HTREEITEM hitem)
+    void WINAPI Select(HTREEITEM hitem)
     {
         TreeView_Select(m_hwnd, hitem, TVGN_CARET);
     }
 
-    HTREEITEM GetSelection()
+    HTREEITEM WINAPI GetSelection()
     {
         return TreeView_GetSelection(m_hwnd);
     }
@@ -524,41 +525,41 @@ public:
     ~TrackbarWnd() = default;
 
 public:
-    UINT pos() const noexcept
+    UINT WINAPI pos() const noexcept
     {
         return (UINT)::SendMessage(m_hwnd, TBM_GETPOS, 0, 0);
     }
 
-    void pos(UINT pos) noexcept
+    void WINAPI pos(UINT pos) noexcept
     {
         this->Post(TBM_SETPOS, TRUE, (LPARAM)pos);
     }
 
-    UINT page_size() const noexcept
+    UINT WINAPI page_size() const noexcept
     {
         return (UINT)::SendMessage(m_hwnd, TBM_GETPAGESIZE, 0, 0);
     }
 
-    void page_size(UINT size) noexcept
+    void WINAPI page_size(UINT size) noexcept
     {
         this->Post(TBM_SETPAGESIZE, 0, (LPARAM)size);
     }
 
-    RANGE range() const noexcept
+    RANGE WINAPI range() const noexcept
     {
         const auto min = (UINT)::SendMessage(m_hwnd, TBM_GETRANGEMIN, 0, 0);
         const auto max = (UINT)::SendMessage(m_hwnd, TBM_GETRANGEMAX, 0, 0);
         return RANGE{ min, max };
     }
 
-    void range(UINT min, UINT max) noexcept
+    void WINAPI range(UINT min, UINT max) noexcept
     {
         ::PostMessage(m_hwnd, TBM_SETTICFREQ, 1, 0);
         ::PostMessage(m_hwnd, TBM_SETRANGE, TRUE, MAKELPARAM(min, max));
     }
 
 public:
-    HWND Create(HWND hwndParent, INT16 id)
+    HWND WINAPI Create(HWND hwndParent, INT16 id)
     {
         const auto style = WS_CHILD | WS_VISIBLE |
             TBS_NOTICKS | TBS_TOOLTIPS | TBS_TRANSPARENTBKGND;

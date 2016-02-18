@@ -200,7 +200,7 @@ tapetums::UWnd::UWnd()
 // UWnd メソッド
 //---------------------------------------------------------------------------//
 
-ATOM tapetums::UWnd::Register
+ATOM WINAPI tapetums::UWnd::Register
 (
     LPCTSTR lpszClassName
 )
@@ -227,7 +227,7 @@ ATOM tapetums::UWnd::Register
 
 //---------------------------------------------------------------------------//
 
-HWND tapetums::UWnd::Create
+HWND WINAPI tapetums::UWnd::Create
 (
     LPCTSTR lpszWindowName,
     DWORD   style,
@@ -259,7 +259,7 @@ HWND tapetums::UWnd::Create
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::Destroy()
+void WINAPI tapetums::UWnd::Destroy()
 {
     if ( nullptr == m_hwnd ) { return; }
 
@@ -269,14 +269,14 @@ void tapetums::UWnd::Destroy()
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::Close()
+void WINAPI tapetums::UWnd::Close()
 {
     ::SendMessage(m_hwnd, WM_CLOSE, 0, 0);
 }
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::Bounds
+void WINAPI tapetums::UWnd::Bounds
 (
     INT32 x, INT32 y, INT32 w, INT32 h
 )
@@ -293,14 +293,14 @@ void tapetums::UWnd::Bounds
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::Hide()
+void WINAPI tapetums::UWnd::Hide()
 {
     ::ShowWindowAsync(m_hwnd, SW_HIDE);
 }
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::Move
+void WINAPI tapetums::UWnd::Move
 (
     INT32 x, INT32 y
 )
@@ -315,14 +315,14 @@ void tapetums::UWnd::Move
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::Refresh()
+void WINAPI tapetums::UWnd::Refresh()
 {
     ::InvalidateRect(m_hwnd, nullptr, FALSE);
 }
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::Resize
+void WINAPI tapetums::UWnd::Resize
 (
     INT32 w, INT32 h
 )
@@ -339,14 +339,14 @@ void tapetums::UWnd::Resize
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::Show()
+void WINAPI tapetums::UWnd::Show()
 {
     ::ShowWindowAsync(m_hwnd, SW_SHOWNORMAL);
 }
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::ToCenter()
+void WINAPI tapetums::UWnd::ToCenter()
 {
     RECT rc;
     INT32 mx, my, mw, mh;
@@ -380,7 +380,7 @@ void tapetums::UWnd::ToCenter()
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::ToggleFullScreen()
+void WINAPI tapetums::UWnd::ToggleFullScreen()
 {
     m_is_fullscreen = ! m_is_fullscreen;
 
@@ -425,7 +425,7 @@ void tapetums::UWnd::ToggleFullScreen()
 
 //---------------------------------------------------------------------------//
 
-LRESULT tapetums::UWnd::Send
+LRESULT WINAPI tapetums::UWnd::Send
 (
     UINT uMsg, WPARAM wp, LPARAM lp
 )
@@ -435,7 +435,7 @@ LRESULT tapetums::UWnd::Send
 
 //---------------------------------------------------------------------------//
 
-LRESULT tapetums::UWnd::Post
+LRESULT WINAPI tapetums::UWnd::Post
 (
     UINT uMsg, WPARAM wp, LPARAM lp
 )
@@ -445,49 +445,49 @@ LRESULT tapetums::UWnd::Post
 
 //---------------------------------------------------------------------------//
 
-DWORD tapetums::UWnd::GetStyle() const noexcept
+DWORD WINAPI tapetums::UWnd::GetStyle() const noexcept
 {
     return (DWORD)::GetWindowLongPtr(m_hwnd, GWL_STYLE);
 }
 
 //---------------------------------------------------------------------------//
 
-DWORD tapetums::UWnd::GetStyleEx() const noexcept
+DWORD WINAPI tapetums::UWnd::GetStyleEx() const noexcept
 {
     return (DWORD)::GetWindowLongPtr(m_hwnd, GWL_EXSTYLE);
 }
 
 //---------------------------------------------------------------------------//
 
-HWND tapetums::UWnd::GetParent() const noexcept
+HWND WINAPI tapetums::UWnd::GetParent() const noexcept
 {
     return (HWND)::GetWindowLongPtr(m_hwnd, GWLP_HWNDPARENT);
 }
 
 //---------------------------------------------------------------------------//
 
-HFONT tapetums::UWnd::GetFont() const noexcept
+HFONT WINAPI tapetums::UWnd::GetFont() const noexcept
 {
     return (HFONT)::SendMessage(m_hwnd, WM_GETFONT, 0, 0);
 }
 
 //---------------------------------------------------------------------------//
 
-HICON tapetums::UWnd::GetWindowIcon() const noexcept
+HICON WINAPI tapetums::UWnd::GetWindowIcon() const noexcept
 {
     return (HICON)::GetClassLongPtr(m_hwnd, GCLP_HICON);
 }
 
 //---------------------------------------------------------------------------//
 
-HICON tapetums::UWnd::GetWindowIconSm() const noexcept
+HICON WINAPI tapetums::UWnd::GetWindowIconSm() const noexcept
 {
     return (HICON)::GetClassLongPtr(m_hwnd, GCLP_HICONSM);
 }
 
 //---------------------------------------------------------------------------//
 
-SIZE_T tapetums::UWnd::GetText
+SIZE_T WINAPI tapetums::UWnd::GetText
 (
     TCHAR* buf, SIZE_T buf_size
 )
@@ -501,7 +501,7 @@ const noexcept
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::SetStyle
+void WINAPI tapetums::UWnd::SetStyle
 (
     DWORD style
 )
@@ -512,7 +512,7 @@ noexcept
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::SetStyleEx
+void WINAPI tapetums::UWnd::SetStyleEx
 (
     DWORD styleEx
 )
@@ -523,7 +523,7 @@ noexcept
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::SetParent
+void WINAPI tapetums::UWnd::SetParent
 (
     HWND parent
 )
@@ -534,7 +534,7 @@ noexcept
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::SetFont
+void WINAPI tapetums::UWnd::SetFont
 (
     HFONT font
 )
@@ -545,7 +545,7 @@ noexcept
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::SetWindowIcon
+void WINAPI tapetums::UWnd::SetWindowIcon
 (
     HMODULE hInst, LPCTSTR lpszIconName
 )
@@ -568,7 +568,7 @@ noexcept
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::SetWindowIcon
+void WINAPI tapetums::UWnd::SetWindowIcon
 (
     HICON hIcon, HICON hIconSm
 )
@@ -580,7 +580,7 @@ noexcept
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::SetWindowIcon
+void WINAPI tapetums::UWnd::SetWindowIcon
 (
     HICON hIcon
 )
@@ -591,7 +591,7 @@ noexcept
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::SetWindowIconSm
+void WINAPI tapetums::UWnd::SetWindowIconSm
 (
     HICON hIconSm
 )
@@ -602,7 +602,7 @@ noexcept
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::SetText
+void WINAPI tapetums::UWnd::SetText
 (
     LPCTSTR txt
 )
@@ -613,7 +613,7 @@ noexcept
 
 //---------------------------------------------------------------------------//
 
-bool tapetums::UWnd::AddNotifyIcon
+bool WINAPI tapetums::UWnd::AddNotifyIcon
 (
     UINT uID, HICON hIcon
 )
@@ -668,7 +668,7 @@ bool tapetums::UWnd::AddNotifyIcon
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::DeleteNotifyIcon
+void WINAPI tapetums::UWnd::DeleteNotifyIcon
 (
     UINT uID
 )
@@ -684,7 +684,7 @@ void tapetums::UWnd::DeleteNotifyIcon
 
 //---------------------------------------------------------------------------//
 
-void tapetums::UWnd::SetNotifyIconTip
+void WINAPI tapetums::UWnd::SetNotifyIconTip
 (
     UINT uID, LPCTSTR szTip
 )
@@ -705,7 +705,7 @@ void tapetums::UWnd::SetNotifyIconTip
 
 //---------------------------------------------------------------------------//
 
-bool tapetums::UWnd::ShowNotifyIconInfo
+bool WINAPI tapetums::UWnd::ShowNotifyIconInfo
 (
     UINT uID, DWORD dwInfoFlags,
     LPCTSTR szInfoTitle, LPCTSTR szInfo, UINT uTimeout

@@ -79,44 +79,44 @@ public: // static methods
     static LRESULT CALLBACK WndMapProc(HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp);
 
 public: // methods
-    ATOM Register(LPCTSTR lpszClassName);
-    HWND Create(LPCTSTR lpszWindowName, DWORD style, DWORD styleEx, HWND hwndParent, HMENU hMenu);
-    void Destroy();
-    void Close();
-    void Bounds(INT32 x, INT32 y, INT32 w, INT32 h);
-    void Hide();
-    void Move(INT32 x, INT32 y);
-    void Refresh();
-    void Resize(INT32 w, INT32 h);
-    void Show();
-    void ToCenter();
-    void ToggleFullScreen();
+    ATOM WINAPI Register(LPCTSTR lpszClassName);
+    HWND WINAPI Create(LPCTSTR lpszWindowName, DWORD style, DWORD styleEx, HWND hwndParent, HMENU hMenu);
+    void WINAPI Destroy();
+    void WINAPI Close();
+    void WINAPI Bounds(INT32 x, INT32 y, INT32 w, INT32 h);
+    void WINAPI Hide();
+    void WINAPI Move(INT32 x, INT32 y);
+    void WINAPI Refresh();
+    void WINAPI Resize(INT32 w, INT32 h);
+    void WINAPI Show();
+    void WINAPI ToCenter();
+    void WINAPI ToggleFullScreen();
 
-    LRESULT Send(UINT uMsg, WPARAM wp, LPARAM lp);
-    LRESULT Post(UINT uMsg, WPARAM wp, LPARAM lp);
+    LRESULT WINAPI Send(UINT uMsg, WPARAM wp, LPARAM lp);
+    LRESULT WINAPI Post(UINT uMsg, WPARAM wp, LPARAM lp);
 
-    DWORD  GetStyle()        const noexcept;
-    DWORD  GetStyleEx()      const noexcept;
-    HWND   GetParent()       const noexcept;
-    HFONT  GetFont()         const noexcept;
-    HICON  GetWindowIcon()   const noexcept;
-    HICON  GetWindowIconSm() const noexcept;
-    SIZE_T GetText(TCHAR* buf, SIZE_T buf_size) const noexcept;
+    DWORD  WINAPI GetStyle()        const noexcept;
+    DWORD  WINAPI GetStyleEx()      const noexcept;
+    HWND   WINAPI GetParent()       const noexcept;
+    HFONT  WINAPI GetFont()         const noexcept;
+    HICON  WINAPI GetWindowIcon()   const noexcept;
+    HICON  WINAPI GetWindowIconSm() const noexcept;
+    SIZE_T WINAPI GetText(TCHAR* buf, SIZE_T buf_size) const noexcept;
 
-    void SetStyle(DWORD style)                              noexcept;
-    void SetStyleEx(DWORD styleEx)                          noexcept;
-    void SetParent(HWND parent)                             noexcept;
-    void SetFont(HFONT font)                                noexcept;
-    void SetWindowIcon(HMODULE hInst, LPCTSTR lpszIconName) noexcept;
-    void SetWindowIcon(HICON hIcon, HICON hIconSm)          noexcept;
-    void SetWindowIcon(HICON hIcon)                         noexcept;
-    void SetWindowIconSm(HICON hIconSm)                     noexcept;
-    void SetText(LPCTSTR txt)                               noexcept;
+    void WINAPI SetStyle(DWORD style)                              noexcept;
+    void WINAPI SetStyleEx(DWORD styleEx)                          noexcept;
+    void WINAPI SetParent(HWND parent)                             noexcept;
+    void WINAPI SetFont(HFONT font)                                noexcept;
+    void WINAPI SetWindowIcon(HMODULE hInst, LPCTSTR lpszIconName) noexcept;
+    void WINAPI SetWindowIcon(HICON hIcon, HICON hIconSm)          noexcept;
+    void WINAPI SetWindowIcon(HICON hIcon)                         noexcept;
+    void WINAPI SetWindowIconSm(HICON hIconSm)                     noexcept;
+    void WINAPI SetText(LPCTSTR txt)                               noexcept;
 
-    bool AddNotifyIcon(UINT uID, HICON hIcon);
-    void DeleteNotifyIcon(UINT uID);
-    void SetNotifyIconTip(UINT uID, LPCTSTR szTip);
-    bool ShowNotifyIconInfo(UINT uID, DWORD dwInfoFlags, LPCTSTR szInfoTitle, LPCTSTR szInfo, UINT uTimeout = -1);
+    bool WINAPI AddNotifyIcon(UINT uID, HICON hIcon);
+    void WINAPI DeleteNotifyIcon(UINT uID);
+    void WINAPI SetNotifyIconTip(UINT uID, LPCTSTR szTip);
+    bool WINAPI ShowNotifyIconInfo(UINT uID, DWORD dwInfoFlags, LPCTSTR szInfoTitle, LPCTSTR szInfo, UINT uTimeout = -1);
 
 public: // window procedures
     virtual LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp);
