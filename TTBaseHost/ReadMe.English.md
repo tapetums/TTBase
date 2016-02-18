@@ -71,7 +71,7 @@ from the 'TTBase plugin template project'.
 - Providing GUI
 - Indicating task-tray icons
 - Changing task-tray icons by plugins
-- System Menu
+- System Menu / Tool Menu
 - Logging
 - Saving the settings to the .ini file
 - Loading and executing 32/64-bit plugins with one 64-bit host application
@@ -150,7 +150,11 @@ and the authors who produced the great number of plugins for TTBase.
 
 ###Change  Log
 
-2016.02.16 v0.3.0.0
+2016.02.18 v0.4.0.0
+- Implemented Tool Menu
+- Improved stability
+
+2016.02.16 v0.3.1.0
 - Improved stability
 
 2016.02.13 v0.3.0.0
