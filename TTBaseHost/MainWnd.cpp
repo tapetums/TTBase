@@ -133,7 +133,8 @@ void SetPluginNames   (const PluginMgr& mgr, tapetums::ListWnd& list);
 void SetPluginCommands(const PluginMgr& mgr, tapetums::ListWnd& list);
 void ShowPluginInfo   (tapetums::ListWnd& list, tapetums::CtrlWnd& edit);
 void UpdateCheckState (tapetums::ListWnd& list, const ITTBPlugin* plugin, INT32 CmdID);
-void PopupMenu        (HWND hwnd);
+void PopupSysMenu     (HWND hwnd);
+void PopupToolMenu    (HWND hwnd);
 
 //---------------------------------------------------------------------------//
 // Methods
@@ -566,7 +567,7 @@ void CALLBACK MainWnd::OnCommand
     }
     else if ( id >= 10'000 )
     {
-        const INT32 index = id - 10'000;
+        const INT32 index = id > 20'000 ? id - 20'000 : id - 10'000;
         if ( index >= list_cmd.Count() )
         {
             return;
@@ -594,17 +595,21 @@ void CALLBACK MainWnd::OnNotifyIcon
     HWND hwnd, UINT uMsg
 )
 {
-    if ( uMsg == WM_LBUTTONDOWN )
+    if ( uMsg == WM_RBUTTONDOWN )
+    {
+        PopupSysMenu(hwnd);
+    }
+    else if ( uMsg == WM_LBUTTONDOWN )
+    {
+        PopupToolMenu(hwnd);
+    }
+    else if ( uMsg == WM_MBUTTONDOWN )
     {
         // ウィンドウを表示
         if ( ! m_is_fullscreen ) { ToCenter(); }
 
         Show();
         ::SetForegroundWindow(hwnd);
-    }
-    else if ( uMsg == WM_RBUTTONDOWN )
-    {
-        PopupMenu(hwnd);
     }
 }
 
@@ -898,7 +903,7 @@ void UpdateCheckState
             {
                 WriteLog(ERROR_LEVEL(5), TEXT("  %i, %i, %s"), index, cmd_id, TEXT("Checked"));
             }
-            break;;
+            break;
         }
         else
         {
@@ -907,7 +912,7 @@ void UpdateCheckState
             {
                 WriteLog(ERROR_LEVEL(5), TEXT("  %i, %i, %s"), index, cmd_id, TEXT("Unhecked"));
             }
-            break;;
+            break;
         }
 
       #else // 本来意図されていたであろう動作
@@ -943,7 +948,7 @@ void UpdateCheckState
 
 //---------------------------------------------------------------------------//
 
-void PopupMenu(HWND hwnd)
+void PopupSysMenu(HWND hwnd)
 {
     auto&& mgr = PluginMgr::GetInstance();
 
@@ -957,8 +962,8 @@ void PopupMenu(HWND hwnd)
 
     // メニュー項目を生成
     MENUITEMINFO mii;
-    mii.cbSize     = sizeof(MENUITEMINFO);
-    mii.fMask      = MIIM_STRING | MIIM_STATE | MIIM_ID | MIIM_DATA;
+    mii.cbSize = sizeof(MENUITEMINFO);
+    mii.fMask  = MIIM_STRING | MIIM_STATE | MIIM_ID | MIIM_DATA;
 
     UINT wID = 0; // +10'000 しておいて、WM_COMMAND で取り出す
     for ( auto it = mgr.begin(); it != mgr.end(); ++it )
@@ -990,7 +995,72 @@ void PopupMenu(HWND hwnd)
     DeleteMenu(hSubMenu, 1, MF_BYPOSITION);
     mii.fMask = MIIM_FTYPE;
     mii.fType = MFT_SEPARATOR;
-    InsertMenuItem(hSubMenu, 4, TRUE, &mii);
+    InsertMenuItem(hSubMenu, 3, TRUE, &mii);
+
+    // ポップアップメニューを表示
+    ::TrackPopupMenu
+    (
+        hSubMenu, TPM_LEFTALIGN, pt.x, pt.y, 0, hwnd, nullptr
+    );
+
+    // 表示したメニューを破棄
+    ::DestroyMenu(hMenu);
+
+    // Article ID: Q135788
+    // ポップアップメニューから処理を戻すために必要
+    ::PostMessage(hwnd, WM_NULL, 0, 0);
+}
+
+//---------------------------------------------------------------------------//
+
+void PopupToolMenu(HWND hwnd)
+{
+    auto&& mgr = PluginMgr::GetInstance();
+
+    // マウスカーソルの位置を取得
+    POINT pt;
+    ::GetCursorPos(&pt);
+
+    // リソースからメニューを取得
+    const auto hMenu    = ::LoadMenu(g_hInst, MAKEINTRESOURCE(IDR_POPUP_MENU));
+    const auto hSubMenu = ::GetSubMenu(hMenu, 1);
+
+    // メニュー項目を生成
+    MENUITEMINFO mii;
+    mii.cbSize = sizeof(MENUITEMINFO);
+    mii.fMask  = MIIM_STRING | MIIM_STATE | MIIM_ID | MIIM_DATA;
+
+    UINT wID = 0; // +20'000 しておいて、WM_COMMAND で取り出す
+    for ( auto it = mgr.begin(); it != mgr.end(); ++it )
+    {
+        const auto& plugin = *it;
+        const auto CommandCount = plugin->info()->CommandCount;
+        for ( size_t idx = 0; idx < CommandCount; ++idx, ++wID )
+        {
+            const auto& cmd = plugin->info()->Commands[idx];
+            const auto& DispMenu = cmd.DispMenu;
+            if ( 0 == (DispMenu & dmToolMenu) ) { continue; }
+
+            mii.dwTypeData = cmd.Caption;
+            mii.fState     = DispMenu & dmMenuChecked ? MFS_CHECKED : MFS_UNCHECKED;
+            mii.wID        = wID + 20'000;
+            mii.dwItemData = (ULONG_PTR)&plugin;
+            InsertMenuItem(hSubMenu, wID, FALSE, &mii);
+        }
+    }
+
+    // セパレータの位置を移動
+    //  メニューリソースでは項目が予め最低一つないと
+    //  メニューが表示されないバグがあるため、
+    //  最初にダミーとして一つセパレータを入れてある
+    DeleteMenu(hSubMenu, 0, MF_BYPOSITION);
+    mii.fMask = MIIM_FTYPE;
+    mii.fType = MFT_SEPARATOR;
+    InsertMenuItem(hSubMenu, 3, TRUE, &mii);
+
+    // Article ID: Q135788
+    // ポップアップメニューから処理を戻すために必要
+    ::SetForegroundWindow(hwnd);
 
     // ポップアップメニューを表示
     ::TrackPopupMenu

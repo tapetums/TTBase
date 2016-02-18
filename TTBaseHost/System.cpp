@@ -84,7 +84,7 @@ PLUGIN_COMMAND_INFO g_cmd_info[] =
         CMD_RELOAD,                            // コマンドID
         0,                                     // Attr（未使用）
         -1,                                    // ResTd(未使用）
-        dmHotKeyMenu,                          // DispMenu
+        DISPMENU(dmToolMenu | dmHotKeyMenu),   // DispMenu
         0,                                     // TimerInterval[msec] 0で使用しない
         0                                      // TimerCounter（未使用）
     },
@@ -94,19 +94,19 @@ PLUGIN_COMMAND_INFO g_cmd_info[] =
         CMD_OPEN_FOLDER,                            // コマンドID
         0,                                          // Attr（未使用）
         -1,                                         // ResTd(未使用）
-        DISPMENU(dmSystemMenu | dmHotKeyMenu),      // DispMenu
+        DISPMENU(dmToolMenu | dmHotKeyMenu),        // DispMenu
         0,                                          // TimerInterval[msec] 0で使用しない
         0                                           // TimerCounter（未使用）
     },
     {
-        (LPTSTR)TEXT("Show/Hide tray icon"),        // コマンド名（英名）
-        (LPTSTR)TEXT("トレイアイコンの表示を切替"), // コマンド説明（日本語）
-        CMD_TRAYICON,                               // コマンドID
-        0,                                          // Attr（未使用）
-        -1,                                         // ResTd(未使用）
-        DISPMENU(dmHotKeyMenu | dmMenuChecked),     // DispMenu
-        0,                                          // TimerInterval[msec] 0で使用しない
-        0                                           // TimerCounter（未使用）
+        (LPTSTR)TEXT("Show/Hide tray icon"),                 // コマンド名（英名）
+        (LPTSTR)TEXT("トレイアイコンの表示を切替"),          // コマンド説明（日本語）
+        CMD_TRAYICON,                                        // コマンドID
+        0,                                                   // Attr（未使用）
+        -1,                                                  // ResTd(未使用）
+        DISPMENU(dmToolMenu | dmHotKeyMenu | dmMenuChecked), // DispMenu
+        0,                                                   // TimerInterval[msec] 0で使用しない
+        0                                                    // TimerCounter（未使用）
     },
 };
 
@@ -130,7 +130,7 @@ PLUGIN_INFO g_info =
 // システムプラグインの内部実装
 //---------------------------------------------------------------------------//
 
-BOOL Init()
+BOOL WINAPI Init()
 {
     // バージョン情報を設定
     std::array<TCHAR, MAX_PATH> path;
@@ -150,13 +150,13 @@ BOOL Init()
 
 //---------------------------------------------------------------------------//
 
-void Unload()
+void WINAPI Unload()
 {
 }
 
 //---------------------------------------------------------------------------//
 
-BOOL Execute(INT32 CmdID, HWND hwnd)
+BOOL WINAPI Execute(INT32 CmdID, HWND hwnd)
 {
     // メインウィンドウ内のルーチンに処理を投げる
     switch ( CmdID )
@@ -200,7 +200,7 @@ BOOL Execute(INT32 CmdID, HWND hwnd)
 
 //---------------------------------------------------------------------------//
 
-void Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
+void WINAPI Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
     Msg; wParam; lParam;
     WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("フック / 未実装"));

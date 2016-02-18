@@ -739,15 +739,6 @@ LRESULT CALLBACK tapetums::UWnd::WndProc
     HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp
 )
 {
-    if ( uMsg == WM_DESTROY )
-    {
-        ::PostQuitMessage(0);
-    }
-    else if ( uMsg == WM_LBUTTONDBLCLK )
-    {
-        this->ToggleFullScreen();
-    }
-
     return ::DefWindowProc(hwnd, uMsg, wp, lp);
 }
 
