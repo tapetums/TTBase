@@ -72,7 +72,7 @@ PLUGIN_INFO g_info =
 //---------------------------------------------------------------------------//
 
 // TTBEvent_Init() の内部実装
-BOOL Init(void)
+BOOL WINAPI Init(void)
 {
     TCHAR ininame[MAX_PATH];
 
@@ -92,14 +92,14 @@ BOOL Init(void)
 //---------------------------------------------------------------------------//
 
 // TTBEvent_Unload() の内部実装
-void Unload(void)
+void WINAPI Unload(void)
 {
 }
 
 //---------------------------------------------------------------------------//
 
 // TTBEvent_Execute() の内部実装
-BOOL Execute(INT32 CmdId, HWND hWnd)
+BOOL WINAPI Execute(INT32 CmdId, HWND hWnd)
 {
     UNREFERENCED_PARAMETER(hWnd); // ERASE ME
 
@@ -120,7 +120,7 @@ BOOL Execute(INT32 CmdId, HWND hWnd)
 //---------------------------------------------------------------------------//
 
 // TTBEvent_WindowsHook() の内部実装
-void Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
+void WINAPI Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(Msg);    // ERASE ME
     UNREFERENCED_PARAMETER(wParam); // ERASE ME

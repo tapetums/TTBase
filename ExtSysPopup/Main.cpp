@@ -315,7 +315,7 @@ ATOM Register(LPCTSTR lpszClassName)
 //---------------------------------------------------------------------------//
 
 // TTBEvent_Init() の内部実装
-BOOL Init(void)
+BOOL WINAPI Init(void)
 {
     // フックのために二重起動を禁止
     if ( g_hMutex == nullptr )
@@ -392,7 +392,7 @@ UNLOAD:
 //---------------------------------------------------------------------------//
 
 // TTBEvent_Unload() の内部実装
-void Unload(void)
+void WINAPI Unload(void)
 {
     // マウスフックを解除
     WMEndHook();
@@ -424,7 +424,7 @@ void Unload(void)
 //---------------------------------------------------------------------------//
 
 // TTBEvent_Execute() の内部実装
-BOOL Execute(INT32 CmdId, HWND hwnd)
+BOOL WINAPI Execute(INT32 CmdId, HWND hwnd)
 {
     WriteLog(elDebug, TEXT("%s|%d"), g_info.Filename, CmdId);
 
@@ -467,7 +467,7 @@ BOOL Execute(INT32 CmdId, HWND hwnd)
 //---------------------------------------------------------------------------//
 
 // TTBEvent_WindowsHook() の内部実装
-void Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
+void WINAPI Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(Msg);
     UNREFERENCED_PARAMETER(wParam);

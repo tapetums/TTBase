@@ -91,7 +91,7 @@ PLUGIN_INFO g_info =
 //---------------------------------------------------------------------------//
 
 // TTBEvent_Init() の内部実装
-BOOL Init(void)
+BOOL WINAPI Init(void)
 {
     WriteLog(elInfo, TEXT("%s: Successfully initialized"), PLUGIN_NAME);
 
@@ -101,7 +101,7 @@ BOOL Init(void)
 //---------------------------------------------------------------------------//
 
 // TTBEvent_Unload() の内部実装
-void Unload(void)
+void WINAPI Unload(void)
 {
     WriteLog(elInfo, TEXT("%s: Successfully uninitialized"), PLUGIN_NAME);
 }
@@ -109,7 +109,7 @@ void Unload(void)
 //---------------------------------------------------------------------------//
 
 // TTBEvent_Execute() の内部実装
-BOOL Execute(INT32 CmdId, HWND)
+BOOL WINAPI Execute(INT32 CmdId, HWND)
 {
     switch ( CmdId )
     {
@@ -149,7 +149,7 @@ BOOL Execute(INT32 CmdId, HWND)
 //---------------------------------------------------------------------------//
 
 // TTBEvent_WindowsHook() の内部実装
-void Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
+void WINAPI Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(Msg);
     UNREFERENCED_PARAMETER(wParam);

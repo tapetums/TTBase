@@ -243,10 +243,10 @@ extern DWORD_PTR g_hPlugin;
 //
 //---------------------------------------------------------------------------//
 
-BOOL Init   ();
-void Unload ();
-BOOL Execute(INT32 CmdID, HWND hwnd);
-void Hook   (UINT Msg, WPARAM wParam, LPARAM lParam);
+BOOL WINAPI Init   ();
+void WINAPI Unload ();
+BOOL WINAPI Execute(INT32 CmdID, HWND hwnd);
+void WINAPI Hook   (UINT Msg, WPARAM wParam, LPARAM lParam);
 
 //---------------------------------------------------------------------------//
 
