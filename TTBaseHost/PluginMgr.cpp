@@ -220,6 +220,7 @@ bool TTBasePlugin::InitInfo(LPTSTR PluginFilename)
     }
 
     // プラグイン情報をコピー
+    if ( m_info ) { FreeInfo(); }
     m_info = CopyPluginInfo(tmp);
 
     // コピーし終わったので 元データを解放
@@ -428,8 +429,10 @@ void PluginMgr::LoadAll()
     // インストールフォルダ以下の DLL ファイルを収集
     CollectFile(dir_path.data(), TEXT(".dll"));
 
-    // 読み込んだ DLL を初期化
+    // すべてのプラグインの情報を取得
+    InitInfoAll();
 
+    // すべてのプラグインを初期化
     InitAll();
 
     SystemLog(TEXT("  %s"), TEXT("OK"));
@@ -557,7 +560,7 @@ void PluginMgr::CollectFile
 
 //---------------------------------------------------------------------------//
 
-void PluginMgr::InitAll()
+void PluginMgr::InitInfoAll()
 {
     std::array<TCHAR, MAX_PATH> exe_path;
     std::array<TCHAR, MAX_PATH> relative_path;
@@ -565,7 +568,7 @@ void PluginMgr::InitAll()
     // 本体の絶対パスを取得
     ::GetModuleFileName(g_hInst, exe_path.data(), (DWORD)exe_path.size());
 
-    // プラグインの初期化
+    // プラグイン情報の取得
     // * システムプラグインは既に初期化済みのため、リストの2番目から開始
     auto it = ++plugins.begin();
     while ( it != plugins.end() )
@@ -578,7 +581,6 @@ void PluginMgr::InitAll()
             plugin->path(),  FILE_ATTRIBUTE_ARCHIVE
         );
 
-        // プラグイン情報の取得
         //  relative_path の 先頭2文字 (".\") は要らないので ずらす
         const auto result = plugin->InitInfo(relative_path.data() + 2);
         if ( ! result )
@@ -587,20 +589,33 @@ void PluginMgr::InitAll()
             continue;
         }
 
-        // プラグインの初期化
+        // 常駐型でなければ解放
         if ( plugin->info()->PluginType != ptAlwaysLoad )
         {
             plugin->Free();
         }
-        else
+
+        ++it;
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+void PluginMgr::InitAll()
+{
+    // プラグインの初期化
+    // * システムプラグインは既に初期化済みのため、リストの2番目から開始
+    auto it = ++plugins.begin();
+    while ( it != plugins.end() )
+    {
+        auto&& plugin = *it;
+        if ( plugin->is_loaded() )
         {
             plugin->Init(plugin->info()->Filename, (DWORD_PTR)plugin.get());
         }
 
         ++it;
     }
-
-    WriteLog(ERROR_LEVEL(5), TEXT("  %u plugin(s)"), plugins.size());
 }
 
 //---------------------------------------------------------------------------//

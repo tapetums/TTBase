@@ -16,9 +16,12 @@
 #include "../Plugin.hpp"
 
 //---------------------------------------------------------------------------//
+// 前方宣言
+//---------------------------------------------------------------------------//
 
 struct ITTBPlugin;
 class  TTBasePlugin;
+class  SystemPlugin;
 class  PluginMgr;
 
 //---------------------------------------------------------------------------//
@@ -161,6 +164,7 @@ public: // Methods
 
 private: // Internal Methods
     void CollectFile(LPCTSTR dir_path, LPCTSTR ext);
+    void InitInfoAll();
     void InitAll();
 };
 
