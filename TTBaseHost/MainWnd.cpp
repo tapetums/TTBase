@@ -29,6 +29,20 @@
 
 #include "MainWnd.hpp"
 
+#if SYS_DEBUG
+
+template<typename C, typename... Args>
+void SystemLog(const C* const format, Args... args)
+{
+    WriteLog(ERROR_LEVEL(5), format, args...);
+}
+
+#else
+
+#define SystemLog(format, ...)
+
+#endif
+
 //---------------------------------------------------------------------------//
 // Global Variables
 //---------------------------------------------------------------------------//
@@ -562,8 +576,6 @@ void CALLBACK MainWnd::OnCommand
 
         const auto index = cbx_log.SelectedIndex();
         settings::get().logLevel = index;
-
-        WriteLog(ERROR_LEVEL(5), TEXT("cbx index = %i"), settings::get().logLevel);
     }
     else if ( id >= 10'000 )
     {
@@ -580,9 +592,8 @@ void CALLBACK MainWnd::OnCommand
         // コマンドを実行
         if ( plugin )
         {
-            WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("システムメニューの表示"));
-            WriteLog(ERROR_LEVEL(5), TEXT("  %s"), plugin->info()->Name);
-            WriteLog(ERROR_LEVEL(5), TEXT("  %u"), CmdID);
+            SystemLog(TEXT("%s"), TEXT("システムメニューの表示"));
+            SystemLog(TEXT("  %s|%i"), plugin->info()->Filename, CmdID);
             plugin->Execute(CmdID, hwnd);
         }
     }
@@ -718,7 +729,8 @@ bool CALLBACK MainWnd::OnExecuteCommand
     HWND hwnd, ITTBPlugin* plugin, INT32 CmdID
 )
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("実行: %s|%d"), plugin->info()->Name, CmdID);
+    SystemLog(TEXT("%s"), TEXT("コマンドの実行"));
+    SystemLog(TEXT("  %s|%i"), plugin->info()->Filename, CmdID);
 
     bool result;
 
@@ -734,7 +746,7 @@ bool CALLBACK MainWnd::OnExecuteCommand
         result = plugin->Reload();
         if ( ! result )
         {
-            WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("ロード失敗"));
+            SystemLog(TEXT("  %s"), TEXT("ロード失敗"));
             return false;
         }
 
@@ -742,7 +754,7 @@ bool CALLBACK MainWnd::OnExecuteCommand
         plugin->Free();
     }
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
     return result;
 }
 
@@ -875,7 +887,7 @@ void UpdateCheckState
     tapetums::ListWnd& list, const ITTBPlugin* plugin, INT32 CmdID
 )
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("チェックボックスの表示状態を更新"));
+    SystemLog(TEXT("%s"), TEXT("チェックボックスの表示状態を更新"));
 
     const auto count = list.Count();
     for ( auto index = 0; index < count; ++index )
@@ -884,7 +896,7 @@ void UpdateCheckState
         {
             continue;
         }
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), plugin->info()->Name);
+        SystemLog(TEXT("  %s"), plugin->info()->Name);
 
       #if 1 // TTBase のバグを再現
 
@@ -901,7 +913,7 @@ void UpdateCheckState
             list.Check(index);
             if ( list.IsChecked(index) )
             {
-                WriteLog(ERROR_LEVEL(5), TEXT("  %i, %i, %s"), index, cmd_id, TEXT("Checked"));
+                SystemLog(TEXT("  %i, %i, %s"), index, cmd_id, TEXT("Checked"));
             }
             break;
         }
@@ -910,7 +922,7 @@ void UpdateCheckState
             list.Uncheck(index);
             if ( ! list.IsChecked(index) )
             {
-                WriteLog(ERROR_LEVEL(5), TEXT("  %i, %i, %s"), index, cmd_id, TEXT("Unhecked"));
+                SystemLog(TEXT("  %i, %i, %s"), index, cmd_id, TEXT("Unhecked"));
             }
             break;
         }
@@ -927,7 +939,7 @@ void UpdateCheckState
         {
             if ( ! list.IsChecked(index) )
             {
-                WriteLog(ERROR_LEVEL(5), TEXT("  %i, %i, %s"), index, CmdID, TEXT("Checked"));
+                SystemLog(TEXT("  %i, %i, %s"), index, CmdID, TEXT("Checked"));
             }
             list.Check(index);
         }
@@ -935,7 +947,7 @@ void UpdateCheckState
         {
             if ( list.IsChecked(index) )
             {
-                WriteLog(ERROR_LEVEL(5), TEXT("  %i, %i, %s"), index, CmdID, TEXT("Unhecked"));
+                SystemLog(TEXT("  %i, %i, %s"), index, CmdID, TEXT("Unhecked"));
             }
             list.Uncheck(index);
         }
@@ -943,7 +955,7 @@ void UpdateCheckState
       #endif
     }
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//

@@ -18,6 +18,20 @@
 #include "PluginMgr.hpp"
 #include "TTBBridgePlugin.hpp"
 
+#if SYS_DEBUG
+
+template<typename C, typename... Args>
+void SystemLog(const C* const format, Args... args)
+{
+    WriteLog(ERROR_LEVEL(5), format, args...);
+}
+
+#else
+
+#define SystemLog(format, ...)
+
+#endif
+
 //---------------------------------------------------------------------------//
 // Global Variables
 //---------------------------------------------------------------------------//
@@ -71,12 +85,12 @@ bool TTBasePlugin::Load
     LPCTSTR plugin_path
 )
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの読み込み"));
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), plugin_path);
+    SystemLog(TEXT("%s"), TEXT("プラグインの読み込み"));
+    SystemLog(TEXT("  %s"), plugin_path);
 
     if ( m_handle )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("読み込み済み"));
+        SystemLog(TEXT("  %s"), TEXT("読み込み済み"));
         return true;
     }
 
@@ -84,7 +98,7 @@ bool TTBasePlugin::Load
     m_handle = ::LoadLibraryEx(plugin_path, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
     if ( nullptr == m_handle )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
+        SystemLog(TEXT("  %s"), TEXT("NG"));
         return false;
     }
 
@@ -102,12 +116,12 @@ bool TTBasePlugin::Load
     // 必須APIを実装しているか
     if ( nullptr == TTBEvent_InitPluginInfo || nullptr == TTBEvent_FreePluginInfo )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("有効なプラグインではありません"));
+        SystemLog(TEXT("  %s"), TEXT("有効なプラグインではありません"));
         Free();
         return false;
     }
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
     return true;
 }
 
@@ -117,12 +131,12 @@ void TTBasePlugin::Free()
 {
     Unload();
 
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインを解放"));
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), m_path);
+    SystemLog(TEXT("%s"), TEXT("プラグインを解放"));
+    SystemLog(TEXT("  %s"), m_path);
 
     if ( nullptr == m_handle )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("解放済み"));
+        SystemLog(TEXT("  %s"), TEXT("解放済み"));
         return;
     }
 
@@ -138,7 +152,7 @@ void TTBasePlugin::Free()
 
     // Reload() する時のため m_path と m_info は記憶しておく
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
@@ -147,7 +161,7 @@ bool TTBasePlugin::Reload()
 {
     bool result;
 
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの再読み込み"));
+    SystemLog(TEXT("%s"), TEXT("プラグインの再読み込み"));
 
     // プラグインの読み込み
     result = Load(m_path);
@@ -180,7 +194,7 @@ bool TTBasePlugin::Reload()
         return false;
     }
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
     return true;
 }
 
@@ -188,11 +202,12 @@ bool TTBasePlugin::Reload()
 
 bool TTBasePlugin::InitInfo(LPTSTR PluginFilename)
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグイン情報をコピー"));
+    SystemLog(TEXT("%s"), TEXT("プラグイン情報をコピー"));
+    SystemLog(TEXT("  %s"), PluginFilename);
 
     if ( nullptr == TTBEvent_InitPluginInfo )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
+        SystemLog(TEXT("  %s"), TEXT("NG"));
         return false;
     }
 
@@ -200,12 +215,11 @@ bool TTBasePlugin::InitInfo(LPTSTR PluginFilename)
     const auto tmp = TTBEvent_InitPluginInfo(PluginFilename);
     if ( nullptr == tmp )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("情報取得失敗"));
+        SystemLog(TEXT("  %s"), TEXT("情報取得失敗"));
         return false;
     }
 
     // プラグイン情報をコピー
-    FreeInfo();
     m_info = CopyPluginInfo(tmp);
 
     // コピーし終わったので 元データを解放
@@ -213,7 +227,7 @@ bool TTBasePlugin::InitInfo(LPTSTR PluginFilename)
 
     if ( nullptr == m_info )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("情報コピー失敗"));
+        SystemLog(TEXT("  %s"), TEXT("情報コピー失敗"));
         return false;
     }
 
@@ -221,12 +235,12 @@ bool TTBasePlugin::InitInfo(LPTSTR PluginFilename)
     //  21世紀のコンピューターでは殆どの場合 1ms 未満になるため
     m_info->LoadTime = 0;
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  名前:       %s"), m_info->Name);
-    WriteLog(ERROR_LEVEL(5), TEXT("  相対パス:   %s"), m_info->Filename);
-    WriteLog(ERROR_LEVEL(5), TEXT("  タイプ:     %s"), m_info->PluginType == ptAlwaysLoad ? TEXT("常駐") : TEXT("都度"));
-    WriteLog(ERROR_LEVEL(5), TEXT("  コマンド数: %u"), m_info->CommandCount);
+    SystemLog(TEXT("  名前:       %s"), m_info->Name);
+    SystemLog(TEXT("  相対パス:   %s"), m_info->Filename);
+    SystemLog(TEXT("  タイプ:     %s"), m_info->PluginType == ptAlwaysLoad ? TEXT("常駐") : TEXT("都度"));
+    SystemLog(TEXT("  コマンド数: %u"), m_info->CommandCount);
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
     return true;
 }
 
@@ -234,7 +248,7 @@ bool TTBasePlugin::InitInfo(LPTSTR PluginFilename)
 
 void TTBasePlugin::FreeInfo()
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグイン情報を解放"));
+    SystemLog(TEXT("%s"), TEXT("プラグイン情報を解放"));
 
     if ( m_info )
     {
@@ -242,29 +256,30 @@ void TTBasePlugin::FreeInfo()
         m_info = nullptr;
     }
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
 
 bool TTBasePlugin::Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの初期化"));
+    SystemLog(TEXT("%s"), TEXT("プラグインの初期化"));
+    SystemLog(TEXT("  %s"), PluginFilename);
 
     if ( nullptr == TTBEvent_Init )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
+        SystemLog(TEXT("  %s"), TEXT("未実装"));
         return true;
     }
 
     const auto result = TTBEvent_Init(PluginFilename, hPlugin);
     if ( ! result )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
+        SystemLog(TEXT("  %s"), TEXT("NG"));
         return false;
     }
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
     return true;
 }
 
@@ -272,38 +287,39 @@ bool TTBasePlugin::Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
 
 void TTBasePlugin::Unload()
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの終了処理"));
+    SystemLog(TEXT("%s"), TEXT("プラグインの終了処理"));
 
     if ( nullptr == TTBEvent_Unload )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
+        SystemLog(TEXT("  %s"), TEXT("未実装"));
         return;
     }
 
     TTBEvent_Unload();
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
 
 bool TTBasePlugin::Execute(INT32 CmdID, HWND hwnd)
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("コマンドの実行"));
+    SystemLog(TEXT("%s"), TEXT("コマンドの実行"));
+    SystemLog(TEXT("  %s|%i"), info()->Filename, CmdID);
 
     if ( nullptr == TTBEvent_Execute )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
+        SystemLog(TEXT("  %s"), TEXT("未実装"));
         return true;
     }
 
     const auto result = TTBEvent_Execute(CmdID, hwnd);
     if ( ! result )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
+        SystemLog(TEXT("  %s"), TEXT("NG"));
         return false;
     }
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
     return true;
 }
 
@@ -311,16 +327,16 @@ bool TTBasePlugin::Execute(INT32 CmdID, HWND hwnd)
 
 void TTBasePlugin::Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインをフック"));
+    SystemLog(TEXT("%s"), TEXT("プラグインをフック"));
 
     if ( nullptr == TTBEvent_WindowsHook )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
+        SystemLog(TEXT("  %s"), TEXT("未実装"));
         return;
     }
 
     TTBEvent_WindowsHook(Msg, wParam, lParam);
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
@@ -329,7 +345,7 @@ void TTBasePlugin::Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 
 SystemPlugin::SystemPlugin()
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("システムプラグインを生成"));
+    SystemLog(TEXT("%s"), TEXT("システムプラグインを生成"));
 
     m_handle = g_hInst;
     ::GetModuleFileName(m_handle, m_path, MAX_PATH);
@@ -344,14 +360,14 @@ SystemPlugin::SystemPlugin()
     m_info = &g_info;
     TTBEvent_Init((LPTSTR)TEXT(":system"), (DWORD_PTR)this);
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
 
 SystemPlugin::~SystemPlugin()
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("システムプラグインを解放"));
+    SystemLog(TEXT("%s"), TEXT("システムプラグインを解放"));
 
     TTBEvent_Unload();
     m_info  = nullptr;
@@ -365,7 +381,7 @@ SystemPlugin::~SystemPlugin()
 
     m_handle = nullptr;
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
@@ -374,19 +390,19 @@ SystemPlugin::~SystemPlugin()
 
 PluginMgr::PluginMgr()
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインマネージャを生成"));
+    SystemLog(TEXT("%s"), TEXT("プラグインマネージャを生成"));
 
     // プラグインリストの一番最初にシステムプラグインを登録
     plugins.emplace_back(new SystemPlugin);
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
 
 PluginMgr::~PluginMgr()
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインマネージャを解放"));
+    SystemLog(TEXT("%s"), TEXT("プラグインマネージャを解放"));
 
     // ロードとは逆順に解放する
     FreeAll();
@@ -394,15 +410,15 @@ PluginMgr::~PluginMgr()
     // システムプラグインも解放
     plugins.clear();
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %u plugin(s)"), plugins.size());
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %u plugin(s)"), plugins.size());
+    SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
 
 void PluginMgr::LoadAll()
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("すべてのプラグインを読み込み"));
+    SystemLog(TEXT("%s"), TEXT("すべてのプラグインを読み込み"));
 
     // インストールフォルダのパスを取得
     std::array<TCHAR, MAX_PATH> dir_path;
@@ -413,16 +429,17 @@ void PluginMgr::LoadAll()
     CollectFile(dir_path.data(), TEXT(".dll"));
 
     // 読み込んだ DLL を初期化
+
     InitAll();
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
 
 void PluginMgr::FreeAll()
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("すべてのプラグインを解放"));
+    SystemLog(TEXT("%s"), TEXT("すべてのプラグインを解放"));
 
     // ロードとは逆順に解放 ... システムプラグインは解放しない
     while ( plugins.size() > 1 )
@@ -430,8 +447,8 @@ void PluginMgr::FreeAll()
         plugins.pop_back();
     }
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %u plugin(s)"), plugins.size());
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %u plugin(s)"), plugins.size());
+    SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//

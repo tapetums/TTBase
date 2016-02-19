@@ -25,6 +25,20 @@
 
 #pragma warning(disable: 4366)
 
+#if SYS_DEBUG
+
+template<typename C, typename... Args>
+void SystemLog(const C* const format, Args... args)
+{
+    WriteLog(ERROR_LEVEL(5), format, args...);
+}
+
+#else
+
+#define SystemLog(format, ...)
+
+#endif
+
 //---------------------------------------------------------------------------//
 // Global Variables
 //---------------------------------------------------------------------------//
@@ -45,7 +59,7 @@ void desirialize(T* t, const std::vector<uint8_t>& data, size_t* p)
     ::memcpy(t, data.data() + *p, size);
     *p += size;
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  deserializing... %i"), *t);
+    SystemLog(TEXT("  deserializing... %i"), *t);
 }
 
 // デシリアライズ ヘルパー関数 (文字列版)
@@ -59,7 +73,7 @@ void desirialize<LPWSTR>(LPWSTR* dst, const std::vector<uint8_t>& data, size_t* 
     ::memcpy(*dst, src, size);
     *p += size;
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  deserializing... %s"), *dst);
+    SystemLog(TEXT("  deserializing... %s"), *dst);
 }
 
 // プロセス境界を超えるため データをデシリアライズする
@@ -105,7 +119,7 @@ TTBBridgePlugin::TTBBridgePlugin()
 {
     using namespace tapetums;
 
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("ブリッヂプラグインを生成"));
+    SystemLog(TEXT("%s"), TEXT("ブリッヂプラグインを生成"));
 
     // データの準備
     BridgeData data;
@@ -157,7 +171,7 @@ TTBBridgePlugin::TTBBridgePlugin()
         return;
     }
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
     return;
 }
 
@@ -172,12 +186,12 @@ TTBBridgePlugin::~TTBBridgePlugin()
         Free();
     }
 
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("ブリッヂプラグインを解放"));
+    SystemLog(TEXT("%s"), TEXT("ブリッヂプラグインを解放"));
 
     // 子プロセスの終了
     ::PostThreadMessage(threadId, WM_QUIT, 0, 0);
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
@@ -208,12 +222,12 @@ bool TTBBridgePlugin::Load
     LPCTSTR path
 )
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインを読込"));
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), path);
+    SystemLog(TEXT("%s"), TEXT("プラグインを読込"));
+    SystemLog(TEXT("  %s"), path);
 
     if ( m_loaded )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("読込済み"));
+        SystemLog(TEXT("  %s"), TEXT("読込済み"));
         return false;
     }
 
@@ -276,7 +290,7 @@ bool TTBBridgePlugin::Load
         m_loaded = true;
     }
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), PluginMsgTxt[(uint8_t)msg]);
+    SystemLog(TEXT("  %s"), PluginMsgTxt[(uint8_t)msg]);
     return true;
 }
 
@@ -284,12 +298,12 @@ bool TTBBridgePlugin::Load
 
 void TTBBridgePlugin::Free()
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインを解放"));
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), m_path);
+    SystemLog(TEXT("%s"), TEXT("プラグインを解放"));
+    SystemLog(TEXT("  %s"), m_path);
 
     if ( ! m_loaded )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("解放済み"));
+        SystemLog(TEXT("  %s"), TEXT("解放済み"));
         return;
     }
 
@@ -331,7 +345,7 @@ void TTBBridgePlugin::Free()
     // 読み込み済みのフラグをオフ
     m_loaded = false;
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
     return;
 }
 
@@ -341,7 +355,7 @@ bool TTBBridgePlugin::Reload()
 {
     bool result;
 
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの再読み込み"));
+    SystemLog(TEXT("%s"), TEXT("プラグインの再読み込み"));
 
     // プラグインの読み込み
     result = Load(m_path);
@@ -376,7 +390,7 @@ bool TTBBridgePlugin::Reload()
         return false;
     }
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
     return true;
 }
 
@@ -387,11 +401,11 @@ bool TTBBridgePlugin::InitInfo
     LPTSTR PluginFilename
 )
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグイン情報をコピー"));
+    SystemLog(TEXT("%s"), TEXT("プラグイン情報をコピー"));
 
     if ( ! m_loaded )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未読込"));
+        SystemLog(TEXT("  %s"), TEXT("未読込"));
         return false;
     }
 
@@ -470,7 +484,7 @@ bool TTBBridgePlugin::InitInfo
     m_info = &g_info; // dummy ... ホントは再マーシャリングが必要: TO DO LATER
   #endif
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
     return true;
 }
 
@@ -478,7 +492,7 @@ bool TTBBridgePlugin::InitInfo
 
 void TTBBridgePlugin::FreeInfo()
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグイン情報を解放"));
+    SystemLog(TEXT("%s"), TEXT("プラグイン情報を解放"));
 
     // プラグイン情報の解放
     if ( m_info )
@@ -489,7 +503,7 @@ void TTBBridgePlugin::FreeInfo()
 
     if ( ! m_loaded )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("解放済み"));
+        SystemLog(TEXT("  %s"), TEXT("解放済み"));
         return;
     }
 
@@ -528,7 +542,7 @@ void TTBBridgePlugin::FreeInfo()
         return;
     }
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
     return;
 }
 
@@ -539,11 +553,11 @@ bool TTBBridgePlugin::Init
     LPTSTR PluginFilename, DWORD_PTR hPlugin
 )
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの初期化"));
+    SystemLog(TEXT("%s"), TEXT("プラグインの初期化"));
 
     if ( ! m_loaded )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
+        SystemLog(TEXT("  %s"), TEXT("未実装"));
         return false;
     }
 
@@ -599,7 +613,7 @@ bool TTBBridgePlugin::Init
     plugin_data.Seek(0);
     plugin_data.Read(&msg);
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), PluginMsgTxt[(uint8_t)msg]);
+    SystemLog(TEXT("  %s"), PluginMsgTxt[(uint8_t)msg]);
     return true;
 }
 
@@ -607,11 +621,11 @@ bool TTBBridgePlugin::Init
 
 void TTBBridgePlugin::Unload()
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの終了処理"));
+    SystemLog(TEXT("%s"), TEXT("プラグインの終了処理"));
 
     if ( ! m_loaded )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
+        SystemLog(TEXT("  %s"), TEXT("未実装"));
         return;
     }
 
@@ -650,7 +664,7 @@ void TTBBridgePlugin::Unload()
         return;
     }
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
     return;
 }
 
@@ -661,11 +675,12 @@ bool TTBBridgePlugin::Execute
     INT32 CmdID, HWND hwnd
 )
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("コマンドの実行"));
+    SystemLog(TEXT("%s"), TEXT("コマンドの実行"));
+    SystemLog(TEXT("  %s|%i"), info()->Filename, CmdID);
 
     if ( ! m_loaded )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
+        SystemLog(TEXT("  %s"), TEXT("未実装"));
         return false;
     }
 
@@ -713,7 +728,7 @@ bool TTBBridgePlugin::Execute
     plugin_data.Seek(0);
     plugin_data.Read(&msg);
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), PluginMsgTxt[uint8_t(msg)]);
+    SystemLog(TEXT("  %s"), PluginMsgTxt[uint8_t(msg)]);
     return true;
 }
 
@@ -724,11 +739,11 @@ void TTBBridgePlugin::Hook
     UINT Msg, WPARAM wParam, LPARAM lParam
 )
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインをフック"));
+    SystemLog(TEXT("%s"), TEXT("プラグインをフック"));
 
     if ( ! m_loaded )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("未実装"));
+        SystemLog(TEXT("  %s"), TEXT("未実装"));
         return;
     }
 
@@ -772,7 +787,7 @@ void TTBBridgePlugin::Hook
         return;
     }
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
     return;
 }
 

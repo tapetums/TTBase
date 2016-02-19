@@ -18,6 +18,20 @@
 #include "Settings.hpp"
 #include "Command.hpp"
 
+#if SYS_DEBUG
+
+template<typename C, typename... Args>
+void SystemLog(const C* const format, Args... args)
+{
+    WriteLog(ERROR_LEVEL(5), format, args...);
+}
+
+#else
+
+#define SystemLog(format, ...)
+
+#endif
+
 //---------------------------------------------------------------------------//
 // Global Variables
 //---------------------------------------------------------------------------//
@@ -203,10 +217,10 @@ BOOL WINAPI Execute(INT32 CmdID, HWND hwnd)
 void WINAPI Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
     Msg; wParam; lParam;
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("フック / 未実装"));
-    WriteLog(ERROR_LEVEL(5), TEXT("  %u"), Msg);
-    WriteLog(ERROR_LEVEL(5), TEXT("  %u"), wParam);
-    WriteLog(ERROR_LEVEL(5), TEXT("  %i"), lParam);
+    SystemLog(TEXT("%s"), TEXT("フック / 未実装"));
+    SystemLog(TEXT("  %u"), Msg);
+    SystemLog(TEXT("  %u"), wParam);
+    SystemLog(TEXT("  %i"), lParam);
 }
 
 //---------------------------------------------------------------------------//
@@ -218,7 +232,7 @@ extern "C" PLUGIN_INFO* WINAPI TTBPlugin_GetPluginInfo
     DWORD_PTR hPlugin
 )
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの情報を取得"));
+    SystemLog(TEXT("%s"), TEXT("プラグインの情報を取得"));
 
     // リストに登録されているか調べる
     auto&& mgr = PluginMgr::GetInstance();
@@ -226,15 +240,15 @@ extern "C" PLUGIN_INFO* WINAPI TTBPlugin_GetPluginInfo
     {
         if ( plugin.get() != (ITTBPlugin*)hPlugin ) { continue; }
 
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), plugin->info()->Name);
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+        SystemLog(TEXT("  %s"), plugin->info()->Name);
+        SystemLog(TEXT("  %s"), TEXT("OK"));
 
         // コピーしたものを返す
         return CopyPluginInfo(plugin->info());
     }
 
     // 知らないプラグインなのでどうしようもない
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("Not found"));
+    SystemLog(TEXT("  %s"), TEXT("Not found"));
     return nullptr;
 }
 
@@ -245,7 +259,7 @@ extern "C" void WINAPI TTBPlugin_SetPluginInfo
     DWORD_PTR hPlugin, PLUGIN_INFO* PLUGIN_INFO
 )
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの情報を設定"));
+    SystemLog(TEXT("%s"), TEXT("プラグインの情報を設定"));
 
     // リストに登録されているか調べる
     auto&& mgr = PluginMgr::GetInstance();
@@ -253,8 +267,8 @@ extern "C" void WINAPI TTBPlugin_SetPluginInfo
     {
         if ( plugin.get() != (ITTBPlugin*)hPlugin ) { continue; }
 
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), plugin->info()->Name);
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+        SystemLog(TEXT("  %s"), plugin->info()->Name);
+        SystemLog(TEXT("  %s"), TEXT("OK"));
 
         // プラグイン情報を差替
         plugin->info(PLUGIN_INFO); // 内部でコピーを保持 ... PluginMgr.hpp を参照
@@ -262,7 +276,7 @@ extern "C" void WINAPI TTBPlugin_SetPluginInfo
     }
 
     // 知らないプラグインなのでどうしようもない
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("Not found"));
+    SystemLog(TEXT("  %s"), TEXT("Not found"));
 }
 
 //---------------------------------------------------------------------------//
@@ -272,11 +286,11 @@ extern "C" void WINAPI TTBPlugin_FreePluginInfo
     PLUGIN_INFO* PLUGIN_INFO
 )
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("プラグインの情報を解放"));
+    SystemLog(TEXT("%s"), TEXT("プラグインの情報を解放"));
 
     if ( nullptr == PLUGIN_INFO )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("NG"));
+        SystemLog(TEXT("  %s"), TEXT("NG"));
         return;
     }
 
@@ -288,15 +302,15 @@ extern "C" void WINAPI TTBPlugin_FreePluginInfo
     {
         if ( 0 != lstrcmp(Filename, plugin->info()->Filename) ) { continue; }
 
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), PLUGIN_INFO->Name);
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+        SystemLog(TEXT("  %s"), PLUGIN_INFO->Name);
+        SystemLog(TEXT("  %s"), TEXT("OK"));
 
         FreePluginInfo(PLUGIN_INFO);
         return;
     }
 
     // 知らないプラグインなのでどうしようもない
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("Not found"));
+    SystemLog(TEXT("  %s"), TEXT("Not found"));
 }
 
 //---------------------------------------------------------------------------//
@@ -306,24 +320,24 @@ extern "C" void WINAPI TTBPlugin_SetMenuProperty
     DWORD_PTR hPlugin, INT32 CommandID, CHANGE_FLAG ChangeFlag, DISPMENU Flag
 )
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("メニューのプロパティを設定"));
+    SystemLog(TEXT("%s"), TEXT("メニューのプロパティを設定"));
 
     auto plugin = reinterpret_cast<ITTBPlugin*>(hPlugin);
     if ( nullptr == plugin )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("?"));
+        SystemLog(TEXT("  %s"), TEXT("?"));
         return;
     }
 
     const auto& info = *plugin->info();
-    WriteLog(ERROR_LEVEL(5), TEXT("  名前: %s"), info.Name);
-    WriteLog(ERROR_LEVEL(5), TEXT("  ID:   %i"), CommandID);
-    WriteLog(ERROR_LEVEL(5), TEXT("  Flag: %u"), Flag);
+    SystemLog(TEXT("  名前: %s"), info.Name);
+    SystemLog(TEXT("  ID:   %i"), CommandID);
+    SystemLog(TEXT("  Flag: %u"), Flag);
 
     const auto CommandCount = info.CommandCount;
     if ( (DWORD)CommandID >= CommandCount )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("Bad index"));
+        SystemLog(TEXT("  %s"), TEXT("Bad index"));
         return;
     }
 
@@ -349,14 +363,14 @@ extern "C" void WINAPI TTBPlugin_SetMenuProperty
 
     // チェック状態を再描画する
     ::PostMessage(g_hwnd, TTB_SET_MENU_PROPERTY, (WPARAM)plugin, (LPARAM)CommandID);
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
 
 extern "C" PLUGIN_INFO** WINAPI TTBPlugin_GetAllPluginInfo()
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("すべてのプラグインの情報を取得"));
+    SystemLog(TEXT("%s"), TEXT("すべてのプラグインの情報を取得"));
     auto&& mgr = PluginMgr::GetInstance();
 
     auto PluginInfoArray = (PLUGIN_INFO**) new DWORD_PTR[mgr.size() + 1];
@@ -375,7 +389,7 @@ extern "C" PLUGIN_INFO** WINAPI TTBPlugin_GetAllPluginInfo()
     // 配列はヌル終端にする
     PluginInfoArray[idx] = nullptr;
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
     return PluginInfoArray;
 }
 
@@ -386,7 +400,7 @@ extern "C" void WINAPI TTBPlugin_FreePluginInfoArray
     PLUGIN_INFO** PluginInfoArray
 )
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("すべてのプラグインの情報を解放"));
+    SystemLog(TEXT("%s"), TEXT("すべてのプラグインの情報を解放"));
     if ( nullptr == PluginInfoArray ) { return; }
 
     size_t idx = 0;
@@ -398,7 +412,7 @@ extern "C" void WINAPI TTBPlugin_FreePluginInfoArray
 
     delete[] PluginInfoArray;
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
@@ -408,12 +422,12 @@ extern "C" void WINAPI TTBPlugin_SetTaskTrayIcon
     HICON hIcon, LPCTSTR Tips
 )
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("%s"), TEXT("タスクトレイのアイコンを変更"));
+    SystemLog(TEXT("%s"), TEXT("タスクトレイのアイコンを変更"));
 
     // メインウィンドウ内のルーチンに処理を投げる
     ::PostMessage(g_hwnd, TTB_SET_TASK_TRAY_ICON, (WPARAM)hIcon, (LPARAM)Tips);
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//
@@ -468,13 +482,14 @@ extern "C" BOOL WINAPI TTBPlugin_ExecuteCommand
     LPCTSTR PluginFilename, INT32 CmdID
 )
 {
-    WriteLog(ERROR_LEVEL(5), TEXT("実行: %s|%d"), PluginFilename, CmdID);
+    SystemLog(TEXT("%s"), TEXT("コマンドの実行"));
+    SystemLog(TEXT("  %s|%i"), PluginFilename, CmdID);
 
     // 相対パスからプラグインのインスタンスを検索
     auto plugin = PluginMgr::GetInstance().Find(PluginFilename);
     if ( nullptr == plugin )
     {
-        WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("Not found"));
+        SystemLog(TEXT("  %s"), TEXT("Not found"));
         return FALSE;
     }
 
@@ -484,7 +499,7 @@ extern "C" BOOL WINAPI TTBPlugin_ExecuteCommand
         g_hwnd, TTB_EXECUTE_COMMAND, (WPARAM)plugin, (LPARAM)CmdID
     );
 
-    WriteLog(ERROR_LEVEL(5), TEXT("  %s"), TEXT("OK"));
+    SystemLog(TEXT("  %s"), TEXT("OK"));
     return result;
 }
 
