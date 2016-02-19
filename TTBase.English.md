@@ -1,6 +1,6 @@
 #TTBase Plugin Sepcification
 
-　If you execute many resident softwares just because of convenience, it causes lack of resources, taking an extremely long time to boot your PC, and many other annoying things.  
+　If you execute many resident softwares just because of convenience, it causes lack of resources, takes an extremely long time to boot your PC, and brings many other annoying things.  
 　Therefore, TTBase has been invented. It has only plugin interfaces. So you can get your own and only application as you want when you limit which plugin you use.
 
 Official Web Site  
@@ -19,7 +19,7 @@ The web site of K2, the author
 ---
 
 ##Introduction  
-　TTBase is just an application which resident in task tray after starting.  
+　TTBase is just an application which is resident in task tray after starting.  
 To enable this software, you need plugins (DLLs) to be loaded by TTBase.  
 　Read this specification carefully and let's make plugins!
 
@@ -27,7 +27,9 @@ To enable this software, you need plugins (DLLs) to be loaded by TTBase.
 　When we want to make a slight resident tools, we usually write a whole application from scratch. But if we have such many tools, we are not happy with unexpected phenomenons such as having many processes, using a lot of resources, slowing down the boot time of the PC.  
 　Therefore, if we make a one resident tool which calls small DLLs or lets them resident in its own process, we may have an ideal tool which is friendly to the environment. The origin of TTBase is from such an idea.  
 　Using plugin SDK, you can write tiny tools immediately and it simplifies the process such as indicating task tray icon and/or constructing hotkeys and menus. So it is suitabe for making small applications.  
-　Some of global hooks are also available for plugins. You can use almost all function of WH\_SHELL and some part of WH\_MOUSE without thinking about bothering DLL hooks and shared memory.
+　Some of global hooks are also available for plugins. You can use almost all function of _WH\_SHELL_ and some part of _WH\_MOUSE_ without thinking about bothering DLL hooks and shared memory. 
+
+※There are some implementations that do not provide hooks such as _peach_,_hako_, etc.
 
 ---
 
@@ -38,11 +40,11 @@ To enable this software, you need plugins (DLLs) to be loaded by TTBase.
 ---
 
 ##The sort of pluguins  
-###Residental Type and At-use Type  
-　Set _ptAlwaysLoad_ into _PluginType_ of the Plugin Information Structure, and it is the residental type. While TTBase is running, the plugin is always loaded in the process. If you want to hook mouse messages, choose this type.  
+###Resident Type and At-use Type  
+　Set _ptAlwaysLoad_ into _PluginType_ of the plugin information structure, and it is the resident type. While TTBase is running, the plugin is always loaded in the process. If you want to hook mouse messages, choose this type.  
 　When you set _ptLoadAtUse_, now it is the at-use type. It will be loaded at the time when users or the timer call commands, following _TTBPlugin\_Init_, _TTBPlugin\_Execute_, and then _TTBPlugin\_Unload_ is called and the plugin will be unloaded.  
-　The at-use type saves memory because it is loaded on the memory only when the commands are executed. However, it takes more time to execute commands. If you want to make a plugin for such a use of reading a big data file, you should choose the residental type.  
-　If you call _TTBPlugin\_WindowsHook_, you must choose the residental type. When making a residental plugin, you should use WindowsAPIs as you can and let the file size small. It is one of the option that a small residental type and a big at-use type collaborates with each other.
+　The at-use type saves memory because it is loaded on the memory only when the commands are executed. However, it takes more time to execute commands. If you want to make a plugin for such a use of reading a big data file, you should choose the resident type.  
+　If you call _TTBPlugin\_WindowsHook_, you must choose the resident type. When making a residental plugin, you should use WindowsAPIs as you can and let the file size small. It is one of the option that a small resident type and a big at-use type collaborates with each other.
 
 ###The ways of how a command is called  
 　TTBase calls commands in 5 ways below:  
@@ -51,19 +53,20 @@ To enable this software, you need plugins (DLLs) to be loaded by TTBase.
 - System Menu (Right click on the task tray or hoykeys)
 - Hotkeys
 - Timer
-- WindowsHook（Now _WH\_SHELL_ and some part of _WH\_MOUSE_ are available)
+- WindowsHook（At now _WH\_SHELL_ and some part of _WH\_MOUSE_ are available)
 
-　Displaying tool menu / system menu or not is determined by setting the value properly into DispMenu of the plugin information structure.  
-Moreover, displaying commands in the hotkey setting menu is also determined by the value of DispMenu.  
+　Displaying tool menu / system menu or not is determined by setting the value properly into DispMenu of the plugin information structure. Moreover, displaying commands in the hotkey setting menu is also determined by the value of DispMenu.  
 　About the timer, it gets function by setting the interval time into IntervalTime of PluginCommandInfo. Set 0 if not use.  
 　On WindowsHook, TTBase goes through a procedure for Hook and calls for plugin functions without paniful works for Hook.dll. At now, you can use almost all function of _WH\_SHELL_ and some part of _WH\_MOUSE_.  
 
 ※ _peach_ and _hako_ do not provide timer nor hook by itself
 
 ###How plugins send a message to the host  
-　TTBase searches DLL files in the installation folder and the subfolders, and once load them when it is started. Then it calls _TTBPlugin\_InitPluginInfo_ event of the plugin and gets the plugin information structure (PLUGIN\_INFO) from the plugin. By this, it obtains the name, sort, and command informations of the plugin. After that, unload plugins if they are not residental.  
-　If it is residental type, TTBase calls _Plugin\_Init_ and it will stay loaded in the process.  
+　TTBase searches DLL files in the installation folder and the subfolders, and once load them when it is started. Then it calls _TTBPlugin\_InitPluginInfo_ event of the plugin and gets the plugin information structure (PLUGIN\_INFO) from the plugin. By this, it obtains the name, sort, and command informations of the plugin. After that, it unloads plugins if they are not residental.  
+　If the plugin is a resident type, TTBase calls _Plugin\_Init_ and it will stay loaded in the process.  
 　By the way, to accelerate the boot time, TTBase uses the cache of the plugin information which is stored in TTBase.dat after the first installation of the plugin. Unless the file time of the plugin is updated, it keeps using the cache.
+
+※There are some implementations that do not have cache mechanism such as _pbox_, _peach_,_hako_, etc.
 
 ---
 
@@ -197,30 +200,30 @@ struct PLUGIN_INFO_A
 ---
 ###【Description】
 
-There are two kinds of structures.
+There are two kinds of structure.
 
 ##[PLUGIN\_INFO Structure]
 　The storage for plugin informatin. To tell the information to TTBase, call _Plugin\_SetPluginInfo_ and pass this structure. This includes command information (_PLUGIN\_COMMAND\_INFO_).
 
 ###WORD NeedVersion
-　Plugin API version that it requires.  
+　Plugin API version that the plugin requires.  
 Set **0** at this time.
 
 ###LPTSTR Name
-　Name of the plugin. You can use any letter in addition to ascii.
+　Name of the plugin. You can use any letter including to ascii.
 
 ###LPTSTR Filename
-　Set the file name as **the relative path** from the installaion path.
+　Set the file name as **a relative path** from the installaion path.
 
 ###WORD PluginType
-　Specify the plugin type whether residental or at-use.  
+　Specify the plugin type whether it is residental or at-use type.  
 
     ptAlwaysLoad:    Resident Plugin
     ptLoadAtUse:     Load-at-use Plugin
     ptSpecViolation: The DLLs but TTBase. DO NOT USE THIS VALUE.
 
-　Choose _ ptLoadAtUse_ as possible if it works only at use.  
-It saves the memory usage of TTBase.
+　Choose _ptLoadAtUse_ as possible if it works only at use.  
+That saves the memory usage of TTBase.
 
 ###DWORD VersionMS, VersionLS
 　Set the version of the plugin.  
@@ -238,10 +241,10 @@ The total number must be **eaqual or less than 256**.
 
 ###PLUGIN\_COMMAND\_INFO Commands
 　Set the command information. 
-Prepare a pointer for the array of the commands, then reserve the memory and set it into the pointer.
+Prepare a pointer for the array of the commands, and then allocate the memory and set them into the pointer.
 
 ###DWORD LoadTime
-　This member is used in the TTBase. So you don't have to care about it. The time that it takes to retrieve the information of the plugin will be set in milliseconds.  
+　This member is used in the TTBase. So you don't have to care about it. The time that it takes to get the information of the plugin will be set in the unit of millisecond.  
 　The value is less than msec in resolution since _QueryPerformanceTimer()_ is used.
 
 ※_peach_ and _hako_ always sets it **0**
@@ -250,7 +253,7 @@ Prepare a pointer for the array of the commands, then reserve the memory and set
 
 ##[PLUGIN\_COMMAND\_INFO Structure]
 　The structure for _Commands_ member of _PLUGIN\_INFO_.  
-Set the infomations of the plugin and pass it.
+Set the infomation of the commands and pass it.
 
 ###LPTSTR Name
 　The name of the command. Use **ratin alphabets, numbers**, and **\_** only.
@@ -259,17 +262,17 @@ Set the infomations of the plugin and pass it.
 　The caption of the command. It is displayed on the menu and so on. You can use any letter.
 
 ###INT32 CommandID
-　The number of the command. Set a unique number a command.
+　The identity of the command. Set a unique number a command.
 
 ###INT32 Attr
-　The attribute of the command. Now this value is not is used.
+　The attribute of the command. At now this value is not is used.
 
 ###INT32 ResID
-　The resource ID of the command. Now this value is not is used.
+　The resource ID of the command. At now this value is not is used.
 
 ###DWORD DispMenu
 　Specify whether the command is displayed on the system/tool menu of TTBase. The principle is that settings are to be set as a system menu and the basic functions of the command are to be set as a tool menu.  
-　In addition set whether the command is available as a hotkey. If you are to set 2 of them or more, please use the logical sum.  
+　In addition set whether the command is available as a hotkey. If you are to set 2 of them or more, use the logical sum.  
 
     dmNone:        Shows nothing
     dmSystemMenu:  Displays on the system menu
@@ -278,13 +281,13 @@ Set the infomations of the plugin and pass it.
     dmMenuChecked: Whether it has a checkmark or not
   
 ###DWORD TimerInterval
-　The specification of sequential command execution with a timer.
+　The specification for sequential command execution with the timer.
 Specify the interval time in [msec].  
 If you don't use the timer function, set it 0.  
 　Inside TTBase,  the timer event occurs in every about 100msec. Commads are executed in this time resolution, so it is meaningless if you set a too small value. Set it at about 100msec unit.
 
 ###DWORD TimerCounter
-　Using inside TTBase. 
+　This is used inside TTBase. 
 
 ---
 
@@ -299,7 +302,7 @@ If not exported the functions, TTBase does not recognize the DLL as a plugin.
 PLUGIN_INFO* WINAPI TTBEvent_InitPluginInfo(LPTSTR PluginFilename);
 ```
 　Allocate the memory for the plugin information structure, set the information and return it. If the plugin has commands, allocate the memory for the command information too.  
-　In PluginFilename, the execution path of the plugin is set as a **relative path** from TTBase. You can use it in your plugin, but copy it after allocating the memory for the _Filename_ member of the plugin information structure, and return it to TTBase. 
+　In _PluginFilename_, the execution path of the plugin is set as a **relative path** from TTBase. You can use it in your plugin, but copy it with allocating the memory for the _Filename_ member of the plugin information structure, and return it to TTBase. 
 
 ================================================================
 ###TTBEvent\_FreePluginInfo
@@ -307,9 +310,9 @@ PLUGIN_INFO* WINAPI TTBEvent_InitPluginInfo(LPTSTR PluginFilename);
 ```c
 void WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PluginInfo);
 ```
-　Free the memory of the plugin information structure that is passed.  
-　See the command count and free all the memory of the command information correctly.  
-The memory that is freed by this event is the memory allocated by _TTBEvent\_InifPluginInfo_ of your plugin.
+　Free the memory of the plugin information structure which is passed.  
+　Ensure the command count and free all the memory of the command information correctly.  
+The memory that is freed by this event is the memory allocated by _TTBEvent\_InitPluginInfo_.
 
 ***
 
@@ -321,10 +324,12 @@ The memory that is freed by this event is the memory allocated by _TTBEvent\_Ini
 ```c
 BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin);
 ```
-　Initialize the plugin. This event is called at the first time after the plugin is loaded.  
-　Because of the cache mechanism of TTBase, _TTBEvent\_InitPluginInfo_ **would not be called every time**. So, you can get your DLL's file name by _PluginFilename_.  
-　_hPlugin_ is the identity code that TTBase distinguish plugins. You need this in some functions, so please store it in a gloabal variable.  
-　Return TRUE when initialization has been succeeded.
+　Initialize the plugin. This event is called at the first time when the plugin is loaded.  
+　Because of the cache mechanism of TTBase, _TTBEvent\_InitPluginInfo_ **would not be called in every time**. So, you can get your DLL's file name by _PluginFilename_.  
+　_hPlugin_ is the identity code that TTBase distinguish plugins. You need this in some functions, so store it in a gloabal variable.  
+　Return TRUE when the initialization has been done successfully.
+
+※There are some implementations that do not have cache mechanism such as _pbox_, _peach_,_hako_, etc.
 
 ================================================================
 ###TTBEvent\_Unload
@@ -343,14 +348,14 @@ BOOL WINAPI TTBEvent_Execute(INT32 CommandID, HWND hWnd);
 　This event is called when a command is about to execute in some way.  
 　If you set _CommandCount_ of the plugin information structure 1 or greater, this handler is necessary.  
 In _CommandID_, the command ID is set.  
-　In _hWnd_, the window handle of the NotifyWindow which TTBase has is stored. (Though it is not shown, it is necessary to handle window messages.)  
+　In _hWnd_, the window handle of the NotifyWindow which TTBase has is stored. (Though the window is not shown, it is necessary to handle window messages.)  
 　If you finish the process successfully, return TRUE.  
 
-　The conditions that this event handler is called are below:  
+　The situations that this event handler is called are below:  
 
 - The tool menu or the system menu in TTBase is selected  
 - The command is called from the hotkey that user had set  
-- The timer calls time the timer-type command automatically every setting time, which _IntervalTime_ of _PluginInfo_ is set 1 or greater.
+- The timer calls the timer-type command automatically every setting time, which _IntervalTime_ of _PluginInfo_ is set 1 or greater.
 
 ================================================================
 ###TTBEvent\_WindowsHook
@@ -369,6 +374,8 @@ void WINAPI TTBEvent_WindowsHook(UINT Msg, WPARAM wParam, LPARAM lParam);
 　This is notified only when _nCode_ which can be got by the callback function is _HC\_ACTION_.  
 　_TTB\_HMOUSE\_ACTION_ will be set in _Msg_ (See MessageDef.cpp).  
 　The sort of mouse message will be in _wParam_, the window handle that the event occured in will be set in _lParam_. Even though the actual _WH\_MOUSE_ sets a pointer to _MOUSEHOOKSTRUCT_ in _lParam_, you cannot get everything in your plugin.TTBase provides only window handle.
+
+※_hako_ does not have hooks by itself
 
 ---
 
@@ -390,8 +397,8 @@ extern PLUGIN_INFO* (WINAPI* TTBPlugin_GetPluginInfo)(DWORD_PTR hPlugin);
 extern void (WINAPI* TTBPlugin_SetPluginInfo)(DWORD_PTR hPlugin, PLUGIN_INFO* PluginInfo);
 ```
 　Reset the plugin information structure of the plugin which is designated by _hPlugin_. Use this function when you want to change the information dynamically from the plugin side.  
-　Allocate new memory for _PluginInfo_. **Never use the memory that is got by _TTBPlugin\_GetPluginInfo_**。  
-（In the plugin template, CopyPluginInfo function is served as a utility routine. You can use it to copy the information structure which is got by _TTBPlugin\_GetPluginInfo_. Off course you can copy by yourself without using it）  
+　Allocate new memory for _PluginInfo_. **Never use the memory that is passed by _TTBPlugin\_GetPluginInfo_**.  
+（In the plugin template, CopyPluginInfo function is served as an utility routine. You can use it to copy the information structure which is got by _TTBPlugin\_GetPluginInfo_. Off course you can copy by yourself without using it）  
 　After the function is called, TTBase will copy the information structure and then use it inside. So **free the memory of _PluginInfo_ explicitly that is allocated in the plugin side**.
 
 ================================================================
@@ -409,11 +416,11 @@ extern void (WINAPI* TTBPlugin_FreePluginInfo)(PLUGIN_INFO* PluginInfo);
 ```c
 extern void (WINAPI* TTBPlugin_SetMenuChecked)(DWORD_PTR hPlugin, INT32 CommandID, DWORD ChagneFlag, DWORD Flag);
 ```
-　Change the attibute of the command which is indicated by _CommandID_ of the plugin which is designated by _hPlugin_.
+　Change the attribute of the command which is indicated by _CommandID_ of the plugin which is designated by _hPlugin_.
 
 _**※in TTBase 1.1.0, there is a bug that CommandID is not understood as the command ID but as the command index in the plugin.**_
 
-ChangeFlag: to determine the attribute to cahnge. Use logical sum when more than one flag are to be set.
+ChangeFlag: to determine the attribute to change. Use logical sum when more than one flag are to be set.
 
     DISPMENU_MENU   : Change the sort of system menu / tool menu  
                       If this flag is set, it is not displayed
@@ -421,7 +428,7 @@ ChangeFlag: to determine the attribute to cahnge. Use logical sum when more than
     DISPMENU_ENABLED: To determine to gray out the menu or not
     DISPMENU_CHECKED: To determine to check the menu item or not
 
-Flag: set the value as a logical sum of the values below
+Flag: set the value as a logical sum of the values below.
 
     dmNone       =  0; // Show nothing
     dmSystemMenu =  1; // System Menu
@@ -439,7 +446,7 @@ Flag: set the value as a logical sum of the values below
 ```c
 PLUGIN_INFO** WINAPI TTBPlugin_GetAllPluginInfo(void);
 ```
-　Returns the pointer of the pointer array that consists of all the information of the pluguin information structure of the pluguins in TTBase.  
+　Returns the pointer of the pointer array that consists of all the information of the pluguin information structure in TTBase.  
 The last value is set to be nullptr. You can detect the tail of the array with it.
 
 ================================================================
@@ -448,7 +455,7 @@ The last value is set to be nullptr. You can detect the tail of the array with i
 ```c
 void WINAPI TTBPlugin_FreePluginInfoArray(PLUGIN_INFO** PluginInfoArray);
 ```
-　Releases PLUGIN\_INFO\_ARRAY that is retrieved by _TTBPlugin\_GetAllPluginInfo_.
+　Releases PLUGIN\_INFO\_ARRAY that is got by _TTBPlugin\_GetAllPluginInfo_.
 
 ***
 
@@ -461,7 +468,7 @@ void WINAPI TTBPlugin_FreePluginInfoArray(PLUGIN_INFO** PluginInfoArray);
 ```c
 void WINAPI TTBPlugin_SetTaskTrayIcon(HICON hIcon, LPCTSTR Tips);
 ```
-　Change the system tray icon of TTBase  
+　Change the system tray icon of TTBase.  
 
 ※_peach_ does not plan to implement this feature
 
@@ -475,7 +482,7 @@ void WINAPI TTBPlugin_SetTaskTrayIcon(HICON hIcon, LPCTSTR Tips);
 ```c
 void WINAPI TTBPlugin_WriteLog(DWORD_PTR hPlugin, INT32 logLevel, LPCTSTR msg);
 ```
-　Outputs logs from pluguins  
+　Outputs logs from plugins.  
 
 logLevel are below:
 
@@ -492,8 +499,8 @@ logLevel are below:
 BOOL WINAPI TTBPlugin_ExecuteCommand(LPCTSTR PluginFilename, INT32 CmdID);
 ```
 　Executes commands from other plugins.  
-　Specify PluginFilename as the relative path from TTBase. You can get the path by _TTBPlugin\_GetPluginInfo_ or _TTBPlugin\_GetAllPluginInfo_.  
-　Return value is to be returned from the plugin that executs the command. If system could not find the plugin you specified, it returns FALSE.
+　Specify _PluginFilename_ as a relative path from TTBase. You can get the path by _TTBPlugin\_GetPluginInfo_ or _TTBPlugin\_GetAllPluginInfo_.  
+　The return value is to be returned from the plugin that executes the command. If the system could not find the plugin you specified, it returns FALSE.
 
 ---
 
