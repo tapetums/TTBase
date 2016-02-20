@@ -94,7 +94,7 @@ inline settings::settings()
     if ( logLevel > 5 ) { logLevel = 5; }
 
     // ログの出力先がファイルの場合
-    if ( logToFile )
+    if ( logLevel && logToFile )
     {
         ::PathRenameExtensionW(path.data(), L".log");
 

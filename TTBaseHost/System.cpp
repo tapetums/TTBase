@@ -448,7 +448,8 @@ extern "C" void WINAPI TTBPlugin_WriteLog
     };
 
     // 設定以下のログレベル項目は出力しない
-    if ( logLevel > settings::get().logLevel ) { return; }
+    if ( settings::get().logLevel == 0 )       { return; }
+    if ( settings::get().logLevel < logLevel ) { return; }
 
     SYSTEMTIME st;
     ::GetLocalTime(&st);
