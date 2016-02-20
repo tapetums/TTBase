@@ -25,6 +25,7 @@ Compilable with: **Visual Studio Community 2015 (C++11, 32/64-bit)**
 - icon.ico
 - resource.h
 - TTBaseHost.rc
+- TTBaseHost.def
 - compatibility.manifest
 - dpiAware.manifest
 - NYSL.TXT
@@ -41,7 +42,6 @@ Compilable with: **Visual Studio Community 2015 (C++11, 32/64-bit)**
 
 To compile, you also require files below
 
-- TTBaseHost.def
 - Plugin.hpp
 - Plugin.cpp
 - MessageDef.hpp

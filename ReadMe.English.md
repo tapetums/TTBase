@@ -8,7 +8,6 @@ Compilable with: **Visual Studio Community 2015 (C++11, 32/64-bit)**
 ---
 
 - TTBase.md
-- TTBase.sln
 - Plugin.hpp
 - Plugin.cpp
 - MessageDef.hpp
@@ -19,6 +18,7 @@ Compilable with: **Visual Studio Community 2015 (C++11, 32/64-bit)**
 - amd64.manifest
 - NYSL.TXT
 - TTBasePlugin
+ - TTBasePlugin.sln
  - TTBasePlugin.vcxproj
  - TTBasePlugin.vcxproj.filters
  - TTBasePlugin.vcxproj.user
@@ -31,15 +31,11 @@ Compilable with: **Visual Studio Community 2015 (C++11, 32/64-bit)**
 
 ##Description
 
-###TTBase.md
-Specifications for TTBase plugin.  
+###TTBase.English.md
+The specification for TTBase plugin.  
 Original introduction was written in 2ch by K2, who has originally created TTBase.  
 I'm sorry but only Japanese version is available.  
 Any translations are appreciated.
-
-###TTBase.sln
-Solution file for Visual C++ 2015.  
-Please open this by double-clicking.
 
 ###Plugin.hpp
 Header file for the TTBase plugin interfaces.
@@ -70,8 +66,12 @@ License for these files above.
 
 _Under [TTBasePlugin] folder_
 
+###TTBasePlugin.sln
+The solution file for Visual C++ 2015.  
+Please open this by double-clicking.
+
 ###TTBasePlugin.vcxproj
-Project file for Visual C++2015.  
+The project file for Visual C++2015.  
 This will be automatically loaded when you open TTBase.sln.
 
 ###TTBasePlugin.def

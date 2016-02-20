@@ -8,7 +8,6 @@ TTBase プラグインのためのスケルトンプロジェクトです。
 ---
 
 - TTBase.md
-- TTBase.sln
 - Plugin.hpp
 - Plugin.cpp
 - MessageDef.hpp
@@ -19,6 +18,7 @@ TTBase プラグインのためのスケルトンプロジェクトです。
 - amd64.manifest
 - NYSL.TXT
 - TTBasePlugin
+ - TTBasePlugin.sln
  - TTBasePlugin.vcxproj
  - TTBasePlugin.vcxproj.filters
  - TTBasePlugin.vcxproj.user
@@ -34,10 +34,6 @@ TTBase プラグインのためのスケルトンプロジェクトです。
 ###TTBase.md
 TTBase プラグインの仕様書です。  
 オリジナルの作者である K2 さんが 2ch に書き込んだ内容を、加筆・修正したものです。
-
-###TTBase.sln
-VC++用のソリューションファイルです。  
-このファイルをダブルクリックして開いてください。
 
 ###Plugin.hpp
 TTBase プラグイン インターフェイスの定義ファイルです。
@@ -66,6 +62,10 @@ TTBase で使用される各種メッセージを Windows に登録していま�
 ---
 
 _TTBasePlugin フォルダ 以下_
+
+###TTBasePlugin.sln
+VC++用のソリューションファイルです。  
+このファイルをダブルクリックして開いてください。
 
 ###TTBasePlugin.vcxproj
 VC++用のプロジェクトファイルです。  

@@ -25,6 +25,7 @@ TTBase 互換プログラムのサンプルです。
 - icon.ico
 - resource.h
 - TTBaseHost.rc
+- TTBaseHost.def
 - compatibility.manifest
 - dpiAware.manifest
 - NYSL.TXT
@@ -42,7 +43,6 @@ TTBase 互換プログラムのサンプルです。
 コンパイルするためには、上記に加え  
 TTBase プラグインスケルトンプロジェクトから
 
-- TTBaseHost.def
 - Plugin.hpp
 - Plugin.cpp
 - MessageDef.hpp
