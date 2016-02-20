@@ -144,7 +144,23 @@ void GetVersion(LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS)
 
 //---------------------------------------------------------------------------//
 
+// ほかのプラグインのコマンドを実行する
+BOOL ExecutePluginCommand(LPCTSTR pluginName, INT32 CmdID)
+{
+  #if defined(_USRDLL)
+    // 本体が TTBPlugin_ExecuteCommand をエクスポートしていない場合は何もしない
+    if ( TTBPlugin_ExecuteCommand == nullptr ) { return TRUE; }
+  #endif
+
+    return TTBPlugin_ExecuteCommand(pluginName, CmdID);
+}
+
+//---------------------------------------------------------------------------//
+
 // ログを出力する
+#if NO_WRITELOG
+  #define WriteLog(logLevel, format, ...)
+#else
 void WriteLog(ERROR_LEVEL logLevel, LPCTSTR format, ...)
 {
   #if defined(_USRDLL)
@@ -175,19 +191,7 @@ void WriteLog(ERROR_LEVEL logLevel, LPCTSTR format, ...)
     // ログの出力
     TTBPlugin_WriteLog(g_hPlugin, logLevel, msg);
 }
-
-//---------------------------------------------------------------------------//
-
-// ほかのプラグインのコマンドを実行する
-BOOL ExecutePluginCommand(LPCTSTR pluginName, INT32 CmdID)
-{
-  #if defined(_USRDLL)
-    // 本体が TTBPlugin_ExecuteCommand をエクスポートしていない場合は何もしない
-    if ( TTBPlugin_ExecuteCommand == nullptr ) { return TRUE; }
-  #endif
-
-    return TTBPlugin_ExecuteCommand(pluginName, CmdID);
-}
+#endif
 
 //---------------------------------------------------------------------------//
 
