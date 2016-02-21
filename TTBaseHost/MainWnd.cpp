@@ -327,7 +327,7 @@ BOOL CALLBACK MainWnd::OnCreate
     btn_log2file.Check(settings::get().logToFile);
 
     auto style = WS_VSCROLL | WS_HSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL;
-    auto styleEx = LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_HEADERDRAGDROP;
+    auto styleEx = LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_HEADERDRAGDROP | LVS_EX_INFOTIP;
     list_plg.Create(style, styleEx, m_hwnd, CTRL::LIST_PLUGIN);
     list_plg.InsertColumn(LIST_PLG_ITEM::Name,     130, LIST_PLG_ITEM::名前);
     list_plg.InsertColumn(LIST_PLG_ITEM::Filename, 150, LIST_PLG_ITEM::相対パス);
@@ -459,29 +459,62 @@ LRESULT CALLBACK MainWnd::OnNotify
     HWND hwnd, INT32, LPNMHDR pNMHdr
 )
 {
-    if ( pNMHdr->idFrom == CTRL::LIST_PLUGIN && pNMHdr->code == NM_CLICK )
+    if ( pNMHdr->idFrom == CTRL::LIST_PLUGIN )
     {
-        // プラグインの詳細情報を表示
-        ShowPluginInfo(list_plg, edit);
+        if ( pNMHdr->code == NM_CLICK )
+        {
+            // プラグインの詳細情報を表示
+            ShowPluginInfo(list_plg, edit);
+        }
+        else if ( pNMHdr->code == LVN_GETINFOTIP )
+        {
+            TCHAR buf [MAX_PATH];
+            auto pNMinfo = LPNMLVGETINFOTIP(pNMHdr);
+
+            LVITEM item { };
+            item.mask       = TVIF_TEXT;
+            item.iItem      = pNMinfo->iItem;
+            item.pszText    = buf;
+            item.cchTextMax = MAX_PATH;
+            ListView_GetItem(list_plg, &item);
+            pNMinfo->pszText = item.pszText;
+        }
     }
-    else if ( pNMHdr->idFrom == CTRL::LIST_COMMAND && pNMHdr->code == NM_CLICK )
+    else if ( pNMHdr->idFrom == CTRL::LIST_COMMAND )
     {
-        // ユーザーによるチェックボックスの操作を無効化
-        POINT pt;
-        ::GetCursorPos(&pt);
-        ::ScreenToClient(pNMHdr->hwndFrom, &pt);
+        if ( pNMHdr->code == NM_CLICK )
+        {
+            // ユーザーによるチェックボックスの操作を無効化
+            POINT pt;
+            ::GetCursorPos(&pt);
+            ::ScreenToClient(pNMHdr->hwndFrom, &pt);
 
-        if ( pt.x <= 16 ) { return TRUE; }
-    }
-    else if ( pNMHdr->idFrom == CTRL::LIST_COMMAND && pNMHdr->code == NM_DBLCLK )
-    {
-        // コマンドの実行
-        const auto index = list_cmd.SelectedIndex();
+            if ( pt.x <= 16 ) { return TRUE; }
+        }
+        else if ( pNMHdr->idFrom == CTRL::LIST_COMMAND && pNMHdr->code == NM_DBLCLK )
+        {
+            // コマンドの実行
+            const auto index = list_cmd.SelectedIndex();
 
-        auto plugin = (ITTBPlugin*)list_cmd.GetItemLPARAM(index);
-        const auto CmdID = list_cmd.GetItemToInt(index, LIST_CMD_ITEM::コマンドID);
+            auto plugin = (ITTBPlugin*)list_cmd.GetItemLPARAM(index);
+            const auto CmdID = list_cmd.GetItemToInt(index, LIST_CMD_ITEM::コマンドID);
 
-        return OnExecuteCommand(hwnd, plugin, CmdID);
+            return OnExecuteCommand(hwnd, plugin, CmdID);
+        }
+        else if ( pNMHdr->code == LVN_GETINFOTIP )
+        {
+            TCHAR buf [MAX_PATH];
+            auto pNMinfo = LPNMLVGETINFOTIP(pNMHdr);
+
+            LVITEM item { };
+            item.mask       = TVIF_TEXT;
+            item.iItem      = pNMinfo->iItem;
+            item.pszText    = buf;
+            item.cchTextMax = MAX_PATH;
+            ListView_GetItem(list_cmd, &item);
+
+            pNMinfo->pszText = item.pszText;
+        }
     }
     else if ( pNMHdr->idFrom == CTRL::TREEVIEW && pNMHdr->code == TVN_SELCHANGED )
     {
