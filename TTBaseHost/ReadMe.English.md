@@ -150,11 +150,6 @@ and the authors who produced the great number of plugins for TTBase.
 
 ###Change  Log
 
-2016.02.21 v0.5.0.0
-- Implemented Tool Menu
-- No create log when log level is 0
-- Fixed bug that the checkmarks in the command list has disappeared
-
 2016.02.18 v0.4.0.0
 - Implemented Tool Menu
 - Improved stability
