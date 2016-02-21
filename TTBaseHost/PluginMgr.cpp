@@ -45,7 +45,7 @@ extern HINSTANCE g_hInst;
 
 TTBasePlugin::~TTBasePlugin()
 {
-    if ( nullptr == m_handle )
+    if ( nullptr == m_info )
     {
         return; // ムーブデストラクタでは余計な処理をしない
     }
