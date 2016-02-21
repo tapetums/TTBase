@@ -477,7 +477,6 @@ LRESULT CALLBACK MainWnd::OnNotify
             item.pszText    = buf;
             item.cchTextMax = MAX_PATH;
             ListView_GetItem(list_plg, &item);
-
             pNMinfo->pszText = item.pszText;
         }
     }
@@ -1009,18 +1008,12 @@ void PopupSysMenu(HWND hwnd)
     // メニュー項目を生成
     MENUITEMINFO mii;
     mii.cbSize = sizeof(MENUITEMINFO);
+    mii.fMask  = MIIM_STRING | MIIM_STATE | MIIM_ID | MIIM_DATA;
 
-    UINT index = 0;
-    UINT wID   = 0; // +10'000 しておいて、WM_COMMAND で取り出す
-
-    // wID は コマンドリストにおける項目のインデックスと同じになるようにしてある
+    UINT wID = 0; // +10'000 しておいて、WM_COMMAND で取り出す
     for ( auto it = mgr.begin(); it != mgr.end(); ++it )
     {
         const auto& plugin = *it;
-
-        const auto hSubSubMenu = ::CreatePopupMenu();
-        bool inserted = false;
-
         const auto CommandCount = plugin->info()->CommandCount;
         for ( size_t idx = 0; idx < CommandCount; ++idx, ++wID )
         {
@@ -1028,29 +1021,26 @@ void PopupSysMenu(HWND hwnd)
             const auto& DispMenu = cmd.DispMenu;
             if ( 0 == (DispMenu & dmSystemMenu) ) { continue; }
 
-            mii.fMask  = MIIM_STRING | MIIM_STATE | MIIM_ID | MIIM_DATA;
             mii.dwTypeData = cmd.Caption;
             mii.fState     = DispMenu & dmMenuChecked ? MFS_CHECKED : MFS_UNCHECKED;
             mii.wID        = wID + 10'000;
             mii.dwItemData = (ULONG_PTR)&plugin;
-            InsertMenuItem(hSubSubMenu, wID, FALSE, &mii);
-
-            inserted = true;
-        }
-        if ( inserted )
-        {
-            mii.fMask  = MIIM_STRING | MIIM_SUBMENU;
-            mii.dwTypeData = plugin->info()->Name;
-            mii.hSubMenu   = hSubSubMenu;
-            InsertMenuItem(hSubMenu, index, FALSE, &mii);
-
-            ++index;
+            InsertMenuItem(hSubMenu, wID, FALSE, &mii);
         }
     }
 
     // Article ID: Q135788
     // ポップアップメニューから処理を戻すために必要
     ::SetForegroundWindow(hwnd);
+
+    // セパレータの位置を移動
+    //  メニューリソースでは項目が予め最低一つないと
+    //  メニューが表示されないバグがあるため、
+    //  最初にダミーとして一つセパレータを入れてある
+    DeleteMenu(hSubMenu, 1, MF_BYPOSITION);
+    mii.fMask = MIIM_FTYPE;
+    mii.fType = MFT_SEPARATOR;
+    InsertMenuItem(hSubMenu, 3, TRUE, &mii);
 
     // ポップアップメニューを表示
     ::TrackPopupMenu
@@ -1086,8 +1076,6 @@ void PopupToolMenu(HWND hwnd)
     mii.fMask  = MIIM_STRING | MIIM_STATE | MIIM_ID | MIIM_DATA;
 
     UINT wID = 0; // +20'000 しておいて、WM_COMMAND で取り出す
-
-    // wID は コマンドリストにおける項目のインデックスと同じになるようにしてある
     for ( auto it = mgr.begin(); it != mgr.end(); ++it )
     {
         const auto& plugin = *it;
