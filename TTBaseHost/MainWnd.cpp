@@ -618,6 +618,15 @@ void CALLBACK MainWnd::OnCommand
             return;
         }
 
+        if ( id < 20'000 )
+        {
+            SystemLog(TEXT("%s"), TEXT("システムメニューの表示"));
+        }
+        else
+        {
+            SystemLog(TEXT("%s"), TEXT("ツールメニューの表示"));
+        }
+
         // リストビューコントロールから必要なデータを取得
         const auto plugin = (ITTBPlugin*)list_cmd.GetItemLPARAM(index);
         const auto CmdID = list_cmd.GetItemToInt(index, LIST_CMD_ITEM::コマンドID);
@@ -625,9 +634,8 @@ void CALLBACK MainWnd::OnCommand
         // コマンドを実行
         if ( plugin )
         {
-            SystemLog(TEXT("%s"), TEXT("システムメニューの表示"));
             SystemLog(TEXT("  %s|%i"), plugin->info()->Filename, CmdID);
-            plugin->Execute(CmdID, hwnd);
+            OnExecuteCommand(hwnd, plugin, CmdID);
         }
     }
 }
