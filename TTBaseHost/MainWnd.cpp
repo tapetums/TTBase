@@ -606,15 +606,15 @@ void CALLBACK MainWnd::OnNotifyIcon
     HWND hwnd, UINT uMsg
 )
 {
-    if ( uMsg == WM_RBUTTONDOWN )
+    if ( uMsg == WM_RBUTTONUP )
     {
         PopupSysMenu(hwnd);
     }
-    else if ( uMsg == WM_LBUTTONDOWN )
+    else if ( uMsg == WM_LBUTTONUP )
     {
         PopupToolMenu(hwnd);
     }
-    else if ( uMsg == WM_MBUTTONDOWN )
+    else if ( uMsg == WM_MBUTTONUP )
     {
         // ウィンドウを表示
         if ( ! m_is_fullscreen ) { ToCenter(); }
