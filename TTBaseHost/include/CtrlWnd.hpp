@@ -351,7 +351,7 @@ public:
 
     void WINAPI SetImageList(HIMAGELIST list)
     {
-        ListView_SetImageList(m_hwnd, list, LVSIL_NORMAL);
+        ListView_SetImageList(m_hwnd, list, LVSIL_STATE);
     }
 
     INT32 WINAPI Count()
