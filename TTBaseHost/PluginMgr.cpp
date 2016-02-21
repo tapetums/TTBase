@@ -289,6 +289,7 @@ bool TTBasePlugin::Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
 void TTBasePlugin::Unload()
 {
     SystemLog(TEXT("%s"), TEXT("プラグインの終了処理"));
+    SystemLog(TEXT("  %s"), info()->Name);
 
     if ( nullptr == TTBEvent_Unload )
     {
@@ -329,6 +330,8 @@ bool TTBasePlugin::Execute(INT32 CmdID, HWND hwnd)
 void TTBasePlugin::Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
     SystemLog(TEXT("%s"), TEXT("プラグインをフック"));
+    SystemLog(TEXT("  %s"), info()->Name);
+    SystemLog(TEXT("  Msg = 0x%X"), Msg);
 
     if ( nullptr == TTBEvent_WindowsHook )
     {

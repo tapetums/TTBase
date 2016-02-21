@@ -695,6 +695,7 @@ void CALLBACK MainWnd::OnReloadPlugins()
 
     // プラグインを再ロード
     mgr.FreeAll();
+    ::Sleep(100);
     mgr.LoadAll();
 
     // リストビューをクリア
