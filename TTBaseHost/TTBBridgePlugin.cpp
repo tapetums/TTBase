@@ -125,7 +125,7 @@ TTBBridgePlugin::TTBBridgePlugin()
     BridgeData data;
     GenerateUUIDStringW(data.filename, data.namelen);
     GenerateUUIDStringW(data.done,     data.namelen);
-    evt_done = ::CreateEventW(nullptr, FALSE, FALSE, data.done);
+    evt_done = ::CreateEventW(nullptr, TRUE, FALSE, data.done);
 
     if ( ! shrmem.Map(sizeof(data), data.filename, File::ACCESS::WRITE) )
     {
@@ -162,8 +162,7 @@ TTBBridgePlugin::TTBBridgePlugin()
     threadId = pi.dwThreadId;
 
     // 接続テスト
-    DWORD ret;
-    ret = ::WaitForSingleObject(evt_done, 5'000);
+    const auto ret = ::WaitForSingleObject(evt_done, 5'000);
     if ( ret != WAIT_OBJECT_0 )
     {
         WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe を開始できません"));
@@ -270,15 +269,13 @@ bool TTBBridgePlugin::Load
     ::StringCchCopyW(data.filename, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
+    shrmem.Flush();
+
+    ::ResetEvent(evt_done);
     ::PostThreadMessage(threadId, WM_COMMAND, 0, 0);
 
     // 受信完了待ち
-    const auto ret = ::WaitForSingleObject(evt_done, 3'000);
-    if ( ret != WAIT_OBJECT_0 )
-    {
-        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe にデータを送れませんでした"));
-        return false;
-    }
+    ::WaitForSingleObject(evt_done, 100);
 
     PluginMsg msg;
     plugin_data.Seek(0);
@@ -332,15 +329,13 @@ void TTBBridgePlugin::Free()
     ::StringCchCopyW(data.filename, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
+    shrmem.Flush();
+
+    ::ResetEvent(evt_done);
     ::PostThreadMessage(threadId, WM_COMMAND, 0, 0);
 
     // 受信完了待ち
-    const auto ret = ::WaitForSingleObject(evt_done, 3'000);
-    if ( ret != WAIT_OBJECT_0 )
-    {
-        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe にデータを送れませんでした"));
-        return;
-    }
+    ::WaitForSingleObject(evt_done, 100);
 
     // 読み込み済みのフラグをオフ
     m_loaded = false;
@@ -446,15 +441,13 @@ bool TTBBridgePlugin::InitInfo
     ::StringCchCopyW(data.filename, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
+    shrmem.Flush();
+
+    ::ResetEvent(evt_done);
     ::PostThreadMessage(threadId, WM_COMMAND, 0, 0);
 
     // 受信完了待ち
-    const auto ret = ::WaitForSingleObject(evt_done, 3'000);
-    if ( ret != WAIT_OBJECT_0 )
-    {
-        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe にデータを送れませんでした"));
-        return false;
-    }
+    ::WaitForSingleObject(evt_done, 100);
 
     // データの読み取り
     shrmem.Seek(0);
@@ -532,15 +525,13 @@ void TTBBridgePlugin::FreeInfo()
     ::StringCchCopyW(data.filename, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
+    shrmem.Flush();
+
+    ::ResetEvent(evt_done);
     ::PostThreadMessage(threadId, WM_COMMAND, 0, 0);
 
     // 受信完了待ち
-    const auto ret = ::WaitForSingleObject(evt_done, 3'000);
-    if ( ret != WAIT_OBJECT_0 )
-    {
-        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe にデータを送れませんでした"));
-        return;
-    }
+    ::WaitForSingleObject(evt_done, 100);
 
     SystemLog(TEXT("  %s"), TEXT("OK"));
     return;
@@ -599,15 +590,13 @@ bool TTBBridgePlugin::Init
     ::StringCchCopyW(data.filename, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
+    shrmem.Flush();
+
+    ::ResetEvent(evt_done);
     ::PostThreadMessage(threadId, WM_COMMAND, 0, 0);
 
     // 受信完了待ち
-    const auto ret = ::WaitForSingleObject(evt_done, 3'000);
-    if ( ret != WAIT_OBJECT_0 )
-    {
-        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe にデータを送れませんでした"));
-        return false;
-    }
+    ::WaitForSingleObject(evt_done, 100);
 
     PluginMsg msg;
     plugin_data.Seek(0);
@@ -654,15 +643,13 @@ void TTBBridgePlugin::Unload()
     ::StringCchCopyW(data.filename, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
+    shrmem.Flush();
+
+    ::ResetEvent(evt_done);
     ::PostThreadMessage(threadId, WM_COMMAND, 0, 0);
 
     // 受信完了待ち
-    const auto ret = ::WaitForSingleObject(evt_done, 3'000);
-    if ( ret != WAIT_OBJECT_0 )
-    {
-        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe にデータを送れませんでした"));
-        return;
-    }
+    ::WaitForSingleObject(evt_done, 100);
 
     SystemLog(TEXT("  %s"), TEXT("OK"));
     return;
@@ -713,16 +700,13 @@ bool TTBBridgePlugin::Execute
     ::StringCchCopyW(data.filename, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
+    shrmem.Flush();
 
+    ::ResetEvent(evt_done);
     ::PostThreadMessage(threadId, WM_COMMAND, 0, 0);
 
     // 受信完了待ち
-    const auto ret = ::WaitForSingleObject(evt_done, 3'000);
-    if ( ret != WAIT_OBJECT_0 )
-    {
-        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe にデータを送れませんでした"));
-        return false;
-    }
+    ::WaitForSingleObject(evt_done, 100);
 
     PluginMsg msg;
     plugin_data.Seek(0);
@@ -777,15 +761,13 @@ void TTBBridgePlugin::Hook
     ::StringCchCopyW(data.filename, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
+    shrmem.Flush();
+
+    ::ResetEvent(evt_done);
     ::PostThreadMessage(threadId, WM_COMMAND, 0, 0);
 
     // 受信完了待ち
-    const auto ret = ::WaitForSingleObject(evt_done, 3'000);
-    if ( ret != WAIT_OBJECT_0 )
-    {
-        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe にデータを送れませんでした"));
-        return;
-    }
+    ::WaitForSingleObject(evt_done, 100);
 
     SystemLog(TEXT("  %s"), TEXT("OK"));
     return;
