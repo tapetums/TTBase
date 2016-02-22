@@ -1030,8 +1030,12 @@ void PopupSysMenu(HWND hwnd)
             const auto& DispMenu = cmd.DispMenu;
             if ( 0 == (DispMenu & dmSystemMenu) ) { continue; }
 
+            UINT state { 0 };
+            state |= DispMenu & dmMenuChecked ? MFS_CHECKED  : MFS_UNCHECKED;
+            state |= DispMenu & dmDisabled    ? MFS_DISABLED : MFS_ENABLED;
+
             mii.dwTypeData = cmd.Caption;
-            mii.fState     = DispMenu & dmMenuChecked ? MFS_CHECKED : MFS_UNCHECKED;
+            mii.fState     = state;
             mii.wID        = wID + 10'000;
             mii.dwItemData = (ULONG_PTR)&plugin;
             InsertMenuItem(hSubMenu, wID, FALSE, &mii);
@@ -1095,8 +1099,12 @@ void PopupToolMenu(HWND hwnd)
             const auto& DispMenu = cmd.DispMenu;
             if ( 0 == (DispMenu & dmToolMenu) ) { continue; }
 
+            UINT state { 0 };
+            state |= DispMenu & dmMenuChecked ? MFS_CHECKED  : MFS_UNCHECKED;
+            state |= DispMenu & dmDisabled    ? MFS_DISABLED : MFS_ENABLED;
+
             mii.dwTypeData = cmd.Caption;
-            mii.fState     = DispMenu & dmMenuChecked ? MFS_CHECKED : MFS_UNCHECKED;
+            mii.fState     = state;
             mii.wID        = wID + 20'000;
             mii.dwItemData = (ULONG_PTR)&plugin;
             InsertMenuItem(hSubMenu, wID, FALSE, &mii);
