@@ -148,35 +148,6 @@ and the authors who produced the great number of plugins for TTBase.
 
 ---
 
-###Change  Log
-2016.02.21 v0.4.5.0
- ・No log output when log level is 0
- ・Fixed bug that the check mark in the command list had disappeared
-
-2016.02.18 v0.4.0.0
-- Implemented Tool Menu
-- Improved stability
-
-2016.02.16 v0.3.1.0
-- Improved stability
-
-2016.02.13 v0.3.0.0
-- Does not show unnecessary checkboxes
-- Improved the measure for forbidding double-start in some case
-- Improved the system menu
-- Shows the bit count of plugins in the plugin list
-- Corrected the memory leak in 32/64-bridge
-
-2016.02.12 v0.2.0.0
-- In the 64-bit version, now both 32/64-bit plugins are executable.
-
-2016.02.07  v0.1.0.0
-- First Edition
-
----
-
-Thanks for reading.
-
 ####Edited by
 tapetums
 
