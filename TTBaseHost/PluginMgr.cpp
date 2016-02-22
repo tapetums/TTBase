@@ -45,7 +45,7 @@ extern HINSTANCE g_hInst;
 
 TTBasePlugin::~TTBasePlugin()
 {
-    if ( nullptr == m_info )
+    if ( nullptr == m_handle && nullptr == m_info )
     {
         return; // ムーブデストラクタでは余計な処理をしない
     }
@@ -269,7 +269,7 @@ bool TTBasePlugin::Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
 
     if ( nullptr == TTBEvent_Init )
     {
-        SystemLog(TEXT("  %s"), TEXT("未実装"));
+        SystemLog(TEXT("  %s"), TEXT("nullptr"));
         return true;
     }
 
@@ -293,7 +293,7 @@ void TTBasePlugin::Unload()
 
     if ( nullptr == TTBEvent_Unload )
     {
-        SystemLog(TEXT("  %s"), TEXT("未実装"));
+        SystemLog(TEXT("  %s"), TEXT("nullptr"));
         return;
     }
 
@@ -310,7 +310,7 @@ bool TTBasePlugin::Execute(INT32 CmdID, HWND hwnd)
 
     if ( nullptr == TTBEvent_Execute )
     {
-        SystemLog(TEXT("  %s"), TEXT("未実装"));
+        SystemLog(TEXT("  %s"), TEXT("nullptr"));
         return true;
     }
 
@@ -335,7 +335,7 @@ void TTBasePlugin::Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 
     if ( nullptr == TTBEvent_WindowsHook )
     {
-        SystemLog(TEXT("  %s"), TEXT("未実装"));
+        SystemLog(TEXT("  %s"), TEXT("nullptr"));
         return;
     }
 
@@ -606,15 +606,30 @@ void PluginMgr::InitInfoAll()
 
 void PluginMgr::InitAll()
 {
+    std::array<TCHAR, MAX_PATH> exe_path;
+    std::array<TCHAR, MAX_PATH> relative_path;
+
+    // 本体の絶対パスを取得
+    ::GetModuleFileName(g_hInst, exe_path.data(), (DWORD)exe_path.size());
+
     // プラグインの初期化
     // * システムプラグインは既に初期化済みのため、リストの2番目から開始
     auto it = ++plugins.begin();
-    while ( it != plugins.end() )
+    const auto end = plugins.end();
+    while ( it != end )
     {
         auto&& plugin = *it;
         if ( plugin->is_loaded() )
         {
-            plugin->Init(plugin->info()->Filename, (DWORD_PTR)plugin.get());
+            ::PathRelativePathTo
+            (
+                relative_path.data(),
+                exe_path.data(), FILE_ATTRIBUTE_ARCHIVE,
+                plugin->path(),  FILE_ATTRIBUTE_ARCHIVE
+            );
+
+            //  relative_path の 先頭2文字 (".\") は要らないので ずらす
+            plugin->Init(relative_path.data() + 2, (DWORD_PTR)plugin.get());
         }
 
         ++it;
