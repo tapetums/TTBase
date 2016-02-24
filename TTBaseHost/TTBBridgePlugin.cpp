@@ -378,7 +378,7 @@ bool TTBBridgePlugin::Reload()
 
     // プラグイン情報の再取得
     //  relative_path の 先頭2文字 (".\") は要らないので ずらす
-    InitInfo(rel_path.data() + 2);
+    //InitInfo(PluginFilename);
 
     // プラグインの初期化
     result = Init(PluginFilename, (DWORD_PTR)this);
