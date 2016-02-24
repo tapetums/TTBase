@@ -13,6 +13,7 @@
 
 #include "PluginMgr.hpp"
 #include "MainWnd.hpp"
+#include "Hook.hpp"
 
 using namespace tapetums;
 
@@ -31,6 +32,9 @@ using namespace tapetums;
 
 HINSTANCE g_hInst { nullptr };
 HWND      g_hwnd  { nullptr };
+
+UINT WM_NOTIFYICON     { 0 };
+UINT WM_TASKBARCREATED { 0 };
 
 //---------------------------------------------------------------------------//
 
@@ -82,6 +86,10 @@ INT32 APIENTRY _tWinMain
     // ウィンドウの生成
     MainWnd wnd;
     g_hwnd = wnd.handle();
+
+    // フックの開始
+    HookDll hook;
+    hook.InstallHook(g_hwnd);
 
     // ウィンドウハンドルを共有メモリに保存
     shared.Write(&g_hwnd, sizeof(HWND));

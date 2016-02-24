@@ -19,9 +19,6 @@
     <Filter Include="ヘッダー ファイル\include">
       <UniqueIdentifier>{8e79d757-9ea7-4547-9ca3-85a5ee382a57}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ソース ファイル\include">
-      <UniqueIdentifier>{c302aab4-8a53-4f8c-892e-704cf632baf8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ソース ファイル\TTBase">
       <UniqueIdentifier>{5f205c6a-84e5-4080-8472-516ccb140acf}</UniqueIdentifier>
     </Filter>
@@ -29,9 +26,6 @@
   <ItemGroup>
     <ClCompile Include="PluginMgr.cpp">
       <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="include\UWnd.cpp">
-      <Filter>ソース ファイル\include</Filter>
     </ClCompile>
     <ClCompile Include="..\Utility.cpp">
       <Filter>ソース ファイル\TTBase</Filter>
@@ -102,6 +96,9 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="TTBBridgePlugin.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Hook.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

@@ -209,10 +209,6 @@ LRESULT CALLBACK MainWnd::WndProc
     {
         OnNotifyIcon(hwnd, (UINT)lParam); return 0;
     }
-    if ( uMsg == TTB_LOAD_DATA_FILE )
-    {
-        OnReloadPlugins(); return 0;
-    }
     if ( uMsg == TTB_SAVE_DATA_FILE )
     {
         WriteLog(elError, TEXT("%s"), TEXT("TTB_SAVE_DATA_FILE は実装していません"));
@@ -230,10 +226,6 @@ LRESULT CALLBACK MainWnd::WndProc
     {
         OmShowVerInfo(hwnd); return 0;
     }
-    if ( uMsg == TTB_RELOAD_PLUGINS )
-    {
-        OnReloadPlugins(); return 0;
-    }
     if ( uMsg == TTB_SET_MENU_PROPERTY )
     {
         UpdateCheckState(list_cmd, (ITTBPlugin*)wParam, (INT32)lParam); return 0;
@@ -245,6 +237,29 @@ LRESULT CALLBACK MainWnd::WndProc
     if ( uMsg == TTB_EXECUTE_COMMAND )
     {
         OnExecuteCommand(hwnd, (ITTBPlugin*)wParam, (INT32)lParam); return 0;
+    }
+    if ( uMsg == TTB_RELOAD_PLUGINS )
+    {
+        OnReloadPlugins(); return 0;
+    }
+    if ( uMsg == TTB_LOAD_DATA_FILE )
+    {
+        OnReloadPlugins(); return 0;
+    }
+    if
+    (
+        uMsg == TTB_HSHELL_ACTIVATESHELLWINDOW ||
+        uMsg == TTB_HSHELL_GETMINRECT          ||
+        uMsg == TTB_HSHELL_LANGUAGE            ||
+        uMsg == TTB_HSHELL_REDRAW              ||
+        uMsg == TTB_HSHELL_TASKMAN             ||
+        uMsg == TTB_HSHELL_WINDOWACTIVATED     ||
+        uMsg == TTB_HSHELL_WINDOWCREATED       ||
+        uMsg == TTB_HSHELL_WINDOWDESTROYED     ||
+        uMsg == TTB_HMOUSE_ACTION
+    )
+    {
+        OnWindowsHook(uMsg, wParam, lParam); return 0;
     }
 
     switch ( uMsg )
@@ -689,34 +704,6 @@ void CALLBACK MainWnd::OmShowVerInfo(HWND hwnd)
 
 //---------------------------------------------------------------------------//
 
-void CALLBACK MainWnd::OnReloadPlugins()
-{
-    auto&& mgr = PluginMgr::GetInstance();
-
-    // プラグインを再ロード
-    mgr.FreeAll();
-    ::Sleep(100);
-    mgr.LoadAll();
-
-    // リストビューをクリア
-    list_plg.DeleteAllItems();
-    list_cmd.DeleteAllItems();
-
-    // リストビューに項目を登録
-    SetPluginNames   (mgr, list_plg);
-    SetPluginCommands(mgr, list_cmd);
-
-    // 一番上の項目を選択状態に
-    const auto item = tree.GetSelection();
-    if ( item  == tvi[1] )
-    {
-        list_plg.Select(0);
-        ShowPluginInfo(list_plg, edit);
-    }
-}
-
-//---------------------------------------------------------------------------//
-
 void CALLBACK MainWnd::OnSetTaskTrayIcon
 (
     HICON hIcon, LPCTSTR Tips
@@ -798,6 +785,48 @@ bool CALLBACK MainWnd::OnExecuteCommand
 
     SystemLog(TEXT("  %s"), TEXT("OK"));
     return result;
+}
+
+//---------------------------------------------------------------------------//
+
+void CALLBACK MainWnd::OnReloadPlugins()
+{
+    auto&& mgr = PluginMgr::GetInstance();
+
+    // プラグインを再ロード
+    mgr.FreeAll();
+    ::Sleep(100);
+    mgr.LoadAll();
+
+    // リストビューをクリア
+    list_plg.DeleteAllItems();
+    list_cmd.DeleteAllItems();
+
+    // リストビューに項目を登録
+    SetPluginNames   (mgr, list_plg);
+    SetPluginCommands(mgr, list_cmd);
+
+    // 一番上の項目を選択状態に
+    const auto item = tree.GetSelection();
+    if ( item  == tvi[1] )
+    {
+        list_plg.Select(0);
+        ShowPluginInfo(list_plg, edit);
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+void CALLBACK MainWnd::OnWindowsHook
+(
+    UINT Msg, WPARAM wParam, LPARAM lParam
+)
+{
+    auto&& mgr = PluginMgr::GetInstance();
+    for ( auto&& plugin: mgr )
+    {
+        plugin->Hook(Msg, wParam, lParam);
+    }
 }
 
 //---------------------------------------------------------------------------//

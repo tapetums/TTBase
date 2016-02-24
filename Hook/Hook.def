@@ -1,0 +1,6 @@
+SECTIONS
+	.shared READ WRITE SHARED
+
+EXPORTS
+	InstallHook   @1
+	UninstallHook @2

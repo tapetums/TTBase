@@ -214,13 +214,8 @@ BOOL WINAPI Execute(INT32 CmdID, HWND hwnd)
 
 //---------------------------------------------------------------------------//
 
-void WINAPI Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
+void WINAPI Hook(UINT, WPARAM, LPARAM)
 {
-    Msg; wParam; lParam;
-    SystemLog(TEXT("%s"), TEXT("フック / 未実装"));
-    SystemLog(TEXT("  %u"), Msg);
-    SystemLog(TEXT("  %u"), wParam);
-    SystemLog(TEXT("  %i"), lParam);
 }
 
 //---------------------------------------------------------------------------//

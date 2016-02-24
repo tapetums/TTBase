@@ -105,21 +105,26 @@ bool TTBasePlugin::Load
     // DLLのフルパスを取得
     ::GetModuleFileName(m_handle, m_path, MAX_PATH);
 
-    // 関数ポインタの取得
+    // 関数ポインタの取得 (必須)
     TTBEvent_InitPluginInfo = (TTBEVENT_INITPLUGININFO)::GetProcAddress(m_handle, "TTBEvent_InitPluginInfo");
     TTBEvent_FreePluginInfo = (TTBEVENT_FREEPLUGININFO)::GetProcAddress(m_handle, "TTBEvent_FreePluginInfo");
-    TTBEvent_Init           = (TTBEVENT_INIT)          ::GetProcAddress(m_handle, "TTBEvent_Init");
-    TTBEvent_Unload         = (TTBEVENT_UNLOAD)        ::GetProcAddress(m_handle, "TTBEvent_Unload");
-    TTBEvent_Execute        = (TTBEVENT_EXECUTE)       ::GetProcAddress(m_handle, "TTBEvent_Execute");
-    TTBEvent_WindowsHook    = (TTBEVENT_WINDOWSHOOK)   ::GetProcAddress(m_handle, "TTBEvent_WindowsHook");
 
     // 必須APIを実装しているか
     if ( nullptr == TTBEvent_InitPluginInfo || nullptr == TTBEvent_FreePluginInfo )
     {
-        SystemLog(TEXT("  %s"), TEXT("有効なプラグインではありません"));
-        Free();
+        SystemLog(TEXT("  %s"), TEXT("有効な TTBase プラグインではありません"));
+
+        ::FreeLibrary(m_handle);
+        m_handle = nullptr;
+
         return false;
     }
+
+    // 関数ポインタの取得
+    TTBEvent_Init           = (TTBEVENT_INIT)          ::GetProcAddress(m_handle, "TTBEvent_Init");
+    TTBEvent_Unload         = (TTBEVENT_UNLOAD)        ::GetProcAddress(m_handle, "TTBEvent_Unload");
+    TTBEvent_Execute        = (TTBEVENT_EXECUTE)       ::GetProcAddress(m_handle, "TTBEvent_Execute");
+    TTBEvent_WindowsHook    = (TTBEVENT_WINDOWSHOOK)   ::GetProcAddress(m_handle, "TTBEvent_WindowsHook");
 
     SystemLog(TEXT("  %s"), TEXT("OK"));
     return true;
@@ -205,7 +210,7 @@ bool TTBasePlugin::Reload()
 bool TTBasePlugin::InitInfo(LPTSTR PluginFilename)
 {
     SystemLog(TEXT("%s"), TEXT("プラグイン情報をコピー"));
-    SystemLog(TEXT("  %s"), PluginFilename);
+    SystemLog(TEXT("  %s"), m_path);
 
     if ( nullptr == TTBEvent_InitPluginInfo )
     {
@@ -267,7 +272,7 @@ void TTBasePlugin::FreeInfo()
 bool TTBasePlugin::Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
 {
     SystemLog(TEXT("%s"), TEXT("プラグインの初期化"));
-    SystemLog(TEXT("  %s"), PluginFilename);
+    SystemLog(TEXT("  %s"), m_path);
 
     if ( nullptr == TTBEvent_Init )
     {
@@ -291,7 +296,7 @@ bool TTBasePlugin::Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
 void TTBasePlugin::Unload()
 {
     SystemLog(TEXT("%s"), TEXT("プラグインの終了処理"));
-    SystemLog(TEXT("  %s"), info()->Name);
+    SystemLog(TEXT("  %s"), m_path);
 
     if ( nullptr == TTBEvent_Unload )
     {
@@ -331,18 +336,18 @@ bool TTBasePlugin::Execute(INT32 CmdID, HWND hwnd)
 
 void TTBasePlugin::Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-    SystemLog(TEXT("%s"), TEXT("プラグインをフック"));
-    SystemLog(TEXT("  %s"), info()->Name);
-    SystemLog(TEXT("  Msg = 0x%X"), Msg);
+    //SystemLog(TEXT("%s"), TEXT("フックプロシージャの実行"));
+    //SystemLog(TEXT("  %s"), m_path);
+    //SystemLog(TEXT("  Msg = 0x%X"), Msg);
 
     if ( nullptr == TTBEvent_WindowsHook )
     {
-        SystemLog(TEXT("  %s"), TEXT("nullptr"));
+        //SystemLog(TEXT("  %s"), TEXT("nullptr"));
         return;
     }
 
     TTBEvent_WindowsHook(Msg, wParam, lParam);
-    SystemLog(TEXT("  %s"), TEXT("OK"));
+    //SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
 //---------------------------------------------------------------------------//

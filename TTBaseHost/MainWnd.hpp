@@ -61,9 +61,10 @@ private:
     void    CALLBACK OnNotifyIcon     (HWND hwnd, UINT uMsg);
     void    CALLBACK OnShowSettings   (HWND hwnd);
     void    CALLBACK OmShowVerInfo    (HWND hwnd);
-    void    CALLBACK OnReloadPlugins  ();
     void    CALLBACK OnSetTaskTrayIcon(HICON hIcon, LPCTSTR Tips);
     bool    CALLBACK OnExecuteCommand (HWND hwnd, ITTBPlugin* plugin, INT32 CmdID);
+    void    CALLBACK OnReloadPlugins  ();
+    void    CALLBACK OnWindowsHook    (UINT Msg, WPARAM wParam, LPARAM lParam);
 };
 
 //---------------------------------------------------------------------------//

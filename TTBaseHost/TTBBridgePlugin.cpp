@@ -351,6 +351,7 @@ bool TTBBridgePlugin::Reload()
     bool result;
 
     SystemLog(TEXT("%s"), TEXT("プラグインの再読み込み"));
+    SystemLog(TEXT("  %s"), m_path);
 
     // プラグインの読み込み
     result = Load(m_path);
@@ -400,6 +401,7 @@ bool TTBBridgePlugin::InitInfo
 )
 {
     SystemLog(TEXT("%s"), TEXT("プラグイン情報をコピー"));
+    SystemLog(TEXT("  %s"), m_path);
 
     if ( ! m_loaded )
     {
@@ -489,6 +491,7 @@ bool TTBBridgePlugin::InitInfo
 void TTBBridgePlugin::FreeInfo()
 {
     SystemLog(TEXT("%s"), TEXT("プラグイン情報を解放"));
+    SystemLog(TEXT("  %s"), m_path);
 
     // プラグイン情報の解放
     if ( m_info )
@@ -548,6 +551,7 @@ bool TTBBridgePlugin::Init
 )
 {
     SystemLog(TEXT("%s"), TEXT("プラグインの初期化"));
+    SystemLog(TEXT("  %s"), m_path);
 
     if ( ! m_loaded )
     {
@@ -614,6 +618,7 @@ bool TTBBridgePlugin::Init
 void TTBBridgePlugin::Unload()
 {
     SystemLog(TEXT("%s"), TEXT("プラグインの終了処理"));
+    SystemLog(TEXT("  %s"), m_path);
 
     if ( ! m_loaded )
     {
@@ -726,11 +731,13 @@ void TTBBridgePlugin::Hook
     UINT Msg, WPARAM wParam, LPARAM lParam
 )
 {
-    SystemLog(TEXT("%s"), TEXT("プラグインをフック"));
+    //SystemLog(TEXT("%s"), TEXT("フックプロシージャを実行"));
+    //SystemLog(TEXT("  %s"), m_path);
+    //SystemLog(TEXT("  Msg = 0x%X"), Msg);
 
     if ( ! m_loaded )
     {
-        SystemLog(TEXT("  %s"), TEXT("未実装"));
+        //SystemLog(TEXT("  %s"), TEXT("未実装"));
         return;
     }
 
@@ -772,7 +779,7 @@ void TTBBridgePlugin::Hook
     // 受信完了待ち
     ::WaitForSingleObject(evt_done, 100);
 
-    SystemLog(TEXT("  %s"), TEXT("OK"));
+    //SystemLog(TEXT("  %s"), TEXT("OK"));
     return;
 }
 
