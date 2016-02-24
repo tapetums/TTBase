@@ -221,7 +221,7 @@ bool TTBBridgePlugin::Load
     LPCTSTR path
 )
 {
-    SystemLog(TEXT("%s"), TEXT("プラグインを読込"));
+    SystemLog(TEXT("%s"), TEXT("プラグインの読み込み"));
     SystemLog(TEXT("  %s"), path);
 
     if ( m_loaded )
@@ -373,12 +373,15 @@ bool TTBBridgePlugin::Reload()
         m_path,          FILE_ATTRIBUTE_ARCHIVE
     );
 
+    // relative_path の 先頭2文字 (".\") は要らないので ずらす
+    const auto PluginFilename = rel_path.data() + 2;
+
     // プラグイン情報の再取得
     //  relative_path の 先頭2文字 (".\") は要らないので ずらす
     InitInfo(rel_path.data() + 2);
 
     // プラグインの初期化
-    result = Init(m_info->Filename, (DWORD_PTR)this);
+    result = Init(PluginFilename, (DWORD_PTR)this);
     if ( ! result )
     {
         Unload();

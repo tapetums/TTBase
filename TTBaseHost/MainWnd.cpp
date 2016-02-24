@@ -593,15 +593,15 @@ void CALLBACK MainWnd::OnCommand
     }
     else if ( id == CTRL::BTN_TTBASE_COMPATIBLE )
     {
-        settings::get().TTBaseCompatible ^= true;;
+        settings::get().TTBaseCompatible ^= true;
     }
     else if ( id == CTRL::BTN_LOG2WND )
     {
-        settings::get().logToWindow ^= true;;
+        settings::get().logToWindow ^= true;
     }
     else if ( id == CTRL::BTN_LOG2FILE )
     {
-        settings::get().logToFile ^= true;;
+        settings::get().logToFile ^= true;
     }
     else if ( id == CTRL::CBX_LOGLEVEL )
     {

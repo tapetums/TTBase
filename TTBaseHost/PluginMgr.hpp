@@ -42,7 +42,7 @@ struct ITTBPlugin
     virtual const HMODULE      handle() const noexcept = 0;
     virtual const PLUGIN_INFO* info()   const noexcept = 0;
 
-    virtual void info(PLUGIN_INFO* info) noexcept = 0;
+    virtual void info(PLUGIN_INFO* info) = 0;
 
 // Methods
     virtual bool Load  (LPCTSTR path) = 0;
@@ -97,7 +97,7 @@ public: // Acessors
     const HMODULE      handle() const noexcept override { return m_handle; }
     const PLUGIN_INFO* info()   const noexcept override { return m_info; }
 
-    void info(PLUGIN_INFO* info) noexcept override;
+    void info(PLUGIN_INFO* info) override;
 
 public: // Methods
     bool Load  (LPCTSTR path) override;
@@ -151,8 +151,8 @@ public: // Acessors
     auto&       system() noexcept       { return plugins.front(); }
 
 public: // Iterators
-    auto begin(){ return plugins.begin(); }
-    auto end()  { return plugins.end(); }
+    auto begin() { return plugins.begin(); }
+    auto end()   { return plugins.end(); }
 
     auto begin() const { return plugins.begin(); }
     auto end()   const { return plugins.end(); }

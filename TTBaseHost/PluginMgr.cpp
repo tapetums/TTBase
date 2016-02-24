@@ -72,7 +72,7 @@ void TTBasePlugin::swap(TTBasePlugin&& rhs) noexcept
 
 //---------------------------------------------------------------------------//
 
-void TTBasePlugin::info(PLUGIN_INFO* info) noexcept
+void TTBasePlugin::info(PLUGIN_INFO* info)
 {
     FreePluginInfo(m_info);
     m_info = CopyPluginInfo(info);
@@ -182,12 +182,15 @@ bool TTBasePlugin::Reload()
         m_path,          FILE_ATTRIBUTE_ARCHIVE
     );
 
+    // relative_path の 先頭2文字 (".\") は要らないので ずらす
+    const auto PluginFilename = relative_path.data() + 2;
+
     // プラグイン情報の再取得
     //  relative_path の 先頭2文字 (".\") は要らないので ずらす
     InitInfo(relative_path.data() + 2);
 
     // プラグインの初期化
-    result = Init(m_info->Filename, (DWORD_PTR)this);
+    result = Init(PluginFilename, (DWORD_PTR)this);
     if ( ! result )
     {
         Unload();
@@ -584,8 +587,10 @@ void PluginMgr::InitInfoAll()
             plugin->path(),  FILE_ATTRIBUTE_ARCHIVE
         );
 
-        //  relative_path の 先頭2文字 (".\") は要らないので ずらす
-        const auto result = plugin->InitInfo(relative_path.data() + 2);
+        // relative_path の 先頭2文字 (".\") は要らないので ずらす
+        const auto PluginFilename = relative_path.data() + 2;
+
+        const auto result = plugin->InitInfo(PluginFilename);
         if ( ! result )
         {
             it = plugins.erase(it);
@@ -628,8 +633,10 @@ void PluginMgr::InitAll()
                 plugin->path(),  FILE_ATTRIBUTE_ARCHIVE
             );
 
-            //  relative_path の 先頭2文字 (".\") は要らないので ずらす
-            plugin->Init(relative_path.data() + 2, (DWORD_PTR)plugin.get());
+            // relative_path の 先頭2文字 (".\") は要らないので ずらす
+            const auto PluginFilename = relative_path.data() + 2;
+
+            plugin->Init(PluginFilename, (DWORD_PTR)plugin.get());
         }
 
         ++it;
