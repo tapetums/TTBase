@@ -9,6 +9,7 @@
 //---------------------------------------------------------------------------//
 
 #include <windows.h>
+#include <strsafe.h>
 
 #include "../Utility.hpp"
 
@@ -25,6 +26,13 @@ void SystemLog(const C* const format, Args... args)
 #define SystemLog(format, ...)
 
 #endif
+
+//---------------------------------------------------------------------------//
+// Global Variables
+//---------------------------------------------------------------------------//
+
+// WinMain.cpp で宣言
+extern HINSTANCE g_hInst;
 
 //---------------------------------------------------------------------------//
 // 関数型宣言
@@ -53,10 +61,35 @@ public:
     {
         SystemLog(TEXT("%s"), TEXT("Hook.dll の ロードを開始"));
 
-        m_handle = ::LoadLibraryEx(TEXT("Hook.dll"), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
+        // Hook.dll の フルパスを求める
+        TCHAR path [MAX_PATH];
+        const auto len = ::GetModuleFileName(g_hInst, path, MAX_PATH);
+
+        size_t i = len - 1;
+        while ( path[i] != '\\' ) { --i; }
+        path[i + 1] = '\0';
+
+        ::StringCchCat(path, MAX_PATH, TEXT("Hook.dll"));
+        SystemLog(TEXT("  %s"), path);
+
+        // Hook.dll が 隠しファイルかどうかを調べる
+        const auto attr = ::GetFileAttributes(path);
+        if ( attr == DWORD(-1) )
+        {
+            WriteLog(elError, TEXT("%s"), TEXT("Hook.dll の属性を取得できませんでした"));
+            return;
+        }
+        if ( attr & FILE_ATTRIBUTE_HIDDEN )
+        {
+            WriteLog(elInfo, TEXT("%s"), TEXT("Hook.dll は隠しファイルです。ロードを中断します"));
+            return;
+        }
+
+        // Hook.dll の 読み込み
+        m_handle = ::LoadLibraryEx(path, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
         if ( nullptr == m_handle )
         {
-            WriteLog(elError, TEXT("%s"), TEXT("Hook.dll の ロードに失敗しました"));
+            WriteLog(elWarning, TEXT("%s"), TEXT("Hook.dll の ロードに失敗しました"));
             return;
         }
 
@@ -73,7 +106,7 @@ public:
 
         if ( nullptr == m_handle )
         {
-            WriteLog(elError, TEXT("%s"), TEXT("Hook.dll の アンロードに失敗しました"));
+            WriteLog(elInfo, TEXT("%s"), TEXT("Hook.dll はロードされていませんでした"));
             return;
         }
 
