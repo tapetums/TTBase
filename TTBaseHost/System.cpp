@@ -377,7 +377,7 @@ extern "C" PLUGIN_INFO** WINAPI TTBPlugin_GetAllPluginInfo()
     size_t idx = 0;
     for ( auto&& plugin: mgr )
     {
-        PluginInfoArray[idx] = CopyPluginInfo(plugin->info());
+        PluginInfoArray[idx] = const_cast<PLUGIN_INFO*>(plugin->info());
         ++idx;
     }
 
@@ -397,13 +397,6 @@ extern "C" void WINAPI TTBPlugin_FreePluginInfoArray
 {
     SystemLog(TEXT("%s"), TEXT("すべてのプラグインの情報を解放"));
     if ( nullptr == PluginInfoArray ) { return; }
-
-    size_t idx = 0;
-    while ( auto info = PluginInfoArray[idx] )
-    {
-        FreePluginInfo(info);
-        ++idx;
-    }
 
     delete[] PluginInfoArray;
 
