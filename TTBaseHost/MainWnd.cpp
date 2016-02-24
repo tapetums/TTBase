@@ -193,10 +193,6 @@ LRESULT CALLBACK MainWnd::WndProc
     HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 )
 {
-    if ( uMsg == WM_LBUTTONDBLCLK )
-    {
-        return ::DefWindowProc(hwnd, uMsg, wParam, lParam);
-    }
     if ( uMsg == WM_SHOWWINDOW && wParam == SW_SHOWNORMAL )
     {
         ToCenter(); Show(); ::SetForegroundWindow(hwnd); return 0;
@@ -211,7 +207,7 @@ LRESULT CALLBACK MainWnd::WndProc
     }
     if ( uMsg == TTB_SAVE_DATA_FILE )
     {
-        WriteLog(elError, TEXT("%s"), TEXT("TTB_SAVE_DATA_FILE は実装していません"));
+        WriteLog(elInfo, TEXT("%s"), TEXT("TTB_SAVE_DATA_FILE は実装していません"));
         return 0;
     }
     if ( uMsg == TTB_SHOW_SETTINGS )
@@ -497,7 +493,7 @@ LRESULT CALLBACK MainWnd::OnNotify
     }
     else if ( pNMHdr->idFrom == CTRL::LIST_COMMAND )
     {
-        if ( pNMHdr->code == NM_CLICK )
+        if ( pNMHdr->code == NM_DBLCLK )
         {
             // ユーザーによるチェックボックスの操作を無効化
             POINT pt;
@@ -505,9 +501,7 @@ LRESULT CALLBACK MainWnd::OnNotify
             ::ScreenToClient(pNMHdr->hwndFrom, &pt);
 
             if ( pt.x <= 16 ) { return TRUE; }
-        }
-        else if ( pNMHdr->idFrom == CTRL::LIST_COMMAND && pNMHdr->code == NM_DBLCLK )
-        {
+
             // コマンドの実行
             const auto index = list_cmd.SelectedIndex();
 
