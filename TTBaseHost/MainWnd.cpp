@@ -666,11 +666,7 @@ void CALLBACK MainWnd::OnNotifyIcon
     }
     else if ( uMsg == WM_MBUTTONUP )
     {
-        // ウィンドウを表示
-        if ( ! m_is_fullscreen ) { ToCenter(); }
-
-        Show();
-        ::SetForegroundWindow(hwnd);
+        ::PostMessage(hwnd, WM_SHOWWINDOW, SW_SHOWNORMAL, 0);
     }
 }
 

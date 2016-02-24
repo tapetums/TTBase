@@ -87,12 +87,12 @@ INT32 APIENTRY _tWinMain
     MainWnd wnd;
     g_hwnd = wnd.handle();
 
+    // ウィンドウハンドルを共有メモリに保存
+    shared.Write(&g_hwnd, sizeof(HWND));
+
     // フックの開始
     HookDll hook;
     hook.InstallHook(g_hwnd);
-
-    // ウィンドウハンドルを共有メモリに保存
-    shared.Write(&g_hwnd, sizeof(HWND));
 
     // メッセージループ
     const auto ret = Application::Run();

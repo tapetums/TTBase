@@ -57,7 +57,28 @@ private:
     UNINSTALLHOOK m_UninstallHook { nullptr };
 
 public:
-    HookDll()
+    HookDll()  { Load(); }
+    ~HookDll() { Unload(); }
+
+public:
+    void InstallHook(HWND hwnd)
+    {
+        if ( m_InstallHook )
+        {
+            m_InstallHook(hwnd);
+        }
+    }
+
+    void UninstallHook()
+    {
+        if ( m_UninstallHook )
+        {
+            m_UninstallHook();
+        }
+    }
+
+private:
+    void Load()
     {
         SystemLog(TEXT("%s"), TEXT("Hook.dll の ロードを開始"));
 
@@ -100,7 +121,7 @@ public:
         SystemLog(TEXT("  %s"), TEXT("OK"));
     }
 
-    ~HookDll()
+    void Unload()
     {
         SystemLog(TEXT("%s"), TEXT("Hook.dll の アンロードを開始"));
 
@@ -116,20 +137,6 @@ public:
         m_handle = nullptr;
 
         SystemLog(TEXT("  %s"), TEXT("OK"));
-    }
-
-public:
-    bool InstallHook(HWND hwnd)
-    {
-        return m_InstallHook ? m_InstallHook(hwnd) ? true : false : false;
-    }
-
-    void UninstallHook()
-    {
-        if ( m_UninstallHook )
-        {
-            m_UninstallHook();
-        }
     }
 };
 
