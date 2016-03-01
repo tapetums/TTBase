@@ -1,6 +1,6 @@
 #TTBaseHost
 
-A sample for TTBase compatible application.  
+An application that is compatible with TTBase.  
 Compilable with: **Visual Studio Community 2015 (C++11, 32/64-bit)**
 
 ##Contents
@@ -57,13 +57,13 @@ from the 'TTBase plugin template project'.
 
 ##Description
 
-　This is an application compatible with [**TTBase**](https://osdn.jp/projects/ttbase/). This sample is written partially based on the source code of [**peach**](http://white2.php.xdomain.jp/?page_id=27) which is produced by U.  
-　This is nothing but a compatible application, so it does not function the same as TTBase. I don't recommend you to use this as an alternative for TTBase or peach because some functions are not implemented yet. I hope you could find something from this sample as an implementation in C++11.  
+　This is an application compatible with [**TTBase**](https://osdn.jp/projects/ttbase/). The source code is written partially based on [**peach**](http://white2.php.xdomain.jp/?page_id=27) which is produced by U.  
+　This is nothing but a compatible application, so it does not function the same as TTBase. I don't guarantee it as an alternative for TTBase or peach because some functions are not implemented. I hope you could find something from this sample as an implementation in C++11.  
 　The biggest feature of this program is that **you can use both 32/64-bit plugins with one 64-bit host application**.
 
 ---
 
-##Functions
+##Features
 
 ###Implemented
 - Loading plugins
@@ -77,9 +77,9 @@ from the 'TTBase plugin template project'.
 - Loading and executing 32/64-bit plugins with one 64-bit host application
 
 ###Not Implemented
-- Hotkey function
+- ~~Hotkey function~~ [HotkeyCpp](https://github.com/tapetums/HotkeyCpp/releases) is now available
 - Timer function
-- Windows Hook
+- ~~Windows Hook~~ **Hook.dll** is included in the package
 - Command line options
 
 　The concept is baed on _peach_. This program does not provide some functions that TTBase does as the host services, and let them go with plugins.  
