@@ -69,6 +69,7 @@ INT32 APIENTRY _tWinMain
         return 0;
     }
 
+    TTBPlugin_WriteLog(0, elInfo, TEXT("------------------------------------------------------------"));
     TTBPlugin_WriteLog(0, elInfo, TEXT("hako を 起動しました"));
 
     if ( ! shared.Map(sizeof(HWND), SHARED_MEMORY_NAME, File::ACCESS::WRITE) )

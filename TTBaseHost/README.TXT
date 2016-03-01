@@ -82,7 +82,7 @@ dll ファイルを配置して下さい。本体の起動時に自動で読み�
 　[DebugView for Windows](https://technet.microsoft.com/ja-jp/sysinternals/debugview.aspx)
 
 ・ログをファイルに出力する
-　本体のインストールフォルダに hako.log という名前で出力します。
+　本体のインストールフォルダに log というフォルダを作り、そこに出力します。
 
 
 【ライセンス】
@@ -100,6 +100,9 @@ http://ttbase.coresv.com/uploader/
 
 
 【更新履歴】
+2016.03.XX v0.6.X.X
+ ・ログファイルの出力先を変更
+
 2016.03.01 v0.6.0.0
  ・本体にフック機能を実装
 

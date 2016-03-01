@@ -92,23 +92,48 @@ inline settings::settings()
     // ログの出力先がファイルの場合
     if ( logLevel && logToFile )
     {
-        ::PathRenameExtensionW(path.data(), L".log");
+        // ログフォルダのパスを合成
+        ::PathRemoveFileSpecW(path.data());
+        ::StringCchCatW(path.data(), path.size(), LR"(\log)");
+        if ( ! ::PathIsDirectoryW(path.data()) )
+        {
+            // フォルダを作成
+            ::CreateDirectoryW(path.data(), nullptr);
+        }
 
+        // ログファイルのパスを合成
+        SYSTEMTIME st;
+        ::GetLocalTime(&st);
+
+        std::array<wchar_t, MAX_PATH> log;
+        ::StringCchPrintfW
+        (
+            log.data(), log.size(), LR"(%s\%04u%02u%02u.log)",
+            path, st.wYear, st.wMonth, st.wDay
+        );
+
+        // ログファイルを開く
         using namespace tapetums;
         const auto result = file.Open
         (
-            path.data(),
-            File::ACCESS::WRITE, File::SHARE::WRITE, File::OPEN::OR_TRUNCATE
+            log.data(),
+            File::ACCESS::WRITE, File::SHARE::WRITE, File::OPEN::OR_CREATE
         );
-        if ( !result )
+        if ( ! result )
         {
-            ::MessageBoxW(nullptr, path.data(), L"ログファイルを作成できません", MB_OK);
+            ::MessageBoxW(nullptr, log.data(), L"ログファイルを作成できません", MB_OK);
             file.Close();
         }
         else
         {
+            // 末尾に追記していく
+            file.Seek(0, File::ORIGIN::END);
+
           #if defined(_UNICODE) || defined(UNICODE)
-            file.Write(UINT16(0xFEFF)); // UTF-16 BOM を出力
+            if ( file.position() == 0 )
+            {
+                file.Write(UINT16(0xFEFF)); // UTF-16 BOM を出力
+            }
           #endif
         }
     }
