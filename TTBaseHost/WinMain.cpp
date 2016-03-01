@@ -11,6 +11,7 @@
 #include "include/Application.hpp"
 #include "include/File.hpp"
 
+#include "../Utility.hpp"
 #include "PluginMgr.hpp"
 #include "MainWnd.hpp"
 #include "Hook.hpp"
@@ -67,8 +68,12 @@ INT32 APIENTRY _tWinMain
         ::PostMessage(hwnd, WM_SHOWWINDOW, SW_SHOWNORMAL, 0);
         return 0;
     }
+
+    TTBPlugin_WriteLog(0, elInfo, TEXT("hako を 起動しました"));
+
     if ( ! shared.Map(sizeof(HWND), SHARED_MEMORY_NAME, File::ACCESS::WRITE) )
     {
+        TTBPlugin_WriteLog(0, elError, TEXT("二重起動防止用ロックの生成に失敗"));
         return 0;
     }
 
@@ -100,6 +105,7 @@ INT32 APIENTRY _tWinMain
     // COM の終了処理
     ::CoUninitialize();
 
+    TTBPlugin_WriteLog(0, elInfo, TEXT("hako を 終了しました"));
     return ret;
 }
 

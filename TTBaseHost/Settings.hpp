@@ -74,7 +74,7 @@ inline settings::settings()
 
     logLevel = ::GetPrivateProfileIntW
     (
-        L"Setting", L"logLevel", ERROR_LEVEL::elDebug + 1, path.data()
+        L"Setting", L"logLevel", ERROR_LEVEL(5), path.data()
     );
 
     logToWindow = ::GetPrivateProfileIntW
@@ -88,10 +88,6 @@ inline settings::settings()
         L"Setting", L"logToFile", 1, path.data()
     )
     ? true : false;
-
-    // 値の正規化
-    if ( logLevel < 0 ) { logLevel = 0; }
-    if ( logLevel > 5 ) { logLevel = 5; }
 
     // ログの出力先がファイルの場合
     if ( logLevel && logToFile )

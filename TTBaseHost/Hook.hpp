@@ -97,12 +97,12 @@ private:
         const auto attr = ::GetFileAttributes(path);
         if ( attr == DWORD(-1) )
         {
-            WriteLog(elError, TEXT("%s"), TEXT("Hook.dll の属性を取得できませんでした"));
+            WriteLog(elError, TEXT("Hook.dll の属性を取得できませんでした"));
             return;
         }
         if ( attr & FILE_ATTRIBUTE_HIDDEN )
         {
-            WriteLog(elInfo, TEXT("%s"), TEXT("Hook.dll は隠しファイルです。ロードを中断します"));
+            WriteLog(elInfo, TEXT("Hook.dll は隠しファイルです。ロードを中断します"));
             return;
         }
 
@@ -110,7 +110,7 @@ private:
         m_handle = ::LoadLibraryEx(path, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
         if ( nullptr == m_handle )
         {
-            WriteLog(elWarning, TEXT("%s"), TEXT("Hook.dll の ロードに失敗しました"));
+            WriteLog(elWarning, TEXT("Hook.dll の ロードに失敗しました"));
             return;
         }
 
@@ -118,7 +118,7 @@ private:
         m_InstallHook   = (INSTALLHOOK)  ::GetProcAddress(m_handle, "InstallHook");
         m_UninstallHook = (UNINSTALLHOOK)::GetProcAddress(m_handle, "UninstallHook");
 
-        SystemLog(TEXT("  %s"), TEXT("OK"));
+        WriteLog(elDebug, TEXT("Hook.dll を ロードしました"));
     }
 
     void Unload()
@@ -127,7 +127,7 @@ private:
 
         if ( nullptr == m_handle )
         {
-            WriteLog(elInfo, TEXT("%s"), TEXT("Hook.dll はロードされていませんでした"));
+            WriteLog(elDebug, TEXT("%s"), TEXT("Hook.dll はロードされていませんでした"));
             return;
         }
 
@@ -136,7 +136,7 @@ private:
         ::FreeLibrary(m_handle);
         m_handle = nullptr;
 
-        SystemLog(TEXT("  %s"), TEXT("OK"));
+        WriteLog(elDebug, TEXT("Hook.dll を アンロードしました"));
     }
 };
 

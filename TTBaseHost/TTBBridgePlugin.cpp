@@ -59,7 +59,7 @@ void desirialize(T* t, const std::vector<uint8_t>& data, size_t* p)
     ::memcpy(t, data.data() + *p, size);
     *p += size;
 
-    SystemLog(TEXT("  deserializing... %i"), *t);
+    //SystemLog(TEXT("  deserializing... %i"), *t);
 }
 
 // デシリアライズ ヘルパー関数 (文字列版)
@@ -73,7 +73,7 @@ void desirialize<LPWSTR>(LPWSTR* dst, const std::vector<uint8_t>& data, size_t* 
     ::memcpy(*dst, src, size);
     *p += size;
 
-    SystemLog(TEXT("  deserializing... %s"), *dst);
+    //SystemLog(TEXT("  deserializing... %s"), *dst);
 }
 
 // プロセス境界を超えるため データをデシリアライズする
@@ -481,6 +481,11 @@ bool TTBBridgePlugin::InitInfo
   #else
     m_info = &g_info; // dummy ... ホントは再マーシャリングが必要: TO DO LATER
   #endif
+
+    SystemLog(TEXT("  名前:       %s"), m_info->Name);
+    SystemLog(TEXT("  相対パス:   %s"), m_info->Filename);
+    SystemLog(TEXT("  タイプ:     %s"), m_info->PluginType == ptAlwaysLoad ? TEXT("常駐") : TEXT("都度"));
+    SystemLog(TEXT("  コマンド数: %u"), m_info->CommandCount);
 
     SystemLog(TEXT("  %s"), TEXT("OK"));
     return true;

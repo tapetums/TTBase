@@ -421,7 +421,6 @@ PluginMgr::~PluginMgr()
     // システムプラグインも解放
     plugins.clear();
 
-    SystemLog(TEXT("  %u plugin(s)"), plugins.size());
     SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
@@ -445,6 +444,7 @@ void PluginMgr::LoadAll()
     // すべてのプラグインを初期化
     InitAll();
 
+    WriteLog(elInfo, TEXT("%u plugin(s)"), plugins.size() - 1);
     SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
@@ -460,7 +460,6 @@ void PluginMgr::FreeAll()
         plugins.pop_back();
     }
 
-    SystemLog(TEXT("  %u plugin(s)"), plugins.size());
     SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
@@ -536,7 +535,7 @@ void PluginMgr::CollectFile
                 // コンテナに収録
                 ITTBPlugin* plugin;
 
-                plugin = new TTBasePlugin(path);
+                plugin = new TTBasePlugin(path); // 通常のプラグイン
                 if ( plugin->is_loaded() )
                 {
                     plugins.emplace_back(plugin);
@@ -548,7 +547,7 @@ void PluginMgr::CollectFile
                 }
 
               #if INTPTR_MAX == INT64_MAX
-                plugin = new TTBBridgePlugin(path);
+                plugin = new TTBBridgePlugin(path); // 32ビットのプラグイン
                 if ( plugin->is_loaded() )
                 {
                     plugins.emplace_back(plugin);

@@ -325,9 +325,10 @@ extern "C" void WINAPI TTBPlugin_SetMenuProperty
     }
 
     const auto& info = *plugin->info();
-    SystemLog(TEXT("  名前: %s"), info.Name);
-    SystemLog(TEXT("  ID:   %i"), CommandID);
-    SystemLog(TEXT("  Flag: %u"), Flag);
+    SystemLog(TEXT("  名前:     %s"), info.Name);
+    SystemLog(TEXT("  コマンド: %s"), info.Commands[CommandID].Caption);
+    SystemLog(TEXT("  Flag:     %s"), Flag & dmMenuChecked ? TEXT("Checked")  : TEXT("Unchecked"));
+    SystemLog(TEXT("  Flag:     %s"), Flag & dmDisabled    ? TEXT("Disabled") : TEXT("Enabled"));
 
     const auto CommandCount = info.CommandCount;
     if ( (DWORD)CommandID >= CommandCount )
@@ -425,19 +426,25 @@ extern "C" void WINAPI TTBPlugin_WriteLog
     DWORD_PTR /*hPlugin*/, ERROR_LEVEL logLevel, LPCTSTR msg
 )
 {
-    constexpr const TCHAR* err_level[] =
+    constexpr const TCHAR* const err_level[] =
     {
         TEXT(""),
-        TEXT("[ERR]  "),
-        TEXT("[WARN] "),
-        TEXT("[INFO] "),
-        TEXT("[DBG]  "),
-        TEXT(""),
+        TEXT("[ERROR] "),
+        TEXT("[WARN ] "),
+        TEXT("[INFO ] "),
+        TEXT("[DEBUG] "),
+        TEXT("[SYS  ] "),
     };
+
+    // 値の正規化
+    if ( logLevel < 0 ) { logLevel = ERROR_LEVEL(0); }
+    if ( logLevel > 5 ) { logLevel = ERROR_LEVEL(5); }
 
     // 設定以下のログレベル項目は出力しない
     if ( settings::get().logLevel == 0 )       { return; }
     if ( settings::get().logLevel < logLevel ) { return; }
+
+    static const auto theadId = ::GetCurrentThreadId();
 
     SYSTEMTIME st;
     ::GetLocalTime(&st);
@@ -446,10 +453,10 @@ extern "C" void WINAPI TTBPlugin_WriteLog
     ::StringCchPrintf
     (
         buf.data(), buf.size(),
-        TEXT("%04u/%02u/%02u %02u:%02u:%02u;%03u> %s%s\r\n"),
+        TEXT("%04u/%02u/%02u %02u:%02u:%02u;%03u> [%04x] %s%s\r\n"),
         st.wYear, st.wMonth, st.wDay,
         st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
-        err_level[logLevel], msg
+        theadId, err_level[logLevel], msg
     );
 
     // 指定先にログを出力
