@@ -29,7 +29,8 @@ To enable this software, you need plugins (DLLs) to be loaded by TTBase.
 　Using plugin SDK, you can write tiny tools immediately and it simplifies the process such as indicating task tray icon and/or constructing hotkeys and menus. So it is suitabe for making small applications.  
 　Some of global hooks are also available for plugins. You can use almost all function of _WH\_SHELL_ and some part of _WH\_MOUSE_ without thinking about bothering DLL hooks and shared memory. 
 
-※There are some implementations that do not provide hooks such as _peach_,_hako_, etc.
+※There are some implementations that do not provide hooks such as _peach_,
+_hako_, etc.
 
 ---
 
@@ -66,7 +67,8 @@ To enable this software, you need plugins (DLLs) to be loaded by TTBase.
 　If the plugin is a resident type, TTBase calls _Plugin\_Init_ and it will stay loaded in the process.  
 　By the way, to accelerate the boot time, TTBase uses the cache of the plugin information which is stored in TTBase.dat after the first installation of the plugin. Unless the file time of the plugin is updated, it keeps using the cache.
 
-※There are some implementations that do not have cache mechanism such as _pbox_, _peach_,_hako_, etc.
+※There are some implementations that do not have cache mechanism such as _pbox_, _peach_,
+_hako_, etc.
 
 ---
 
@@ -329,7 +331,8 @@ BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin);
 　_hPlugin_ is the identity code that TTBase distinguish plugins. You need this in some functions, so store it in a gloabal variable.  
 　Return TRUE when the initialization has been done successfully.
 
-※There are some implementations that do not have cache mechanism such as _pbox_, _peach_,_hako_, etc.
+※There are some implementations that do not have cache mechanism such as _pbox_, _peach_,
+_hako_, etc.
 
 ================================================================
 ###TTBEvent\_Unload
@@ -374,8 +377,6 @@ void WINAPI TTBEvent_WindowsHook(UINT Msg, WPARAM wParam, LPARAM lParam);
 　This is notified only when _nCode_ which can be got by the callback function is _HC\_ACTION_.  
 　_TTB\_HMOUSE\_ACTION_ will be set in _Msg_ (See MessageDef.cpp).  
 　The sort of mouse message will be in _wParam_, the window handle that the event occured in will be set in _lParam_. Even though the actual _WH\_MOUSE_ sets a pointer to _MOUSEHOOKSTRUCT_ in _lParam_, you cannot get everything in your plugin.TTBase provides only window handle.
-
-※_hako_ does not have hooks by itself
 
 ---
 

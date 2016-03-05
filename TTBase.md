@@ -371,8 +371,6 @@ void WINAPI TTBEvent_WindowsHook(UINT Msg, WPARAM wParam, LPARAM lParam);
 　Msgに TTB\_HMOUSE\_ACTION が設定されます（MessageDef.cpp 参照）。  
 　wParam にマウスメッセージの種類、lParam にそのマウスイベントが起こったウィンドウのハンドルが設定されます。実際の WH\_MOUSE では、lParam に MOUSEHOOKSTRUCT へのポインタが設定されますが、これをすべてプラグインで受け取ることはできません。ウィンドウハンドルのみが提供されています。
 
-※_hako_ は フック機構を提供しません
-
 ---
 
 ##API 関数
