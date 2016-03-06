@@ -8,6 +8,7 @@
 
 #include <array>
 
+#include <windows.h>
 #include <strsafe.h>
 
 #include <shlwapi.h>
@@ -58,6 +59,8 @@ TTBasePlugin::~TTBasePlugin()
 
 void TTBasePlugin::swap(TTBasePlugin&& rhs) noexcept
 {
+    if ( this == &rhs ) { return; }
+
     std::swap(m_path,   rhs.m_path);
     std::swap(m_handle, rhs.m_handle);
     std::swap(m_info,   rhs.m_info);
@@ -508,6 +511,12 @@ void PluginMgr::CollectFile
             continue;
         }
         if ( fd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN )
+        {
+            continue;
+        }
+
+        // Hook.dllは飛ばす
+        if ( 0 == lstrcmp(TEXT("Hook.dll"), fd.cFileName) )
         {
             continue;
         }

@@ -107,6 +107,7 @@ INT32 APIENTRY _tWinMain
     ::CoUninitialize();
 
     TTBPlugin_WriteLog(0, elInfo, TEXT("hako を 終了しました"));
+    TTBPlugin_WriteLog(0, elInfo, TEXT("------------------------------------------------------------"));
     return ret;
 }
 

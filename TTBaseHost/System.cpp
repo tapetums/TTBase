@@ -423,7 +423,7 @@ extern "C" void WINAPI TTBPlugin_SetTaskTrayIcon
 
 extern "C" void WINAPI TTBPlugin_WriteLog
 (
-    DWORD_PTR /*hPlugin*/, ERROR_LEVEL logLevel, LPCTSTR msg
+    DWORD_PTR hPlugin, ERROR_LEVEL logLevel, LPCTSTR msg
 )
 {
     constexpr const TCHAR* const err_level[] =
@@ -444,7 +444,7 @@ extern "C" void WINAPI TTBPlugin_WriteLog
     if ( settings::get().logLevel == 0 )       { return; }
     if ( settings::get().logLevel < logLevel ) { return; }
 
-    static const auto theadId = ::GetCurrentThreadId();
+    const auto processId = ::GetCurrentProcessId();
 
     SYSTEMTIME st;
     ::GetLocalTime(&st);
@@ -453,10 +453,10 @@ extern "C" void WINAPI TTBPlugin_WriteLog
     ::StringCchPrintf
     (
         buf.data(), buf.size(),
-        TEXT("%04u/%02u/%02u %02u:%02u:%02u;%03u> [%04x] %s%s\r\n"),
+        TEXT("%04u/%02u/%02u %02u:%02u:%02u;%03u> [%04X][%08x] %s%s\r\n"),
         st.wYear, st.wMonth, st.wDay,
         st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
-        theadId, err_level[logLevel], msg
+        processId, hPlugin, err_level[logLevel], msg
     );
 
     // 指定先にログを出力
