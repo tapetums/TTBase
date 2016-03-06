@@ -19,6 +19,23 @@
 
 //---------------------------------------------------------------------------//
 //
+// 定数
+//
+//---------------------------------------------------------------------------//
+
+// プロセスの優先度
+constexpr DWORD priority_sheet[] =
+{
+    REALTIME_PRIORITY_CLASS,
+    HIGH_PRIORITY_CLASS,
+    ABOVE_NORMAL_PRIORITY_CLASS,
+    NORMAL_PRIORITY_CLASS,
+    BELOW_NORMAL_PRIORITY_CLASS,
+    IDLE_PRIORITY_CLASS,
+};
+
+//---------------------------------------------------------------------------//
+//
 // グローバル変数
 //
 //---------------------------------------------------------------------------//
@@ -81,24 +98,34 @@ PLUGIN_INFO g_info =
 
 //---------------------------------------------------------------------------//
 
-BOOL CheckTopMost(HWND hwnd)
+void CheckTopMost(HWND hwnd, HMENU hMenu)
 {
+    // 常に手前かどうかを取得
     const auto styleEx = ::GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+    const auto topmost = (styleEx & WS_EX_TOPMOST) ? TRUE : FALSE;
 
-    return (styleEx & WS_EX_TOPMOST) ? TRUE : FALSE;
+    // チェックマークを付ける
+    MENUITEMINFO mii;
+    ::GetMenuItemInfo(hMenu, 0, TRUE, &mii);
+    mii.cbSize = sizeof(mii);
+    mii.fMask  = MIIM_STATE;
+    mii.fState = topmost ? MFS_CHECKED : MFS_UNCHECKED;
+    ::SetMenuItemInfo(hMenu, 0, TRUE, &mii);
 }
 
 //---------------------------------------------------------------------------//
 
-BOOL ToggleTopMost(HWND hwnd, BOOL topmost)
+void ToggleTopMost(HWND hwnd)
 {
-    BOOL ret;
+    // 常に手前かどうかを取得
+    const auto styleEx = ::GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+    const auto topmost = (styleEx & WS_EX_TOPMOST) ? TRUE : FALSE;
 
     // 現在の状態から逆にする
     if ( topmost )
     {
         // 「常に手前」を解除
-        ret = ::SetWindowPos
+        ::SetWindowPos
         (
             hwnd, HWND_NOTOPMOST,
             0, 0, 0, 0,
@@ -108,7 +135,7 @@ BOOL ToggleTopMost(HWND hwnd, BOOL topmost)
     else
     {
         // 「常に手前」を設定
-        ret = ::SetWindowPos
+        ::SetWindowPos
         (
             hwnd, HWND_TOPMOST,
             0, 0, 0, 0,
@@ -117,8 +144,6 @@ BOOL ToggleTopMost(HWND hwnd, BOOL topmost)
 
         ::SetForegroundWindow(hwnd);
     }
-
-    return ret;
 }
 
 //---------------------------------------------------------------------------//
@@ -169,12 +194,30 @@ BOOL OpenAppFolder(HWND hwnd)
 
 //---------------------------------------------------------------------------//
 
+void CheckOpaque(HWND hwnd, HMENU hMenu)
+{
+    BYTE alpha;
+    ::GetLayeredWindowAttributes(hwnd, nullptr, &alpha, nullptr);
+    const UINT index = 10 - 10 * (alpha + 1) / 255;
+    WriteLog(elDebug, TEXT("%s: alpha = %u"), PLUGIN_NAME, alpha);
+
+    // チェックマークを付ける
+    MENUITEMINFO mii;
+    ::GetMenuItemInfo(hMenu, index, TRUE, &mii);
+    mii.cbSize = sizeof(mii);
+    mii.fMask  = MIIM_STATE;
+    mii.fState = MFS_CHECKED;
+    ::SetMenuItemInfo(hMenu, index, TRUE, &mii);
+}
+
+//---------------------------------------------------------------------------//
+
 BOOL SetOpaque(HWND hwnd, BYTE alpha)
 {
     auto styleEx = ::GetWindowLongPtr(hwnd, GWL_EXSTYLE);
     SetWindowLongPtr(hwnd, GWL_EXSTYLE, styleEx | WS_EX_LAYERED);
 
-    WriteLog(elDebug, TEXT("%s: %u"), PLUGIN_NAME, alpha);
+    WriteLog(elDebug, TEXT("%s: alpha = %u"), PLUGIN_NAME, alpha);
     ::SetLayeredWindowAttributes
     (
         hwnd, 0, alpha, LWA_ALPHA
@@ -185,24 +228,47 @@ BOOL SetOpaque(HWND hwnd, BYTE alpha)
 
 //---------------------------------------------------------------------------//
 
-BOOL SetPriority(HWND hwnd, INT32 priority)
+void CheckPriority(HWND hwnd, HMENU hMenu)
 {
-    constexpr DWORD priority_sheet[] =
-    {
-        REALTIME_PRIORITY_CLASS,
-        HIGH_PRIORITY_CLASS,
-        ABOVE_NORMAL_PRIORITY_CLASS,
-        NORMAL_PRIORITY_CLASS,
-        BELOW_NORMAL_PRIORITY_CLASS,
-        IDLE_PRIORITY_CLASS,
-    };
+    DWORD dwProcessId;
+    ::GetWindowThreadProcessId(hwnd, &dwProcessId);
 
+    const auto hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION, 0, dwProcessId);
+    const auto priority = ::GetPriorityClass(hProcess);
+    ::CloseHandle(hProcess);
+    WriteLog(elDebug, TEXT("%s: priority = %X"), PLUGIN_NAME, priority);
+
+    UINT index;
+    switch ( priority )
+    {
+        case REALTIME_PRIORITY_CLASS:     { index = 0; break; }
+        case HIGH_PRIORITY_CLASS:         { index = 1; break; }
+        case ABOVE_NORMAL_PRIORITY_CLASS: { index = 2; break; }
+        case BELOW_NORMAL_PRIORITY_CLASS: { index = 4; break; }
+        case IDLE_PRIORITY_CLASS:         { index = 5; break; }
+        default:                          { index = 3; break; }
+    }
+
+    MENUITEMINFO mii;
+    ::GetMenuItemInfo(hMenu, index, TRUE, &mii);
+    mii.cbSize = sizeof(mii);
+    mii.fMask  = MIIM_STATE;
+    mii.fState = MFS_CHECKED;
+    ::SetMenuItemInfo(hMenu, index, TRUE, &mii);
+}
+
+//---------------------------------------------------------------------------//
+
+BOOL SetPriority(HWND hwnd, DWORD priority)
+{
     DWORD dwProcessId;
     ::GetWindowThreadProcessId(hwnd, &dwProcessId);
 
     const auto hProcess = ::OpenProcess(PROCESS_SET_INFORMATION, 0, dwProcessId);
-    SetPriorityClass(hProcess, priority_sheet[priority]);
+    ::SetPriorityClass(hProcess, priority);
     ::CloseHandle(hProcess);
+
+    WriteLog(elDebug, TEXT("%s: priority = %X"), PLUGIN_NAME, priority);
 
     return TRUE;
 }
@@ -215,16 +281,10 @@ BOOL ShowPopup(HWND hwnd, HWND target_hwnd)
     const auto hMenu    = ::LoadMenu(g_hInst, MAKEINTRESOURCE(100));
     const auto hSubMenu = ::GetSubMenu(hMenu, 0);
 
-    const auto topmost = CheckTopMost(target_hwnd);
-    {
-        // チェックマークを付ける
-        MENUITEMINFO mii;
-        ::GetMenuItemInfo(hSubMenu, 0, TRUE, &mii);
-        mii.cbSize = sizeof(mii);
-        mii.fMask  = MIIM_STATE;
-        mii.fState = topmost ? MFS_CHECKED : MFS_UNCHECKED;
-        ::SetMenuItemInfo(hSubMenu, 0, TRUE, &mii);
-    }
+    // チェックマークを付ける
+    CheckTopMost (target_hwnd, hSubMenu);
+    CheckOpaque  (target_hwnd, ::GetSubMenu(hSubMenu, 2));
+    CheckPriority(target_hwnd, ::GetSubMenu(hSubMenu, 3));
 
     // Article ID: Q135788
     // ポップアップメニューから処理を戻すために必要
@@ -239,7 +299,7 @@ BOOL ShowPopup(HWND hwnd, HWND target_hwnd)
         hSubMenu, TPM_LEFTALIGN | TPM_NONOTIFY | TPM_RETURNCMD,
         pt.x, pt.y, 0, hwnd, nullptr
     );
-    WriteLog(elDebug, TEXT("%s: CmdId = %d"), PLUGIN_NAME, CmdID);
+    //WriteLog(elDebug, TEXT("%s: CmdId = %d"), PLUGIN_NAME, CmdID);
 
     // 表示したメニューを破棄
     ::DestroyMenu(hMenu);
@@ -251,7 +311,7 @@ BOOL ShowPopup(HWND hwnd, HWND target_hwnd)
     // コマンドを実行
     if ( CmdID == 40000 )
     {
-        ToggleTopMost(target_hwnd, topmost);
+        ToggleTopMost(target_hwnd);
     }
     else if ( CmdID == 40001 )
     {
@@ -267,11 +327,11 @@ BOOL ShowPopup(HWND hwnd, HWND target_hwnd)
     }
     else if ( 41000 < CmdID && CmdID < 42000 )
     {
-        SetOpaque(target_hwnd, BYTE(256 * (CmdID - 41000) / 100 - 1));
+        SetOpaque(target_hwnd, BYTE(255 * (CmdID - 41000) / 100));
     }
     else if ( 42000 < CmdID && CmdID < 43000 )
     {
-        SetPriority(target_hwnd, CmdID - 42001);
+        SetPriority(target_hwnd, priority_sheet[CmdID - 42001]);
     }
 
     return TRUE;
@@ -426,7 +486,7 @@ void WINAPI Unload(void)
 // TTBEvent_Execute() の内部実装
 BOOL WINAPI Execute(INT32 CmdId, HWND hwnd)
 {
-    WriteLog(elDebug, TEXT("%s|%d"), g_info.Filename, CmdId);
+    //WriteLog(elDebug, TEXT("%s|%d"), g_info.Filename, CmdId);
 
     // コマンドを実行する
     switch ( CmdId )
