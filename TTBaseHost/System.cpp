@@ -202,7 +202,7 @@ BOOL WINAPI Execute(INT32 CmdID, HWND hwnd)
         }
         case CMD_TRAYICON:
         {
-            ::PostMessage(hwnd, TTB_SET_TASK_TRAY_ICON, 0, (LPARAM)TEXT("TOGGLE"));
+            ::PostMessage(hwnd, TTB_SET_TASK_TRAY_ICON, 0, 0);
             return TRUE;
         }
         default:

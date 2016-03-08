@@ -699,7 +699,17 @@ void CALLBACK MainWnd::OnSetTaskTrayIcon
     HICON hIcon, LPCTSTR Tips
 )
 {
-    if ( 0 == lstrcmp(Tips, TEXT("TOGGLE")) )
+    if ( hIcon )
+    {
+        // タスクトレイアイコンを差替
+        DeleteNotifyIcon(ID_TRAYICON);
+        ::DestroyIcon(icon);
+        icon = hIcon;
+
+        AddNotifyIcon(ID_TRAYICON, icon);
+        SetNotifyIconTip(ID_TRAYICON, Tips);
+    }
+    else
     {
         // タスクトレイアイコンの表示/非表示を切替
         DeleteNotifyIcon(ID_TRAYICON);
@@ -725,19 +735,6 @@ void CALLBACK MainWnd::OnSetTaskTrayIcon
         cmd.DispMenu = (DISPMENU)DispMenu;
 
         UpdateCheckState(list_cmd, system.get(), CMD_TRAYICON);
-    }
-    else
-    {
-        // タスクトレイアイコンを差替
-        DeleteNotifyIcon(ID_TRAYICON);
-        ::DestroyIcon(icon);
-        icon = hIcon;
-
-        if ( hIcon )
-        {
-            AddNotifyIcon(ID_TRAYICON, icon);
-            SetNotifyIconTip(ID_TRAYICON, Tips);
-        }
     }
 }
 
