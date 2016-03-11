@@ -275,7 +275,7 @@ BOOL SetPriority(HWND hwnd, DWORD priority)
 
 //---------------------------------------------------------------------------//
 
-BOOL ShowPopup(HWND hwnd, HWND target_hwnd)
+void ShowPopup(HWND hwnd, HWND target_hwnd)
 {
     // リソースからメニューを取得
     const auto hMenu    = ::LoadMenu(g_hInst, MAKEINTRESOURCE(100));
@@ -333,8 +333,6 @@ BOOL ShowPopup(HWND hwnd, HWND target_hwnd)
     {
         SetPriority(target_hwnd, priority_sheet[CmdID - 42001]);
     }
-
-    return TRUE;
 }
 
 //---------------------------------------------------------------------------//
@@ -515,7 +513,8 @@ BOOL WINAPI Execute(INT32 CmdId, HWND hwnd)
             }
             while ( parent );
 
-            return ShowPopup(hwnd, hwnd_target);
+            ShowPopup(hwnd, hwnd_target);
+            return TRUE;
         }
         default:
         {

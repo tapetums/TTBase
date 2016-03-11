@@ -57,15 +57,27 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
     const auto pt   = pmhs->pt;
 
     // マウスカーソル直下にあるウィンドウのハンドルを取得
-    auto hwnd = ::WindowFromPoint(pt);
-    if ( nullptr == hwnd )
+    auto hwnd_target = ::WindowFromPoint(pt);
+    if ( nullptr == hwnd_target )
     {
         return ::CallNextHookEx(g_hHook, nCode, wp, lp);
     }
 
+    // トップレベルのオーナーウィンドウをさがす
+    HWND parent = hwnd_target;
+    do
+    {
+        parent = ::GetParent(parent);
+        if ( parent )
+        {
+            hwnd_target = parent;
+        }
+    }
+    while ( parent );
+
     // マウスカーソルがウィンドウ上で設定された範囲にあるか調べる
     RECT rc;
-    ::GetWindowRect(hwnd, &rc);
+    ::GetWindowRect(hwnd_target, &rc);
 
     const auto w = settings->w;
     const auto h = settings->h;
@@ -88,7 +100,7 @@ static LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wp, LPARAM lp)
     }
 
     // ポップアップメニューを表示
-    PostMessage(g_hwnd, WM_COMMAND, 0, LPARAM(hwnd));
+    PostMessage(g_hwnd, WM_COMMAND, 0, LPARAM(hwnd_target));
 
     return 1L;
 }
