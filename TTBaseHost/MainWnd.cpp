@@ -205,11 +205,6 @@ LRESULT CALLBACK MainWnd::WndProc
     {
         OnNotifyIcon(hwnd, (UINT)lParam); return 0;
     }
-    if ( uMsg == TTB_SAVE_DATA_FILE )
-    {
-        WriteLog(elInfo, TEXT("%s"), TEXT("TTB_SAVE_DATA_FILE は実装していません"));
-        return 0;
-    }
     if ( uMsg == TTB_SHOW_SETTINGS )
     {
         OnShowSettings(hwnd); return 0;
@@ -234,13 +229,14 @@ LRESULT CALLBACK MainWnd::WndProc
     {
         OnExecuteCommand(hwnd, (ITTBPlugin*)wParam, (INT32)lParam); return 0;
     }
-    if ( uMsg == TTB_RELOAD_PLUGINS )
+    if ( uMsg == TTB_RELOAD_PLUGINS || uMsg == TTB_LOAD_DATA_FILE )
     {
         OnReloadPlugins(); return 0;
     }
-    if ( uMsg == TTB_LOAD_DATA_FILE )
+    if ( uMsg == TTB_SAVE_DATA_FILE )
     {
-        OnReloadPlugins(); return 0;
+        WriteLog(elError, TEXT("%s"), TEXT("TTB_SAVE_DATA_FILE は実装していません"));
+        return 0;
     }
     if
     (
@@ -495,11 +491,11 @@ LRESULT CALLBACK MainWnd::OnNotify
     {
         if ( pNMHdr->code == NM_DBLCLK )
         {
-            // ユーザーによるチェックボックスの操作を無効化
             POINT pt;
             ::GetCursorPos(&pt);
             ::ScreenToClient(pNMHdr->hwndFrom, &pt);
 
+            // ユーザーによるチェックボックスの操作を無効化
             if ( pt.x <= 16 ) { return TRUE; }
 
             // コマンドの実行
@@ -619,15 +615,15 @@ void CALLBACK MainWnd::OnCommand
         const auto index = cbx_log.SelectedIndex();
         settings::get().logLevel = index;
     }
-    else if ( id >= 10'000 )
+    else if ( id >= 10000 )
     {
-        const INT32 index = id > 20'000 ? id - 20'000 : id - 10'000;
+        const INT32 index = id > 20000 ? id - 20000 : id - 10000;
         if ( index >= list_cmd.Count() )
         {
             return;
         }
 
-        if ( id < 20'000 )
+        if ( id < 20000 )
         {
             SystemLog(TEXT("%s"), TEXT("システムメニューの表示"));
         }

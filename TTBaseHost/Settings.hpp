@@ -109,7 +109,7 @@ inline settings::settings()
         ::StringCchPrintfW
         (
             log.data(), log.size(), LR"(%s\%04u%02u%02u.log)",
-            path, st.wYear, st.wMonth, st.wDay
+            path.data(), st.wYear, st.wMonth, st.wDay
         );
 
         // ログファイルを開く

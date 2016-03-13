@@ -24,7 +24,7 @@ class TTBBridgePlugin : public ITTBPlugin
     using File = tapetums::File;
 
 private: // Members
-    TCHAR        m_path[MAX_PATH];
+    TCHAR        m_path [MAX_PATH];
     bool         m_loaded { false };
     PLUGIN_INFO* m_info   { nullptr };
 

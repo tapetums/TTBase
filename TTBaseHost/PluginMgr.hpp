@@ -62,7 +62,7 @@ struct ITTBPlugin
 class TTBasePlugin : public ITTBPlugin
 {
 protected: // Members
-    TCHAR        m_path[MAX_PATH];
+    TCHAR        m_path [MAX_PATH];
     HMODULE      m_handle { nullptr };
     PLUGIN_INFO* m_info   { nullptr };
 
