@@ -137,12 +137,13 @@ TTBBridgePlugin::TTBBridgePlugin()
     std::array<wchar_t, MAX_PATH> path;
     ::GetModuleFileNameW(g_hInst, path.data(), (DWORD)path.size());
     ::PathRemoveFileSpecW(path.data());
-    ::StringCchCatW(path.data(), path.size(), LR"(\TTBBridge.exe)");
+    ::StringCchCatW(path.data(), path.size(), LR"(\TTBbridge.exe)");
+
+    // コマンドライン引数の生成
+    std::array<wchar_t, MAX_PATH> args;
+    ::StringCchPrintfW(args.data(), args.size(), L"%s ", shrmem.name());
 
     // 子プロセスの生成
-    std::array<wchar_t, MAX_PATH> args;
-    ::StringCchCopyW(args.data(), args.size(), shrmem.name());
-
     STARTUPINFOW si;
     ::GetStartupInfoW(&si);
 
@@ -156,16 +157,16 @@ TTBBridgePlugin::TTBBridgePlugin()
     );
     if ( ! result )
     {
-        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe を起動できません"));
+        WriteLog(elError, TEXT("  %s"), TEXT("TTBbridge.exe を起動できません"));
         return;
     }
     threadId = pi.dwThreadId;
 
     // 接続テスト
-    const auto ret = ::WaitForSingleObject(evt_done, 5'000);
+    const auto ret = ::WaitForSingleObject(evt_done, 5000);
     if ( ret != WAIT_OBJECT_0 )
     {
-        WriteLog(elError, TEXT("  %s"), TEXT("TTBBridge.exe を開始できません"));
+        WriteLog(elError, TEXT("  %s"), TEXT("TTBbridge.exe を開始できません"));
         ::TerminateProcess(pi.hProcess, 0);
         return;
     }

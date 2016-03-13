@@ -285,7 +285,7 @@ extern "C" void WINAPI TTBPlugin_FreePluginInfo
 
     if ( nullptr == PLUGIN_INFO )
     {
-        SystemLog(TEXT("  %s"), TEXT("NG"));
+        SystemLog(TEXT("  %s"), TEXT("nullptr"));
         return;
     }
 
@@ -397,7 +397,12 @@ extern "C" void WINAPI TTBPlugin_FreePluginInfoArray
 )
 {
     SystemLog(TEXT("%s"), TEXT("すべてのプラグインの情報を解放"));
-    if ( nullptr == PluginInfoArray ) { return; }
+
+    if ( nullptr == PluginInfoArray )
+    {
+        SystemLog(TEXT("  %s"), TEXT("nullptr"));
+        return;
+    }
 
     delete[] PluginInfoArray;
 

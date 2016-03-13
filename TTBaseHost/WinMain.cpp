@@ -8,11 +8,11 @@
 #include <windows.h>
 #include <tchar.h>
 
-#include "include/Application.hpp"
 #include "include/File.hpp"
 
 #include "../Utility.hpp"
 #include "PluginMgr.hpp"
+#include "BridgeWnd.hpp"
 #include "MainWnd.hpp"
 #include "Hook.hpp"
 
@@ -93,6 +93,8 @@ INT32 APIENTRY _tWinMain
     MainWnd wnd;
     g_hwnd = wnd.handle();
 
+    BridgeWnd bdgwnd;
+
     // ウィンドウハンドルを共有メモリに保存
     shared.Write(&g_hwnd, sizeof(HWND));
 
@@ -101,14 +103,20 @@ INT32 APIENTRY _tWinMain
     hook.InstallHook(g_hwnd);
 
     // メッセージループ
-    const auto ret = Application::Run();
+    MSG msg { };
+    while ( ::GetMessage(&msg, nullptr, 0, 0) > 0 )
+    {
+        ::TranslateMessage(&msg);
+        ::DispatchMessage(&msg);
+    }
 
     // COM の終了処理
     ::CoUninitialize();
 
     TTBPlugin_WriteLog(0, elInfo, TEXT("hako を 終了しました"));
     TTBPlugin_WriteLog(0, elInfo, TEXT("------------------------------------------------------------"));
-    return ret;
+
+    return static_cast<INT32>(msg.wParam);
 }
 
 //---------------------------------------------------------------------------//

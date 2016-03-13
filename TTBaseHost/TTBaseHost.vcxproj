@@ -191,9 +191,9 @@
     <ClInclude Include="..\Plugin.hpp" />
     <ClInclude Include="..\Utility.hpp" />
     <ClInclude Include="BridgeData.hpp" />
+    <ClInclude Include="BridgeWnd.hpp" />
     <ClInclude Include="Command.hpp" />
     <ClInclude Include="Hook.hpp" />
-    <ClInclude Include="include\Application.hpp" />
     <ClInclude Include="include\CollectFile.hpp" />
     <ClInclude Include="include\CtrlWnd.hpp" />
     <ClInclude Include="include\File.hpp" />
@@ -214,8 +214,7 @@
     <Image Include="nocheck.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\TTBase.def" />
-    <None Include="TTBasePlugin.def" />
+    <None Include="TTBase.def" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="NYSL.TXT" />
