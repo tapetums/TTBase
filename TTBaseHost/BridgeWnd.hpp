@@ -53,7 +53,90 @@ public:
 public:
     LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) override
     {
+        if ( msg == MSG_TTBPLUGIN_GETPLUGININFO )
+        {
+            return OnGetPluginInfo();
+        }
+        if ( msg == MSG_TTBPLUGIN_SETPLUGININFO )
+        {
+            return OnSetPluginInfo();
+        }
+        if ( msg == MSG_TTBPLUGIN_FREEPLUGININFO )
+        {
+            return OnFreePluginInfo();
+        }
+        if ( msg == MSG_TTBPLUGIN_SETMENUPROPERTY )
+        {
+            return OnSetMenuProperty();
+        }
+        if ( msg == MSG_TTBPLUGIN_GETALLPLUGININFO )
+        {
+            return OnGetAllPluginInfo();
+        }
+        if ( msg == MSG_TTBPLUGIN_FREEPLUGININFOARRAY )
+        {
+            return OnFreePluginInfoArray();
+        }
+        if ( msg == MSG_TTBPLUGIN_SETTASKTRAYICON )
+        {
+            return OnSetTaskTrayIcon();
+        }
+        if ( msg == MSG_TTBPLUGIN_WRITELOG )
+        {
+            return OnWriteLog();
+        }
+        if ( msg == MSG_TTBPLUGIN_EXECUTECOMMAND )
+        {
+            return OnExecuteCommand();
+        }
+
         return super::WndProc(hwnd, msg, wp, lp);
+    }
+
+private:
+    LRESULT CALLBACK OnGetPluginInfo()
+    {
+        return 0;
+    }
+
+    LRESULT CALLBACK OnSetPluginInfo()
+    {
+        return 0;
+    }
+
+    LRESULT CALLBACK OnFreePluginInfo()
+    {
+        return 0;
+    }
+
+    LRESULT CALLBACK OnSetMenuProperty()
+    {
+        return 0;
+    }
+
+    LRESULT CALLBACK OnGetAllPluginInfo()
+    {
+        return 0;
+    }
+
+    LRESULT CALLBACK OnFreePluginInfoArray()
+    {
+        return 0;
+    }
+
+    LRESULT CALLBACK OnSetTaskTrayIcon()
+    {
+        return 0;
+    }
+
+    LRESULT CALLBACK OnWriteLog()
+    {
+        return 0;
+    }
+
+    LRESULT CALLBACK OnExecuteCommand()
+    {
+        return 0;
     }
 };
 

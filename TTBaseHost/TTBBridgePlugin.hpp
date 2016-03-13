@@ -28,8 +28,9 @@ private: // Members
     bool         m_loaded { false };
     PLUGIN_INFO* m_info   { nullptr };
 
-    DWORD  threadId { 0 };
-    HANDLE evt_done { nullptr };
+    DWORD  threadId    { 0 };
+    HANDLE input_done  { nullptr };
+    HANDLE output_done { nullptr };
 
     File shrmem;
 

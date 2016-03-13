@@ -123,11 +123,13 @@ TTBBridgePlugin::TTBBridgePlugin()
 
     // データの準備
     BridgeData data;
-    GenerateUUIDStringW(data.filename, data.namelen);
-    GenerateUUIDStringW(data.done,     data.namelen);
-    evt_done = ::CreateEventW(nullptr, TRUE, FALSE, data.done);
+    GenerateUUIDStringW(data.input_file,  data.namelen);
+    GenerateUUIDStringW(data.input_done,  data.namelen);
+    GenerateUUIDStringW(data.output_done, data.namelen);
+    input_done  = ::CreateEventW(nullptr, TRUE, FALSE, data.input_done);
+    output_done = ::CreateEventW(nullptr, TRUE, FALSE, data.output_done);
 
-    if ( ! shrmem.Map(sizeof(data), data.filename, File::ACCESS::WRITE) )
+    if ( ! shrmem.Map(sizeof(data), data.input_file, File::ACCESS::WRITE) )
     {
         return;
     }
@@ -163,7 +165,7 @@ TTBBridgePlugin::TTBBridgePlugin()
     threadId = pi.dwThreadId;
 
     // 接続テスト
-    const auto ret = ::WaitForSingleObject(evt_done, 5000);
+    const auto ret = ::WaitForSingleObject(input_done, 5000);
     if ( ret != WAIT_OBJECT_0 )
     {
         WriteLog(elError, TEXT("  %s"), TEXT("TTBbridge.exe を開始できません"));
@@ -191,6 +193,10 @@ TTBBridgePlugin::~TTBBridgePlugin()
     // 子プロセスの終了
     ::PostThreadMessage(threadId, WM_QUIT, 0, 0);
 
+    ::CloseHandle(input_done);
+    ::CloseHandle(output_done);
+    shrmem.Close();
+
     SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
@@ -202,9 +208,9 @@ void TTBBridgePlugin::swap(TTBBridgePlugin&& rhs) noexcept
     std::swap(m_loaded, rhs.m_loaded);
     std::swap(m_info,   rhs.m_info);
 
-    std::swap(threadId, rhs.threadId);
-    std::swap(evt_done, rhs.evt_done);
-    std::swap(shrmem,   rhs.shrmem);
+    std::swap(threadId,   rhs.threadId);
+    std::swap(input_done, rhs.input_done);
+    std::swap(shrmem,     rhs.shrmem);
 }
 
 //---------------------------------------------------------------------------//
@@ -267,16 +273,16 @@ bool TTBBridgePlugin::Load
 
     // データを送信
     BridgeData data;
-    ::StringCchCopyW(data.filename, data.namelen, plugin_data.name());
+    ::StringCchCopyW(data.input_file, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
     shrmem.Flush();
 
-    ::ResetEvent(evt_done);
+    ::ResetEvent(input_done);
     ::PostThreadMessage(threadId, WM_COMMAND, 0, 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(evt_done, 100);
+    ::WaitForSingleObject(input_done, 100);
 
     PluginMsg msg;
     plugin_data.Seek(0);
@@ -327,16 +333,16 @@ void TTBBridgePlugin::Free()
 
     // データを送信
     BridgeData data;
-    ::StringCchCopyW(data.filename, data.namelen, plugin_data.name());
+    ::StringCchCopyW(data.input_file, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
     shrmem.Flush();
 
-    ::ResetEvent(evt_done);
+    ::ResetEvent(input_done);
     ::PostThreadMessage(threadId, WM_COMMAND, 0, 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(evt_done, 100);
+    ::WaitForSingleObject(input_done, 100);
 
     // 読み込み済みのフラグをオフ
     m_loaded = false;
@@ -444,23 +450,23 @@ bool TTBBridgePlugin::InitInfo
 
     // データを送信
     BridgeData data;
-    ::StringCchCopyW(data.filename, data.namelen, plugin_data.name());
+    ::StringCchCopyW(data.input_file, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
     shrmem.Flush();
 
-    ::ResetEvent(evt_done);
+    ::ResetEvent(input_done);
     ::PostThreadMessage(threadId, WM_COMMAND, 0, 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(evt_done, 100);
+    ::WaitForSingleObject(input_done, 100);
 
     // データの読み取り
     shrmem.Seek(0);
     shrmem.Read(&data);
 
     File info_data;
-    if ( ! info_data.Open(data.filename, File::ACCESS::WRITE) )
+    if ( ! info_data.Open(data.output_file, File::ACCESS::WRITE) )
     {
         WriteLog(elError, TEXT("  %s"), TEXT("共有ファイルが開けません"));
         return false;
@@ -534,16 +540,16 @@ void TTBBridgePlugin::FreeInfo()
 
     // データを送信
     BridgeData data;
-    ::StringCchCopyW(data.filename, data.namelen, plugin_data.name());
+    ::StringCchCopyW(data.input_file, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
     shrmem.Flush();
 
-    ::ResetEvent(evt_done);
+    ::ResetEvent(input_done);
     ::PostThreadMessage(threadId, WM_COMMAND, 0, 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(evt_done, 100);
+    ::WaitForSingleObject(input_done, 100);
 
     SystemLog(TEXT("  %s"), TEXT("OK"));
     return;
@@ -600,16 +606,16 @@ bool TTBBridgePlugin::Init
 
     // データを送信
     BridgeData data;
-    ::StringCchCopyW(data.filename, data.namelen, plugin_data.name());
+    ::StringCchCopyW(data.input_file, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
     shrmem.Flush();
 
-    ::ResetEvent(evt_done);
+    ::ResetEvent(input_done);
     ::PostThreadMessage(threadId, WM_COMMAND, 0, 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(evt_done, 100);
+    ::WaitForSingleObject(input_done, 100);
 
     PluginMsg msg;
     plugin_data.Seek(0);
@@ -654,16 +660,16 @@ void TTBBridgePlugin::Unload()
 
     // データを送信
     BridgeData data;
-    ::StringCchCopyW(data.filename, data.namelen, plugin_data.name());
+    ::StringCchCopyW(data.input_file, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
     shrmem.Flush();
 
-    ::ResetEvent(evt_done);
+    ::ResetEvent(input_done);
     ::PostThreadMessage(threadId, WM_COMMAND, 0, 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(evt_done, 100);
+    ::WaitForSingleObject(input_done, 100);
 
     SystemLog(TEXT("  %s"), TEXT("OK"));
     return;
@@ -711,16 +717,16 @@ bool TTBBridgePlugin::Execute
 
     // データを送信
     BridgeData data;
-    ::StringCchCopyW(data.filename, data.namelen, plugin_data.name());
+    ::StringCchCopyW(data.input_file, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
     shrmem.Flush();
 
-    ::ResetEvent(evt_done);
+    ::ResetEvent(input_done);
     ::PostThreadMessage(threadId, WM_COMMAND, 0, 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(evt_done, 100);
+    ::WaitForSingleObject(input_done, 100);
 
     PluginMsg msg;
     plugin_data.Seek(0);
@@ -774,16 +780,16 @@ void TTBBridgePlugin::Hook
 
     // データを送信
     BridgeData data;
-    ::StringCchCopyW(data.filename, data.namelen, plugin_data.name());
+    ::StringCchCopyW(data.input_file, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
     shrmem.Flush();
 
-    ::ResetEvent(evt_done);
+    ::ResetEvent(input_done);
     ::PostThreadMessage(threadId, WM_COMMAND, 0, 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(evt_done, 100);
+    ::WaitForSingleObject(input_done, 100);
 
     //SystemLog(TEXT("  %s"), TEXT("OK"));
     return;
