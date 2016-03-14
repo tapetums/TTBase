@@ -14,10 +14,10 @@ struct BridgeData
 {
     static constexpr size_t namelen = 40;
 
-    wchar_t input_file  [namelen];
+    wchar_t filename    [namelen];
     wchar_t input_done  [namelen];
-    wchar_t output_file [namelen];
     wchar_t output_done [namelen];
+    wchar_t lockname    [namelen];
 };
 
 enum class PluginMsg : uint8_t

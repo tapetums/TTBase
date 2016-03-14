@@ -24,6 +24,7 @@ using namespace tapetums;
 File   shrmem;
 HANDLE input_done;
 HANDLE output_done;
+HANDLE shrlock;
 
 // 本体との通信用ウィンドウメッセージ
 UINT MSG_TTBPLUGIN_GETPLUGININFO       { 0 };
@@ -122,14 +123,16 @@ LRESULT CALLBACK BridgeWnd::WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 LRESULT CALLBACK BridgeWnd::OnCreate()
 {
     BridgeData data;
-    std::array<wchar_t, data.namelen> name;
 
-    GenerateUUIDStringW(name.data(),  name.size());
     GenerateUUIDStringW(data.input_done,  data.namelen);
     GenerateUUIDStringW(data.output_done, data.namelen);
+    GenerateUUIDStringW(data.lockname,    data.namelen);
     input_done  = ::CreateEventW(nullptr, TRUE, FALSE, data.input_done);
     output_done = ::CreateEventW(nullptr, TRUE, FALSE, data.output_done);
+    shrlock     = ::CreateMutexW(nullptr, FALSE, data.lockname);
 
+    std::array<wchar_t, data.namelen> name;
+    GenerateUUIDStringW(name.data(),  name.size());
     if ( shrmem.Map(sizeof(data), name.data(), File::ACCESS::WRITE) )
     {
         shrmem.Write(data);
@@ -144,6 +147,7 @@ LRESULT CALLBACK BridgeWnd::OnDestroy()
 {
     ::CloseHandle(input_done);
     ::CloseHandle(output_done);
+    ::CloseHandle(shrlock);
     shrmem.Close();
 
     return 0;
