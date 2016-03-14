@@ -235,7 +235,7 @@ bool TTBBridgePlugin::Load
 
     // データの準備
     std::array<wchar_t, BridgeData::namelen> uuid;
-    GenerateUUIDStringW(uuid.data(), sizeof(wchar_t) * uuid.size());
+    GenerateUUIDStringW(uuid.data(), uuid.size());
 
     File plugin_data;
     const auto result = plugin_data.Map
@@ -308,7 +308,7 @@ void TTBBridgePlugin::Free()
 
     // データの準備
     std::array<wchar_t, BridgeData::namelen> uuid;
-    GenerateUUIDStringW(uuid.data(), sizeof(wchar_t) * uuid.size());
+    GenerateUUIDStringW(uuid.data(), uuid.size());
 
     File plugin_data;
     const auto result = plugin_data.Map
@@ -415,7 +415,7 @@ bool TTBBridgePlugin::InitInfo
 
     // データの準備
     std::array<wchar_t, BridgeData::namelen> uuid;
-    GenerateUUIDStringW(uuid.data(), sizeof(wchar_t) * uuid.size());
+    GenerateUUIDStringW(uuid.data(), uuid.size());
 
     File plugin_data;
     const auto result = plugin_data.Map
@@ -522,7 +522,7 @@ void TTBBridgePlugin::FreeInfo()
 
     // データの準備
     std::array<wchar_t, BridgeData::namelen> uuid;
-    GenerateUUIDStringW(uuid.data(), sizeof(wchar_t) * uuid.size());
+    GenerateUUIDStringW(uuid.data(), uuid.size());
 
     File plugin_data;
     const auto result = plugin_data.Map
@@ -577,7 +577,7 @@ bool TTBBridgePlugin::Init
 
     // データの準備
     std::array<wchar_t, BridgeData::namelen> uuid;
-    GenerateUUIDStringW(uuid.data(), sizeof(wchar_t) * uuid.size());
+    GenerateUUIDStringW(uuid.data(), uuid.size());
 
     File plugin_data;
     const auto result = plugin_data.Map
@@ -646,7 +646,7 @@ void TTBBridgePlugin::Unload()
 
     // データの準備
     std::array<wchar_t, BridgeData::namelen> uuid;
-    GenerateUUIDStringW(uuid.data(), sizeof(wchar_t) * uuid.size());
+    GenerateUUIDStringW(uuid.data(), uuid.size());
 
     File plugin_data;
     const auto result = plugin_data.Map
@@ -701,7 +701,7 @@ bool TTBBridgePlugin::Execute
 
     // データの準備
     std::array<wchar_t, BridgeData::namelen> uuid;
-    GenerateUUIDStringW(uuid.data(), sizeof(wchar_t) * uuid.size());
+    GenerateUUIDStringW(uuid.data(), uuid.size());
 
     File plugin_data;
     const auto result = plugin_data.Map
@@ -765,7 +765,7 @@ void TTBBridgePlugin::Hook
 
     // データの準備
     std::array<wchar_t, BridgeData::namelen> uuid;
-    GenerateUUIDStringW(uuid.data(), sizeof(wchar_t) * uuid.size());
+    GenerateUUIDStringW(uuid.data(), uuid.size());
 
     File plugin_data;
     const auto result = plugin_data.Map
