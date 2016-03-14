@@ -85,15 +85,16 @@ INT32 APIENTRY _tWinMain
         return 0;
     }
 
+    // プロセス間通信用ウィンドウの生成
+    BridgeWnd bdgwnd;
+
     // プラグインマネージャの初期化
     auto&& mgr = PluginMgr::GetInstance();
     mgr.LoadAll();
 
-    // ウィンドウの生成
+    // メインウィンドウの生成
     MainWnd wnd;
     g_hwnd = wnd.handle();
-
-    BridgeWnd bdgwnd;
 
     // ウィンドウハンドルを共有メモリに保存
     shared.Write(&g_hwnd, sizeof(HWND));

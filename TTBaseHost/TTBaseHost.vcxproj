@@ -180,6 +180,7 @@
     <ClCompile Include="..\MessageDef.cpp" />
     <ClCompile Include="..\Plugin.cpp" />
     <ClCompile Include="..\Utility.cpp" />
+    <ClCompile Include="BridgeWnd.cpp" />
     <ClCompile Include="MainWnd.cpp" />
     <ClCompile Include="PluginMgr.cpp" />
     <ClCompile Include="System.cpp" />

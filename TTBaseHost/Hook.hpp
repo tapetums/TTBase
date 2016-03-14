@@ -102,7 +102,7 @@ private:
         }
         if ( attr & FILE_ATTRIBUTE_HIDDEN )
         {
-            WriteLog(elInfo, TEXT("Hook.dll は隠しファイルです。ロードを中断します"));
+            WriteLog(elInfo, TEXT("Hook.dll は隠しファイルです。ロードを中止します"));
             return;
         }
 

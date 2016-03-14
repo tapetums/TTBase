@@ -10,7 +10,6 @@
 
 #include <windows.h>
 
-#include "include/File.hpp"
 #include "../Plugin.hpp"
 
 #include "PluginMgr.hpp"
@@ -21,18 +20,12 @@
 
 class TTBBridgePlugin : public ITTBPlugin
 {
-    using File = tapetums::File;
-
 private: // Members
     TCHAR        m_path [MAX_PATH];
     bool         m_loaded { false };
     PLUGIN_INFO* m_info   { nullptr };
 
-    DWORD  threadId    { 0 };
-    HANDLE input_done  { nullptr };
-    HANDLE output_done { nullptr };
-
-    File shrmem;
+    DWORD threadId { 0 };
 
 public: // ctor / dtor
     TTBBridgePlugin();

@@ -17,6 +17,7 @@
 #include <shlwapi.h>
 #pragma comment(lib, "shlwapi.lib") // PathRemoveFileSpec, PathRelativePathTo
 
+#include "include/File.hpp"
 #include "include/GenerateUUIDString.hpp"
 #include "../Utility.hpp"
 #include "BridgeData.hpp"
@@ -40,8 +41,15 @@ void SystemLog(const C* const format, Args... args)
 #endif
 
 //---------------------------------------------------------------------------//
-// Global Variables
+// グローバル変数
 //---------------------------------------------------------------------------//
+
+using namespace tapetums;
+
+// 本体との通信用オブジェクト (BridgeWnd.cpp で定義)
+extern File   shrmem;
+extern HANDLE input_done;
+extern HANDLE output_done;
 
 // WinMain.cpp で宣言
 extern HINSTANCE g_hInst;
@@ -121,20 +129,6 @@ TTBBridgePlugin::TTBBridgePlugin()
 
     SystemLog(TEXT("%s"), TEXT("ブリッヂプラグインを生成"));
 
-    // データの準備
-    BridgeData data;
-    GenerateUUIDStringW(data.input_file,  data.namelen);
-    GenerateUUIDStringW(data.input_done,  data.namelen);
-    GenerateUUIDStringW(data.output_done, data.namelen);
-    input_done  = ::CreateEventW(nullptr, TRUE, FALSE, data.input_done);
-    output_done = ::CreateEventW(nullptr, TRUE, FALSE, data.output_done);
-
-    if ( ! shrmem.Map(sizeof(data), data.input_file, File::ACCESS::WRITE) )
-    {
-        return;
-    }
-    shrmem.Write(data);
-
     // 子プロセスのパスを合成
     std::array<wchar_t, MAX_PATH> path;
     ::GetModuleFileNameW(g_hInst, path.data(), (DWORD)path.size());
@@ -165,7 +159,8 @@ TTBBridgePlugin::TTBBridgePlugin()
     threadId = pi.dwThreadId;
 
     // 接続テスト
-    const auto ret = ::WaitForSingleObject(input_done, 5000);
+    ::ResetEvent(input_done);
+    const auto ret = ::WaitForSingleObject(input_done, 3000);
     if ( ret != WAIT_OBJECT_0 )
     {
         WriteLog(elError, TEXT("  %s"), TEXT("TTBbridge.exe を開始できません"));
@@ -193,10 +188,6 @@ TTBBridgePlugin::~TTBBridgePlugin()
     // 子プロセスの終了
     ::PostThreadMessage(threadId, WM_QUIT, 0, 0);
 
-    ::CloseHandle(input_done);
-    ::CloseHandle(output_done);
-    shrmem.Close();
-
     SystemLog(TEXT("  %s"), TEXT("OK"));
 }
 
@@ -208,9 +199,7 @@ void TTBBridgePlugin::swap(TTBBridgePlugin&& rhs) noexcept
     std::swap(m_loaded, rhs.m_loaded);
     std::swap(m_info,   rhs.m_info);
 
-    std::swap(threadId,   rhs.threadId);
-    std::swap(input_done, rhs.input_done);
-    std::swap(shrmem,     rhs.shrmem);
+    std::swap(threadId, rhs.threadId);
 }
 
 //---------------------------------------------------------------------------//
@@ -273,6 +262,8 @@ bool TTBBridgePlugin::Load
 
     // データを送信
     BridgeData data;
+    shrmem.Seek(0);
+    shrmem.Read(&data);
     ::StringCchCopyW(data.input_file, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
@@ -333,6 +324,8 @@ void TTBBridgePlugin::Free()
 
     // データを送信
     BridgeData data;
+    shrmem.Seek(0);
+    shrmem.Read(&data);
     ::StringCchCopyW(data.input_file, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
@@ -450,6 +443,8 @@ bool TTBBridgePlugin::InitInfo
 
     // データを送信
     BridgeData data;
+    shrmem.Seek(0);
+    shrmem.Read(&data);
     ::StringCchCopyW(data.input_file, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
@@ -493,6 +488,9 @@ bool TTBBridgePlugin::InitInfo
     SystemLog(TEXT("  相対パス:   %s"), m_info->Filename);
     SystemLog(TEXT("  タイプ:     %s"), m_info->PluginType == ptAlwaysLoad ? TEXT("常駐") : TEXT("都度"));
     SystemLog(TEXT("  コマンド数: %u"), m_info->CommandCount);
+
+    // 送信完了を通知
+    ::SetEvent(output_done);
 
     SystemLog(TEXT("  %s"), TEXT("OK"));
     return true;
@@ -540,6 +538,8 @@ void TTBBridgePlugin::FreeInfo()
 
     // データを送信
     BridgeData data;
+    shrmem.Seek(0);
+    shrmem.Read(&data);
     ::StringCchCopyW(data.input_file, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
@@ -606,6 +606,8 @@ bool TTBBridgePlugin::Init
 
     // データを送信
     BridgeData data;
+    shrmem.Seek(0);
+    shrmem.Read(&data);
     ::StringCchCopyW(data.input_file, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
@@ -660,6 +662,8 @@ void TTBBridgePlugin::Unload()
 
     // データを送信
     BridgeData data;
+    shrmem.Seek(0);
+    shrmem.Read(&data);
     ::StringCchCopyW(data.input_file, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
@@ -717,6 +721,8 @@ bool TTBBridgePlugin::Execute
 
     // データを送信
     BridgeData data;
+    shrmem.Seek(0);
+    shrmem.Read(&data);
     ::StringCchCopyW(data.input_file, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
@@ -780,6 +786,8 @@ void TTBBridgePlugin::Hook
 
     // データを送信
     BridgeData data;
+    shrmem.Seek(0);
+    shrmem.Read(&data);
     ::StringCchCopyW(data.input_file, data.namelen, plugin_data.name());
     shrmem.Seek(0);
     shrmem.Write(data);
