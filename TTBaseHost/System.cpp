@@ -45,6 +45,7 @@ extern UINT TTB_SHOW_SETTINGS;
 extern UINT TTB_OPEN_FOLDER;
 extern UINT TTB_SHOW_VER_INFO;
 extern UINT TTB_RELOAD_PLUGINS;
+extern UINT TTB_SET_PLUGIN_INFO;
 extern UINT TTB_SET_MENU_PROPERTY;
 extern UINT TTB_SET_TASK_TRAY_ICON;
 extern UINT TTB_EXECUTE_COMMAND;
@@ -267,6 +268,9 @@ extern "C" void WINAPI TTBPlugin_SetPluginInfo
 
         // プラグイン情報を差替
         plugin->info(PLUGIN_INFO); // 内部でコピーを保持 ... PluginMgr.hpp を参照
+
+        // プラグイン一覧を更新
+        ::PostMessage(g_hwnd, TTB_SET_PLUGIN_INFO, 0, 0);
         return;
     }
 

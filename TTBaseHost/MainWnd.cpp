@@ -56,6 +56,7 @@ UINT TTB_SHOW_SETTINGS      { 0 };
 UINT TTB_OPEN_FOLDER        { 0 };
 UINT TTB_SHOW_VER_INFO      { 0 };
 UINT TTB_RELOAD_PLUGINS     { 0 };
+UINT TTB_SET_PLUGIN_INFO    { 0 };
 UINT TTB_SET_MENU_PROPERTY  { 0 };
 UINT TTB_SET_TASK_TRAY_ICON { 0 };
 UINT TTB_EXECUTE_COMMAND    { 0 };
@@ -143,12 +144,13 @@ LPCTSTR CBX_LOGLEVEL_TEXT[6] =
 // Utility Functions
 //---------------------------------------------------------------------------//
 
-void SetPluginNames   (const PluginMgr& mgr, tapetums::ListWnd& list);
-void SetPluginCommands(const PluginMgr& mgr, tapetums::ListWnd& list);
-void ShowPluginInfo   (tapetums::ListWnd& list, tapetums::CtrlWnd& edit);
-void UpdateCheckState (tapetums::ListWnd& list, const ITTBPlugin* plugin, INT32 CmdID);
-void PopupSysMenu     (HWND hwnd);
-void PopupToolMenu    (HWND hwnd);
+void SetPluginNames      (const PluginMgr& mgr, tapetums::ListWnd& list);
+void SetPluginCommands   (const PluginMgr& mgr, tapetums::ListWnd& list);
+void UpdataPluginCommands(const PluginMgr& mgr, tapetums::ListWnd& list);
+void ShowPluginInfo      (tapetums::ListWnd& list, tapetums::CtrlWnd& edit);
+void UpdateCheckState    (tapetums::ListWnd& list, const ITTBPlugin* plugin, INT32 CmdID);
+void PopupSysMenu        (HWND hwnd);
+void PopupToolMenu       (HWND hwnd);
 
 //---------------------------------------------------------------------------//
 // Methods
@@ -161,6 +163,7 @@ MainWnd::MainWnd()
     TTB_OPEN_FOLDER        = ::RegisterWindowMessage(TEXT("TTB_OPEN_FOLDER"));
     TTB_SHOW_VER_INFO      = ::RegisterWindowMessage(TEXT("TTB_SHOW_VER_INFO"));
     TTB_RELOAD_PLUGINS     = ::RegisterWindowMessage(TEXT("TTB_RELOAD_PLUGINS"));
+    TTB_SET_PLUGIN_INFO    = ::RegisterWindowMessage(TEXT("TTB_SET_PLUGIN_INFO"));
     TTB_SET_MENU_PROPERTY  = ::RegisterWindowMessage(TEXT("TTB_SET_MENU_PROPERTY"));
     TTB_SET_TASK_TRAY_ICON = ::RegisterWindowMessage(TEXT("TTB_SET_TASK_TRAY_ICON"));
     TTB_EXECUTE_COMMAND    = ::RegisterWindowMessage(TEXT("TTB_EXECUTE_COMMAND"));
@@ -216,6 +219,10 @@ LRESULT CALLBACK MainWnd::WndProc
     if ( uMsg == TTB_SHOW_VER_INFO )
     {
         OmShowVerInfo(hwnd); return 0;
+    }
+    if ( uMsg == TTB_SET_PLUGIN_INFO )
+    {
+        UpdataPluginCommands(PluginMgr::GetInstance(), list_cmd); return 0;
     }
     if ( uMsg == TTB_SET_MENU_PROPERTY )
     {
@@ -887,6 +894,18 @@ void SetPluginCommands
             ++index;
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+
+void UpdataPluginCommands
+(
+    const PluginMgr& mgr, tapetums::ListWnd& list
+)
+{
+    list.DeleteAllItems();
+
+    SetPluginCommands(mgr, list);
 }
 
 //---------------------------------------------------------------------------//
