@@ -7,12 +7,28 @@
 //---------------------------------------------------------------------------//
 
 #include <array>
+#include <vector>
 
 #include "include/File.hpp"
 #include "include/GenerateUUIDString.hpp"
+#include "../Utility.hpp"
 #include "BridgeData.hpp"
 
 #include "BridgeWnd.hpp"
+
+#if SYS_DEBUG
+
+template<typename C, typename... Args>
+void SystemLog(const C* const format, Args... args)
+{
+    WriteLog(ERROR_LEVEL(5), format, args...);
+}
+
+#else
+
+#define SystemLog(format, ...)
+
+#endif
 
 //---------------------------------------------------------------------------//
 // グローバル変数
@@ -22,11 +38,14 @@ using namespace tapetums;
 
 // 本体との通信用オブジェクト
 File   shrmem;
+HANDLE downward_lock;
+HANDLE upward_lock;
 HANDLE input_done;
 HANDLE output_done;
-HANDLE shrlock;
+HANDLE upward_done;
 
-// 本体との通信用ウィンドウメッセージ
+// ブリッヂとの通信用ウィンドウメッセージ
+UINT MSG_TTBBRIDGE_COMMAND             { 0 };
 UINT MSG_TTBPLUGIN_GETPLUGININFO       { 0 };
 UINT MSG_TTBPLUGIN_SETPLUGININFO       { 0 };
 UINT MSG_TTBPLUGIN_FREEPLUGININFO      { 0 };
@@ -38,12 +57,19 @@ UINT MSG_TTBPLUGIN_WRITELOG            { 0 };
 UINT MSG_TTBPLUGIN_EXECUTECOMMAND      { 0 };
 
 //---------------------------------------------------------------------------//
+// ユーティリティ関数 (TTBBridgePlugin.cpp で定義)
+//---------------------------------------------------------------------------//
+
+inline PLUGIN_INFO_W* DeserializePluginInfo(const std::vector<uint8_t>& data);
+
+//---------------------------------------------------------------------------//
 // ctor
 //---------------------------------------------------------------------------//
 
 BridgeWnd::BridgeWnd()
 {
     // 本体との通信用ウィンドウメッセージを登録
+    MSG_TTBBRIDGE_COMMAND             = ::RegisterWindowMessageW(L"MSG_TTBBRIDGE_COMMAND");
     MSG_TTBPLUGIN_GETPLUGININFO       = ::RegisterWindowMessageW(L"MSG_TTBPLUGIN_GETPLUGININFO");
     MSG_TTBPLUGIN_SETPLUGININFO       = ::RegisterWindowMessageW(L"MSG_TTBPLUGIN_SETPLUGININFO");
     MSG_TTBPLUGIN_FREEPLUGININFO      = ::RegisterWindowMessageW(L"MSG_TTBPLUGIN_FREEPLUGININFO");
@@ -54,11 +80,11 @@ BridgeWnd::BridgeWnd()
     MSG_TTBPLUGIN_WRITELOG            = ::RegisterWindowMessageW(L"MSG_TTBPLUGIN_WRITELOG");
     MSG_TTBPLUGIN_EXECUTECOMMAND      = ::RegisterWindowMessageW(L"MSG_TTBPLUGIN_EXECUTECOMMAND");
 
-    Register(TEXT("BridgeWnd"));
+    Register(TEXT("TTBBridgeWnd"));
 
     const auto style   = 0;
     const auto styleEx = 0;
-    Create(TEXT("BridgeWnd"), style, styleEx, nullptr, nullptr);
+    Create(TEXT("TTBBridgeWnd"), style, styleEx, nullptr, nullptr);
 }
 
 //---------------------------------------------------------------------------//
@@ -124,12 +150,16 @@ LRESULT CALLBACK BridgeWnd::OnCreate()
 {
     BridgeData data;
 
-    GenerateUUIDStringW(data.input_done,  data.namelen);
-    GenerateUUIDStringW(data.output_done, data.namelen);
-    GenerateUUIDStringW(data.lockname,    data.namelen);
-    input_done  = ::CreateEventW(nullptr, TRUE, FALSE, data.input_done);
-    output_done = ::CreateEventW(nullptr, TRUE, FALSE, data.output_done);
-    shrlock     = ::CreateMutexW(nullptr, FALSE, data.lockname);
+    GenerateUUIDStringW(data.downward_lock, data.namelen);
+    GenerateUUIDStringW(data.upward_lock,   data.namelen);
+    GenerateUUIDStringW(data.input_done,    data.namelen);
+    GenerateUUIDStringW(data.output_done,   data.namelen);
+    GenerateUUIDStringW(data.upward_done,   data.namelen);
+    downward_lock = ::CreateMutexW(nullptr, FALSE, data.downward_lock);
+    upward_lock   = ::CreateMutexW(nullptr, FALSE, data.upward_lock);
+    input_done    = ::CreateEventW(nullptr, TRUE, FALSE, data.input_done);
+    output_done   = ::CreateEventW(nullptr, TRUE, FALSE, data.output_done);
+    upward_done   = ::CreateEventW(nullptr, TRUE, FALSE, data.upward_done);
 
     std::array<wchar_t, data.namelen> name;
     GenerateUUIDStringW(name.data(),  name.size());
@@ -145,9 +175,11 @@ LRESULT CALLBACK BridgeWnd::OnCreate()
 
 LRESULT CALLBACK BridgeWnd::OnDestroy()
 {
+    ::CloseHandle(downward_lock);
+    ::CloseHandle(upward_lock);
     ::CloseHandle(input_done);
     ::CloseHandle(output_done);
-    ::CloseHandle(shrlock);
+    ::CloseHandle(upward_done);
     shrmem.Close();
 
     return 0;
@@ -164,6 +196,41 @@ LRESULT CALLBACK BridgeWnd::OnGetPluginInfo()
 
 LRESULT CALLBACK BridgeWnd::OnSetPluginInfo()
 {
+    BridgeData data;
+    shrmem.Seek(0);
+    shrmem.Read(&data);
+    SystemLog(TEXT("  downward_file: %s"), data.downward_file);
+    SystemLog(TEXT("  upward_file:   %s"), data.upward_file);
+
+    SystemLog(TEXT("OnSetPluginInfo: %s"), data.upward_file);
+
+    File info_data;
+    if ( ! info_data.Open(data.upward_file, File::ACCESS::READ) )
+    {
+        WriteLog(elError, TEXT("  %s"), TEXT("共有ファイルが開けません"));
+        ::SetEvent(upward_done);
+        return 0;
+    }
+
+    info_data.Seek(0);
+
+    DWORD_PTR hPlugin;
+    info_data.Read(&hPlugin);
+
+    uint32_t size; // 32-bit の size_t は 32-bit 幅!!!!
+    info_data.Read(&size);
+
+    std::vector<uint8_t> serialized;
+    serialized.resize(size);
+    info_data.Read(serialized.data(), serialized.size());
+
+    const auto info = DeserializePluginInfo(serialized);
+    TTBPlugin_SetPluginInfo(hPlugin, info);
+    FreePluginInfo(info);
+
+    // 受信完了を通知
+    ::SetEvent(upward_done);
+
     return 0;
 }
 
@@ -199,6 +266,9 @@ LRESULT CALLBACK BridgeWnd::OnFreePluginInfoArray()
 
 LRESULT CALLBACK BridgeWnd::OnSetTaskTrayIcon()
 {
+    SystemLog(TEXT("%s"), TEXT("OnSetTaskTrayIcon:  "));
+    SystemLog(TEXT("  %s"), TEXT("実装されていません"));
+
     return 0;
 }
 
@@ -206,6 +276,41 @@ LRESULT CALLBACK BridgeWnd::OnSetTaskTrayIcon()
 
 LRESULT CALLBACK BridgeWnd::OnWriteLog()
 {
+    BridgeData data;
+    shrmem.Seek(0);
+    shrmem.Read(&data);
+    SystemLog(TEXT("  downward_file: %s"), data.downward_file);
+    SystemLog(TEXT("  upward_file:   %s"), data.upward_file);
+
+    SystemLog(TEXT("OnWriteLog: %s"), data.upward_file);
+
+    File log_data;
+    if ( ! log_data.Open(data.upward_file, File::ACCESS::READ) )
+    {
+        WriteLog(elError, TEXT("  %s"), TEXT("共有ファイルが開けません"));
+        ::SetEvent(upward_done);
+        return 0;
+    }
+
+    log_data.Seek(0);
+
+    DWORD_PTR hPlugin;
+    log_data.Read(&hPlugin);
+
+    ERROR_LEVEL logLevel;
+    log_data.Read(&logLevel);
+
+    uint32_t cch;
+    log_data.Read(&cch);
+
+    std::vector<wchar_t> msg(cch);
+    log_data.Read(msg.data(), sizeof(wchar_t) * cch);
+
+    TTBPlugin_WriteLog(hPlugin, logLevel, msg.data());
+
+    // 受信完了を通知
+    ::SetEvent(upward_done);
+
     return 0;
 }
 
@@ -213,6 +318,38 @@ LRESULT CALLBACK BridgeWnd::OnWriteLog()
 
 LRESULT CALLBACK BridgeWnd::OnExecuteCommand()
 {
+    BridgeData data;
+    shrmem.Seek(0);
+    shrmem.Read(&data);
+    SystemLog(TEXT("  downward_file: %s"), data.downward_file);
+    SystemLog(TEXT("  upward_file:   %s"), data.upward_file);
+
+    SystemLog(TEXT("OnExecuteCommand: %s"), data.upward_file);
+
+    File execute_data;
+    if ( ! execute_data.Open(data.upward_file, File::ACCESS::READ) )
+    {
+        WriteLog(elError, TEXT("  %s"), TEXT("共有ファイルが開けません"));
+        ::SetEvent(upward_done);
+        return 0;
+    }
+
+    execute_data.Seek(0);
+
+    uint32_t cch;
+    execute_data.Read(&cch);
+
+    std::vector<wchar_t> PluginFilename(cch);
+    execute_data.Read(PluginFilename.data(), sizeof(wchar_t) * cch);
+
+    INT32 CmdID;
+    execute_data.Read(&CmdID);
+
+    TTBPlugin_ExecuteCommand(PluginFilename.data(), CmdID);
+
+    // 受信完了を通知
+    ::SetEvent(upward_done);
+
     return 0;
 }
 

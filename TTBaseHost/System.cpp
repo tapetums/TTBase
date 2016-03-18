@@ -458,7 +458,7 @@ extern "C" void WINAPI TTBPlugin_WriteLog
     ::StringCchPrintf
     (
         buf.data(), buf.size(),
-        TEXT("%04u/%02u/%02u %02u:%02u:%02u;%03u> [%04X][%08x] %s%s\r\n"),
+        TEXT("%04u/%02u/%02u %02u:%02u:%02u.%03u> [%04X][%08x] %s%s\r\n"),
         st.wYear, st.wMonth, st.wDay,
         st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
         processId, hPlugin, err_level[logLevel], msg

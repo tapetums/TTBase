@@ -564,7 +564,7 @@ void PluginMgr::CollectFile
                     // スリープを入れないと子プロセスに制御が移らないせいか
                     // 時々フリーズする
                     // 詳細は不明 ... TO BE FIXED
-                    ::Sleep(1);
+                    //::Sleep(1);
                 }
                 else
                 {
