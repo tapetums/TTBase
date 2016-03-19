@@ -46,9 +46,9 @@ using namespace tapetums;
 
 // 本体との通信用オブジェクト (BridgeWnd.cpp で定義)
 extern File   shrmem;
-extern HANDLE downward_lock;
-extern HANDLE input_done;
-extern HANDLE output_done;
+extern HANDLE lock_downward;
+extern HANDLE downward_input_done;
+extern HANDLE downward_output_done;
 
 // ブリッヂとの通信用ウィンドウメッセージ (BridgeWnd.cpp で定義)
 extern UINT MSG_TTBBRIDGE_COMMAND;
@@ -161,8 +161,8 @@ TTBBridgePlugin::TTBBridgePlugin()
     threadId = pi.dwThreadId;
 
     // 接続テスト
-    ::ResetEvent(input_done);
-    const auto ret = ::WaitForSingleObject(input_done, 3000);
+    ::ResetEvent(downward_input_done);
+    const auto ret = ::WaitForSingleObject(downward_input_done, 3000);
     if ( ret != WAIT_OBJECT_0 )
     {
         WriteLog(elError, TEXT("  %s"), TEXT("TTBbridge.exe を開始できません"));
@@ -261,16 +261,16 @@ bool TTBBridgePlugin::Load
     plugin_data.Write(buf.data(), buf.size() * sizeof(wchar_t));
 
     // データを送信
-    ::WaitForSingleObject(downward_lock, INFINITE);
+    ::WaitForSingleObject(lock_downward, INFINITE);
 
     shrmem.Seek(0);
     shrmem.Write(uuid.data(), sizeof(wchar_t) * uuid.size());
 
-    ::ResetEvent(input_done);
+    ::ResetEvent(downward_input_done);
     ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, 0, 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(input_done, 100);
+    ::WaitForSingleObject(downward_input_done, 100);
 
     PluginMsg msg;
     plugin_data.Seek(0);
@@ -282,7 +282,7 @@ bool TTBBridgePlugin::Load
         m_loaded = true;
     }
 
-    ::ReleaseMutex(downward_lock);
+    ::ReleaseMutex(lock_downward);
     SystemLog(TEXT("  %s"), PluginMsgTxt[(uint8_t)msg]);
     return true;
 }
@@ -321,21 +321,21 @@ void TTBBridgePlugin::Free()
     }
 
     // データを送信
-    ::WaitForSingleObject(downward_lock, INFINITE);
+    ::WaitForSingleObject(lock_downward, INFINITE);
 
     shrmem.Seek(0);
     shrmem.Write(uuid.data(), sizeof(wchar_t) * uuid.size());
 
-    ::ResetEvent(input_done);
+    ::ResetEvent(downward_input_done);
     ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, 0, 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(input_done, 100);
+    ::WaitForSingleObject(downward_input_done, 100);
 
     // 読み込み済みのフラグをオフ
     m_loaded = false;
 
-    ::ReleaseMutex(downward_lock);
+    ::ReleaseMutex(lock_downward);
     SystemLog(TEXT("  %s"), TEXT("OK"));
     return;
 }
@@ -436,16 +436,16 @@ bool TTBBridgePlugin::InitInfo
     plugin_data.Write(buf.data(), buf.size() * sizeof(wchar_t));
 
     // データを送信
-    ::WaitForSingleObject(downward_lock, INFINITE);
+    ::WaitForSingleObject(lock_downward, INFINITE);
 
     shrmem.Seek(0);
     shrmem.Write(uuid.data(), sizeof(wchar_t) * uuid.size());
 
-    ::ResetEvent(input_done);
+    ::ResetEvent(downward_input_done);
     ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, 0, 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(input_done, 100);
+    ::WaitForSingleObject(downward_input_done, 100);
 
     // データの読み取り
     shrmem.Seek(0);
@@ -482,9 +482,9 @@ bool TTBBridgePlugin::InitInfo
     SystemLog(TEXT("  コマンド数: %u"), m_info->CommandCount);
 
     // 送信完了を通知
-    ::SetEvent(output_done);
+    ::SetEvent(downward_output_done);
 
-    ::ReleaseMutex(downward_lock);
+    ::ReleaseMutex(lock_downward);
     SystemLog(TEXT("  %s"), TEXT("OK"));
     return true;
 }
@@ -530,18 +530,18 @@ void TTBBridgePlugin::FreeInfo()
     }
 
     // データを送信
-    ::WaitForSingleObject(downward_lock, INFINITE);
+    ::WaitForSingleObject(lock_downward, INFINITE);
 
     shrmem.Seek(0);
     shrmem.Write(uuid.data(), sizeof(wchar_t) * uuid.size());
 
-    ::ResetEvent(input_done);
+    ::ResetEvent(downward_input_done);
     ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, 0, 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(input_done, 100);
+    ::WaitForSingleObject(downward_input_done, 100);
 
-    ::ReleaseMutex(downward_lock);
+    ::ReleaseMutex(lock_downward);
     SystemLog(TEXT("  %s"), TEXT("OK"));
     return;
 }
@@ -594,22 +594,22 @@ bool TTBBridgePlugin::Init
     plugin_data.Write(hPlugin);
 
     // データを送信
-    ::WaitForSingleObject(downward_lock, INFINITE);
+    ::WaitForSingleObject(lock_downward, INFINITE);
 
     shrmem.Seek(0);
     shrmem.Write(uuid.data(), sizeof(wchar_t) * uuid.size());
 
-    ::ResetEvent(input_done);
+    ::ResetEvent(downward_input_done);
     ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, 0, 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(input_done, 100);
+    ::WaitForSingleObject(downward_input_done, 100);
 
     PluginMsg msg;
     plugin_data.Seek(0);
     plugin_data.Read(&msg);
 
-    ::ReleaseMutex(downward_lock);
+    ::ReleaseMutex(lock_downward);
     SystemLog(TEXT("  %s"), PluginMsgTxt[(uint8_t)msg]);
     return true;
 }
@@ -648,18 +648,18 @@ void TTBBridgePlugin::Unload()
     }
 
     // データを送信
-    ::WaitForSingleObject(downward_lock, INFINITE);
+    ::WaitForSingleObject(lock_downward, INFINITE);
 
     shrmem.Seek(0);
     shrmem.Write(uuid.data(), sizeof(wchar_t) * uuid.size());
 
-    ::ResetEvent(input_done);
+    ::ResetEvent(downward_input_done);
     ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, 0, 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(input_done, 100);
+    ::WaitForSingleObject(downward_input_done, 100);
 
-    ::ReleaseMutex(downward_lock);
+    ::ReleaseMutex(lock_downward);
     SystemLog(TEXT("  %s"), TEXT("OK"));
     return;
 }
@@ -705,23 +705,22 @@ bool TTBBridgePlugin::Execute
     plugin_data.Write(hwnd);
 
     // データを送信
-    ::WaitForSingleObject(downward_lock, INFINITE);
+    ::WaitForSingleObject(lock_downward, INFINITE);
 
     shrmem.Seek(0);
     shrmem.Write(uuid.data(), sizeof(wchar_t) * uuid.size());
-    SystemLog(uuid.data());
 
-    ::ResetEvent(input_done);
+    ::ResetEvent(downward_input_done);
     ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, 0, 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(input_done, 100);
+    ::WaitForSingleObject(downward_input_done, 100);
 
     PluginMsg msg;
     plugin_data.Seek(0);
     plugin_data.Read(&msg);
 
-    ::ReleaseMutex(downward_lock);
+    ::ReleaseMutex(lock_downward);
     SystemLog(TEXT("  %s"), PluginMsgTxt[uint8_t(msg)]);
     return true;
 }
@@ -769,18 +768,18 @@ void TTBBridgePlugin::Hook
     plugin_data.Write(lParam);
 
     // データを送信
-    ::WaitForSingleObject(downward_lock, INFINITE);
+    ::WaitForSingleObject(lock_downward, INFINITE);
 
     shrmem.Seek(0);
     shrmem.Write(uuid.data(), sizeof(wchar_t) * uuid.size());
 
-    ::ResetEvent(input_done);
+    ::ResetEvent(downward_input_done);
     ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, 0, 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(input_done, 100);
+    ::WaitForSingleObject(downward_input_done, 100);
 
-    ::ReleaseMutex(downward_lock);
+    ::ReleaseMutex(lock_downward);
     //SystemLog(TEXT("  %s"), TEXT("OK"));
     return;
 }

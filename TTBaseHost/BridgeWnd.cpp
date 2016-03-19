@@ -38,11 +38,12 @@ using namespace tapetums;
 
 // 本体との通信用オブジェクト
 File   shrmem;
-HANDLE downward_lock;
-HANDLE upward_lock;
-HANDLE input_done;
-HANDLE output_done;
-HANDLE upward_done;
+HANDLE lock_downward;
+HANDLE lock_upward;
+HANDLE downward_input_done;
+HANDLE downward_output_done;
+HANDLE upward_input_done;
+HANDLE upward_output_done;
 
 // ブリッヂとの通信用ウィンドウメッセージ
 UINT MSG_TTBBRIDGE_COMMAND             { 0 };
@@ -150,16 +151,18 @@ LRESULT CALLBACK BridgeWnd::OnCreate()
 {
     BridgeData data;
 
-    GenerateUUIDStringW(data.downward_lock, data.namelen);
-    GenerateUUIDStringW(data.upward_lock,   data.namelen);
-    GenerateUUIDStringW(data.input_done,    data.namelen);
-    GenerateUUIDStringW(data.output_done,   data.namelen);
-    GenerateUUIDStringW(data.upward_done,   data.namelen);
-    downward_lock = ::CreateMutexW(nullptr, FALSE, data.downward_lock);
-    upward_lock   = ::CreateMutexW(nullptr, FALSE, data.upward_lock);
-    input_done    = ::CreateEventW(nullptr, TRUE, FALSE, data.input_done);
-    output_done   = ::CreateEventW(nullptr, TRUE, FALSE, data.output_done);
-    upward_done   = ::CreateEventW(nullptr, TRUE, FALSE, data.upward_done);
+    GenerateUUIDStringW(data.lock_downward,        data.namelen);
+    GenerateUUIDStringW(data.lock_upward,          data.namelen);
+    GenerateUUIDStringW(data.downward_input_done,  data.namelen);
+    GenerateUUIDStringW(data.downward_output_done, data.namelen);
+    GenerateUUIDStringW(data.upward_input_done,    data.namelen);
+    GenerateUUIDStringW(data.upward_output_done,   data.namelen);
+    lock_downward        = ::CreateMutexW(nullptr, FALSE, data.lock_downward);
+    lock_upward          = ::CreateMutexW(nullptr, FALSE, data.lock_upward);
+    downward_input_done  = ::CreateEventW(nullptr, TRUE, FALSE, data.downward_input_done);
+    downward_output_done = ::CreateEventW(nullptr, TRUE, FALSE, data.downward_output_done);
+    upward_input_done    = ::CreateEventW(nullptr, TRUE, FALSE, data.upward_input_done);
+    upward_output_done   = ::CreateEventW(nullptr, TRUE, FALSE, data.upward_output_done);
 
     std::array<wchar_t, data.namelen> name;
     GenerateUUIDStringW(name.data(),  name.size());
@@ -175,11 +178,12 @@ LRESULT CALLBACK BridgeWnd::OnCreate()
 
 LRESULT CALLBACK BridgeWnd::OnDestroy()
 {
-    ::CloseHandle(downward_lock);
-    ::CloseHandle(upward_lock);
-    ::CloseHandle(input_done);
-    ::CloseHandle(output_done);
-    ::CloseHandle(upward_done);
+    ::CloseHandle(lock_downward);
+    ::CloseHandle(lock_upward);
+    ::CloseHandle(downward_input_done);
+    ::CloseHandle(downward_output_done);
+    ::CloseHandle(upward_input_done);
+    ::CloseHandle(upward_output_done);
     shrmem.Close();
 
     return 0;
@@ -199,16 +203,16 @@ LRESULT CALLBACK BridgeWnd::OnSetPluginInfo()
     BridgeData data;
     shrmem.Seek(0);
     shrmem.Read(&data);
-    SystemLog(TEXT("  downward_file: %s"), data.downward_file);
-    SystemLog(TEXT("  upward_file:   %s"), data.upward_file);
+    SystemLog(TEXT("  downward_file: %s"), data.filename_downward);
+    SystemLog(TEXT("  upward_file:   %s"), data.filename_upward);
 
-    SystemLog(TEXT("OnSetPluginInfo: %s"), data.upward_file);
+    SystemLog(TEXT("OnSetPluginInfo: %s"), data.filename_upward);
 
     File info_data;
-    if ( ! info_data.Open(data.upward_file, File::ACCESS::READ) )
+    if ( ! info_data.Open(data.filename_upward, File::ACCESS::READ) )
     {
         WriteLog(elError, TEXT("  %s"), TEXT("共有ファイルが開けません"));
-        ::SetEvent(upward_done);
+        ::SetEvent(upward_input_done);
         return 0;
     }
 
@@ -229,7 +233,8 @@ LRESULT CALLBACK BridgeWnd::OnSetPluginInfo()
     FreePluginInfo(info);
 
     // 受信完了を通知
-    ::SetEvent(upward_done);
+    ::SetEvent(upward_input_done);
+  #endif
 
     return 0;
 }
@@ -279,16 +284,16 @@ LRESULT CALLBACK BridgeWnd::OnWriteLog()
     BridgeData data;
     shrmem.Seek(0);
     shrmem.Read(&data);
-    SystemLog(TEXT("  downward_file: %s"), data.downward_file);
-    SystemLog(TEXT("  upward_file:   %s"), data.upward_file);
+    SystemLog(TEXT("  downward_file: %s"), data.filename_downward);
+    SystemLog(TEXT("  upward_file:   %s"), data.filename_upward);
 
-    SystemLog(TEXT("OnWriteLog: %s"), data.upward_file);
+    SystemLog(TEXT("OnWriteLog: %s"), data.filename_upward);
 
     File log_data;
-    if ( ! log_data.Open(data.upward_file, File::ACCESS::READ) )
+    if ( ! log_data.Open(data.filename_upward, File::ACCESS::READ) )
     {
         WriteLog(elError, TEXT("  %s"), TEXT("共有ファイルが開けません"));
-        ::SetEvent(upward_done);
+        ::SetEvent(upward_input_done);
         return 0;
     }
 
@@ -309,7 +314,7 @@ LRESULT CALLBACK BridgeWnd::OnWriteLog()
     TTBPlugin_WriteLog(hPlugin, logLevel, msg.data());
 
     // 受信完了を通知
-    ::SetEvent(upward_done);
+    ::SetEvent(upward_input_done);
 
     return 0;
 }
@@ -321,16 +326,16 @@ LRESULT CALLBACK BridgeWnd::OnExecuteCommand()
     BridgeData data;
     shrmem.Seek(0);
     shrmem.Read(&data);
-    SystemLog(TEXT("  downward_file: %s"), data.downward_file);
-    SystemLog(TEXT("  upward_file:   %s"), data.upward_file);
+    SystemLog(TEXT("  downward_file: %s"), data.filename_downward);
+    SystemLog(TEXT("  upward_file:   %s"), data.filename_upward);
 
-    SystemLog(TEXT("OnExecuteCommand: %s"), data.upward_file);
+    SystemLog(TEXT("OnExecuteCommand: %s"), data.filename_upward);
 
     File execute_data;
-    if ( ! execute_data.Open(data.upward_file, File::ACCESS::READ) )
+    if ( ! execute_data.Open(data.filename_upward, File::ACCESS::READ) )
     {
         WriteLog(elError, TEXT("  %s"), TEXT("共有ファイルが開けません"));
-        ::SetEvent(upward_done);
+        ::SetEvent(upward_input_done);
         return 0;
     }
 
@@ -348,7 +353,7 @@ LRESULT CALLBACK BridgeWnd::OnExecuteCommand()
     TTBPlugin_ExecuteCommand(PluginFilename.data(), CmdID);
 
     // 受信完了を通知
-    ::SetEvent(upward_done);
+    ::SetEvent(upward_input_done);
 
     return 0;
 }
