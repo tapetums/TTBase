@@ -69,6 +69,7 @@ inline PLUGIN_INFO_W* DeserializePluginInfo(const std::vector<uint8_t>& data);
 
 BridgeWnd::BridgeWnd()
 {
+  #if INTPTR_MAX == INT64_MAX
     // 本体との通信用ウィンドウメッセージを登録
     MSG_TTBBRIDGE_COMMAND             = ::RegisterWindowMessageW(L"MSG_TTBBRIDGE_COMMAND");
     MSG_TTBPLUGIN_GETPLUGININFO       = ::RegisterWindowMessageW(L"MSG_TTBPLUGIN_GETPLUGININFO");
@@ -86,6 +87,7 @@ BridgeWnd::BridgeWnd()
     const auto style   = 0;
     const auto styleEx = 0;
     Create(TEXT("TTBBridgeWnd"), style, styleEx, nullptr, nullptr);
+  #endif
 }
 
 //---------------------------------------------------------------------------//
@@ -149,6 +151,7 @@ LRESULT CALLBACK BridgeWnd::WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
 LRESULT CALLBACK BridgeWnd::OnCreate()
 {
+  #if INTPTR_MAX == INT64_MAX
     BridgeData data;
 
     GenerateUUIDStringW(data.lock_downward,        data.namelen);
@@ -170,6 +173,7 @@ LRESULT CALLBACK BridgeWnd::OnCreate()
     {
         shrmem.Write(data);
     }
+  #endif
 
     return 0;
 }
@@ -178,6 +182,7 @@ LRESULT CALLBACK BridgeWnd::OnCreate()
 
 LRESULT CALLBACK BridgeWnd::OnDestroy()
 {
+  #if INTPTR_MAX == INT64_MAX
     ::CloseHandle(lock_downward);
     ::CloseHandle(lock_upward);
     ::CloseHandle(downward_input_done);
@@ -185,6 +190,7 @@ LRESULT CALLBACK BridgeWnd::OnDestroy()
     ::CloseHandle(upward_input_done);
     ::CloseHandle(upward_output_done);
     shrmem.Close();
+  #endif
 
     return 0;
 }
@@ -200,6 +206,7 @@ LRESULT CALLBACK BridgeWnd::OnGetPluginInfo()
 
 LRESULT CALLBACK BridgeWnd::OnSetPluginInfo()
 {
+  #if INTPTR_MAX == INT64_MAX
     BridgeData data;
     shrmem.Seek(0);
     shrmem.Read(&data);
@@ -250,6 +257,7 @@ LRESULT CALLBACK BridgeWnd::OnFreePluginInfo()
 
 LRESULT CALLBACK BridgeWnd::OnSetMenuProperty()
 {
+  #if INTPTR_MAX == INT64_MAX
     BridgeData data;
     shrmem.Seek(0);
     shrmem.Read(&data);
@@ -284,6 +292,7 @@ LRESULT CALLBACK BridgeWnd::OnSetMenuProperty()
 
     // 受信完了を通知
     ::SetEvent(upward_input_done);
+  #endif
 
     return 0;
 }
@@ -306,8 +315,10 @@ LRESULT CALLBACK BridgeWnd::OnFreePluginInfoArray()
 
 LRESULT CALLBACK BridgeWnd::OnSetTaskTrayIcon()
 {
+  #if INTPTR_MAX == INT64_MAX
     SystemLog(TEXT("%s"), TEXT("OnSetTaskTrayIcon:  "));
     SystemLog(TEXT("  %s"), TEXT("実装されていません"));
+  #endif
 
     return 0;
 }
@@ -316,6 +327,7 @@ LRESULT CALLBACK BridgeWnd::OnSetTaskTrayIcon()
 
 LRESULT CALLBACK BridgeWnd::OnWriteLog()
 {
+  #if INTPTR_MAX == INT64_MAX
     BridgeData data;
     shrmem.Seek(0);
     shrmem.Read(&data);
@@ -350,6 +362,7 @@ LRESULT CALLBACK BridgeWnd::OnWriteLog()
 
     // 受信完了を通知
     ::SetEvent(upward_input_done);
+  #endif
 
     return 0;
 }
@@ -358,6 +371,7 @@ LRESULT CALLBACK BridgeWnd::OnWriteLog()
 
 LRESULT CALLBACK BridgeWnd::OnExecuteCommand()
 {
+  #if INTPTR_MAX == INT64_MAX
     BridgeData data;
     shrmem.Seek(0);
     shrmem.Read(&data);
@@ -389,6 +403,7 @@ LRESULT CALLBACK BridgeWnd::OnExecuteCommand()
 
     // 受信完了を通知
     ::SetEvent(upward_input_done);
+  #endif
 
     return 0;
 }

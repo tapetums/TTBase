@@ -86,7 +86,9 @@ INT32 APIENTRY _tWinMain
     }
 
     // プロセス間通信用ウィンドウの生成
+  #if INTPTR_MAX == INT64_MAX
     BridgeWnd bdgwnd;
+  #endif
 
     // プラグインマネージャの初期化
     auto&& mgr = PluginMgr::GetInstance();
