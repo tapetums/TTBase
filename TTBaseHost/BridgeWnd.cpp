@@ -250,6 +250,41 @@ LRESULT CALLBACK BridgeWnd::OnFreePluginInfo()
 
 LRESULT CALLBACK BridgeWnd::OnSetMenuProperty()
 {
+    BridgeData data;
+    shrmem.Seek(0);
+    shrmem.Read(&data);
+    SystemLog(TEXT("  downward_file: %s"), data.filename_downward);
+    SystemLog(TEXT("  upward_file:   %s"), data.filename_upward);
+
+    SystemLog(TEXT("OnSetPluginInfo: %s"), data.filename_upward);
+
+    File menu_data;
+    if ( ! menu_data.Open(data.filename_upward, File::ACCESS::READ) )
+    {
+        WriteLog(elError, TEXT("  %s"), TEXT("共有ファイルが開けません"));
+        ::SetEvent(upward_input_done);
+        return 0;
+    }
+
+    menu_data.Seek(0);
+
+    DWORD_PTR hPlugin;
+    menu_data.Read(&hPlugin);
+
+    INT32 CommandID;
+    menu_data.Read(&CommandID);
+
+    CHANGE_FLAG ChangeFlag;
+    menu_data.Read(&ChangeFlag);
+
+    DISPMENU Flag;
+    menu_data.Read(&Flag);
+
+    TTBPlugin_SetMenuProperty(hPlugin, CommandID, ChangeFlag, Flag);
+
+    // 受信完了を通知
+    ::SetEvent(upward_input_done);
+
     return 0;
 }
 
