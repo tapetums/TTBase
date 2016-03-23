@@ -481,7 +481,6 @@ bool TTBBridgePlugin::InitInfo
     shrmem.Read(uuid.data(), sizeof(wchar_t) * uuid.size());
 
     File info_data;
-    WriteLog(elError, TEXT("  %s"), PluginFilename);
     if ( ! info_data.Open(uuid.data(), File::ACCESS::WRITE) )
     {
         WriteLog(elError, TEXT("  %s"), TEXT("共有ファイルが開けません"));
