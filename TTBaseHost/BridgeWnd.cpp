@@ -167,9 +167,9 @@ LRESULT CALLBACK BridgeWnd::OnCreate()
     upward_input_done    = ::CreateEventW(nullptr, TRUE, FALSE, data.upward_input_done);
     upward_output_done   = ::CreateEventW(nullptr, TRUE, FALSE, data.upward_output_done);
 
-    std::array<wchar_t, data.namelen> name;
-    GenerateUUIDStringW(name.data(),  name.size());
-    if ( shrmem.Map(sizeof(data), name.data(), File::ACCESS::WRITE) )
+    std::array<wchar_t, data.namelen> uuid;
+    GenerateUUIDStringW(uuid.data(),  uuid.size());
+    if ( shrmem.Map(sizeof(data), uuid.data(), File::ACCESS::WRITE) )
     {
         shrmem.Write(data);
     }
@@ -210,8 +210,6 @@ LRESULT CALLBACK BridgeWnd::OnSetPluginInfo()
     BridgeData data;
     shrmem.Seek(0);
     shrmem.Read(&data);
-    SystemLog(TEXT("  downward_file: %s"), data.filename_downward);
-    SystemLog(TEXT("  upward_file:   %s"), data.filename_upward);
 
     SystemLog(TEXT("OnSetPluginInfo: %s"), data.filename_upward);
 
@@ -261,8 +259,6 @@ LRESULT CALLBACK BridgeWnd::OnSetMenuProperty()
     BridgeData data;
     shrmem.Seek(0);
     shrmem.Read(&data);
-    SystemLog(TEXT("  downward_file: %s"), data.filename_downward);
-    SystemLog(TEXT("  upward_file:   %s"), data.filename_upward);
 
     SystemLog(TEXT("OnSetPluginInfo: %s"), data.filename_upward);
 
@@ -331,8 +327,6 @@ LRESULT CALLBACK BridgeWnd::OnWriteLog()
     BridgeData data;
     shrmem.Seek(0);
     shrmem.Read(&data);
-    SystemLog(TEXT("  downward_file: %s"), data.filename_downward);
-    SystemLog(TEXT("  upward_file:   %s"), data.filename_upward);
 
     SystemLog(TEXT("OnWriteLog: %s"), data.filename_upward);
 
@@ -375,8 +369,6 @@ LRESULT CALLBACK BridgeWnd::OnExecuteCommand()
     BridgeData data;
     shrmem.Seek(0);
     shrmem.Read(&data);
-    SystemLog(TEXT("  downward_file: %s"), data.filename_downward);
-    SystemLog(TEXT("  upward_file:   %s"), data.filename_upward);
 
     SystemLog(TEXT("OnExecuteCommand: %s"), data.filename_upward);
 

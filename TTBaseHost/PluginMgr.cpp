@@ -124,10 +124,10 @@ bool TTBasePlugin::Load
     }
 
     // 関数ポインタの取得
-    TTBEvent_Init           = (TTBEVENT_INIT)          ::GetProcAddress(m_handle, "TTBEvent_Init");
-    TTBEvent_Unload         = (TTBEVENT_UNLOAD)        ::GetProcAddress(m_handle, "TTBEvent_Unload");
-    TTBEvent_Execute        = (TTBEVENT_EXECUTE)       ::GetProcAddress(m_handle, "TTBEvent_Execute");
-    TTBEvent_WindowsHook    = (TTBEVENT_WINDOWSHOOK)   ::GetProcAddress(m_handle, "TTBEvent_WindowsHook");
+    TTBEvent_Init        = (TTBEVENT_INIT)       ::GetProcAddress(m_handle, "TTBEvent_Init");
+    TTBEvent_Unload      = (TTBEVENT_UNLOAD)     ::GetProcAddress(m_handle, "TTBEvent_Unload");
+    TTBEvent_Execute     = (TTBEVENT_EXECUTE)    ::GetProcAddress(m_handle, "TTBEvent_Execute");
+    TTBEvent_WindowsHook = (TTBEVENT_WINDOWSHOOK)::GetProcAddress(m_handle, "TTBEvent_WindowsHook");
 
     SystemLog(TEXT("  %s"), TEXT("OK"));
     return true;
@@ -560,11 +560,6 @@ void PluginMgr::CollectFile
                 if ( plugin->is_loaded() )
                 {
                     plugins.emplace_back(plugin);
-
-                    // スリープを入れないと子プロセスに制御が移らないせいか
-                    // 時々フリーズする
-                    // 詳細は不明 ... TO BE FIXED
-                    ::Sleep(0);
                 }
                 else
                 {
