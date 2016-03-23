@@ -244,11 +244,14 @@ bool TTBBridgePlugin::Load
         sizeof(PluginMsg) + MAX_PATH * sizeof(wchar_t),
         uuid.data(), File::ACCESS::WRITE
     );
-    if ( result )
+    if ( ! result )
     {
-        PluginMsg msg = PluginMsg::Load;
-        plugin_data.Write(&msg, sizeof(msg));
+        WriteLog(elError, TEXT("  %s"), TEXT("送信データの生成に失敗"));
+        return false;
     }
+
+    PluginMsg msg = PluginMsg::Load;
+    plugin_data.Write(msg);
 
     // データの書き込み
     std::array<wchar_t, MAX_PATH> buf;
@@ -261,18 +264,24 @@ bool TTBBridgePlugin::Load
     plugin_data.Write(buf.data(), buf.size() * sizeof(wchar_t));
 
     // データを送信
+    ::Sleep(1); /// マルチプロセスの謎
     ::WaitForSingleObject(lock_downward, INFINITE);
 
     shrmem.Seek(0);
     shrmem.Write(uuid.data(), sizeof(wchar_t) * uuid.size());
 
     ::ResetEvent(downward_input_done);
-    ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, 0, 0);
+    ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, WPARAM(PluginMsg::Load), 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(downward_input_done, 100);
+    const auto ret = ::WaitForSingleObject(downward_input_done, 100);
+    if ( ret != WAIT_OBJECT_0 )
+    {
+        WriteLog(elError, TEXT("  %s"), TEXT("データの送信に失敗"));
+        ::ReleaseMutex(lock_downward);
+        return false;
+    }
 
-    PluginMsg msg;
     plugin_data.Seek(0);
     plugin_data.Read(&msg);
 
@@ -282,8 +291,8 @@ bool TTBBridgePlugin::Load
         m_loaded = true;
     }
 
-    ::ReleaseMutex(lock_downward);
     SystemLog(TEXT("  %s"), PluginMsgTxt[(uint8_t)msg]);
+    ::ReleaseMutex(lock_downward);
     return true;
 }
 
@@ -314,29 +323,39 @@ void TTBBridgePlugin::Free()
         sizeof(PluginMsg) + 0,
         uuid.data(), File::ACCESS::WRITE
     );
-    if ( result )
+    if ( ! result )
     {
-        PluginMsg msg = PluginMsg::Free;
-        plugin_data.Write(&msg, sizeof(msg));
+        WriteLog(elError, TEXT("  %s"), TEXT("送信データの生成に失敗"));
+        return;
     }
 
+    PluginMsg msg = PluginMsg::Free;
+    plugin_data.Write(msg);
+
     // データを送信
+    ::Sleep(1); /// マルチプロセスの謎
     ::WaitForSingleObject(lock_downward, INFINITE);
 
     shrmem.Seek(0);
     shrmem.Write(uuid.data(), sizeof(wchar_t) * uuid.size());
 
     ::ResetEvent(downward_input_done);
-    ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, 0, 0);
+    ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, WPARAM(PluginMsg::Free), 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(downward_input_done, 100);
+    const auto ret = ::WaitForSingleObject(downward_input_done, 100);
+    if ( ret != WAIT_OBJECT_0 )
+    {
+        WriteLog(elError, TEXT("  %s"), TEXT("データの送信に失敗"));
+        ::ReleaseMutex(lock_downward);
+        return;
+    }
 
     // 読み込み済みのフラグをオフ
     m_loaded = false;
 
-    ::ReleaseMutex(lock_downward);
     SystemLog(TEXT("  %s"), TEXT("OK"));
+    ::ReleaseMutex(lock_downward);
     return;
 }
 
@@ -418,11 +437,14 @@ bool TTBBridgePlugin::InitInfo
         sizeof(PluginMsg) + MAX_PATH * sizeof(wchar_t),
         uuid.data(), File::ACCESS::WRITE
     );
-    if ( result )
+    if ( ! result )
     {
-        PluginMsg msg = PluginMsg::InitInfo;
-        plugin_data.Write(&msg, sizeof(msg));
+        WriteLog(elError, TEXT("  %s"), TEXT("送信データの生成に失敗"));
+        return false;
     }
+
+    PluginMsg msg = PluginMsg::InitInfo;
+    plugin_data.Write(msg);
 
     // データの書き込み
     std::array<wchar_t, MAX_PATH> buf;
@@ -436,25 +458,34 @@ bool TTBBridgePlugin::InitInfo
     plugin_data.Write(buf.data(), buf.size() * sizeof(wchar_t));
 
     // データを送信
+    ::Sleep(1); /// マルチプロセスの謎
     ::WaitForSingleObject(lock_downward, INFINITE);
 
     shrmem.Seek(0);
     shrmem.Write(uuid.data(), sizeof(wchar_t) * uuid.size());
 
     ::ResetEvent(downward_input_done);
-    ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, 0, 0);
+    ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, WPARAM(PluginMsg::InitInfo), 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(downward_input_done, 100);
+    const auto ret = ::WaitForSingleObject(downward_input_done, 100);
+    if ( ret != WAIT_OBJECT_0 )
+    {
+        WriteLog(elError, TEXT("  %s"), TEXT("データの送信に失敗"));
+        ::ReleaseMutex(lock_downward);
+        return false;
+    }
 
     // データの読み取り
     shrmem.Seek(0);
     shrmem.Read(uuid.data(), sizeof(wchar_t) * uuid.size());
 
     File info_data;
+    WriteLog(elError, TEXT("  %s"), PluginFilename);
     if ( ! info_data.Open(uuid.data(), File::ACCESS::WRITE) )
     {
         WriteLog(elError, TEXT("  %s"), TEXT("共有ファイルが開けません"));
+        ::ReleaseMutex(lock_downward);
         return false;
     }
 
@@ -484,8 +515,8 @@ bool TTBBridgePlugin::InitInfo
     // 送信完了を通知
     ::SetEvent(downward_output_done);
 
-    ::ReleaseMutex(lock_downward);
     SystemLog(TEXT("  %s"), TEXT("OK"));
+    ::ReleaseMutex(lock_downward);
     return true;
 }
 
@@ -523,23 +554,33 @@ void TTBBridgePlugin::FreeInfo()
         sizeof(PluginMsg) + 0,
         uuid.data(), File::ACCESS::WRITE
     );
-    if ( result )
+    if ( ! result )
     {
-        PluginMsg msg = PluginMsg::FreeInfo;
-        plugin_data.Write(&msg, sizeof(msg));
+        WriteLog(elError, TEXT("  %s"), TEXT("送信データの生成に失敗"));
+        return;
     }
 
+    PluginMsg msg = PluginMsg::FreeInfo;
+    plugin_data.Write(msg);
+
     // データを送信
+    ::Sleep(1); /// マルチプロセスの謎
     ::WaitForSingleObject(lock_downward, INFINITE);
 
     shrmem.Seek(0);
     shrmem.Write(uuid.data(), sizeof(wchar_t) * uuid.size());
 
     ::ResetEvent(downward_input_done);
-    ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, 0, 0);
+    ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, WPARAM(PluginMsg::FreeInfo), 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(downward_input_done, 100);
+    const auto ret = ::WaitForSingleObject(downward_input_done, 100);
+    if ( ret != WAIT_OBJECT_0 )
+    {
+        WriteLog(elError, TEXT("  %s"), TEXT("データの送信に失敗"));
+        ::ReleaseMutex(lock_downward);
+        return;
+    }
 
     ::ReleaseMutex(lock_downward);
     SystemLog(TEXT("  %s"), TEXT("OK"));
@@ -576,11 +617,14 @@ bool TTBBridgePlugin::Init
         sizeof(PluginMsg) + MAX_PATH * sizeof(wchar_t) + sizeof(DWORD_PTR),
         uuid.data(), File::ACCESS::WRITE
     );
-    if ( result )
+    if ( ! result )
     {
-        PluginMsg msg = PluginMsg::Init;
-        plugin_data.Write(&msg, sizeof(msg));
+        WriteLog(elError, TEXT("  %s"), TEXT("送信データの生成に失敗"));
+        return false;
     }
+
+    PluginMsg msg = PluginMsg::Init;
+    plugin_data.Write(msg);
 
     // データの書き込み
     std::array<wchar_t, MAX_PATH> buf;
@@ -594,23 +638,29 @@ bool TTBBridgePlugin::Init
     plugin_data.Write(hPlugin);
 
     // データを送信
+    ::Sleep(1); /// マルチプロセスの謎
     ::WaitForSingleObject(lock_downward, INFINITE);
 
     shrmem.Seek(0);
     shrmem.Write(uuid.data(), sizeof(wchar_t) * uuid.size());
 
     ::ResetEvent(downward_input_done);
-    ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, 0, 0);
+    ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, WPARAM(PluginMsg::Init), 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(downward_input_done, 100);
+    const auto ret = ::WaitForSingleObject(downward_input_done, 100);
+    if ( ret != WAIT_OBJECT_0 )
+    {
+        WriteLog(elError, TEXT("  %s"), TEXT("データの送信に失敗"));
+        ::ReleaseMutex(lock_downward);
+        return false;
+    }
 
-    PluginMsg msg;
     plugin_data.Seek(0);
     plugin_data.Read(&msg);
 
-    ::ReleaseMutex(lock_downward);
     SystemLog(TEXT("  %s"), PluginMsgTxt[(uint8_t)msg]);
+    ::ReleaseMutex(lock_downward);
     return true;
 }
 
@@ -641,26 +691,36 @@ void TTBBridgePlugin::Unload()
         sizeof(PluginMsg) + 0,
         uuid.data(), File::ACCESS::WRITE
     );
-    if ( result )
+    if ( ! result )
     {
-        PluginMsg msg = PluginMsg::Unload;
-        plugin_data.Write(&msg, sizeof(msg));
+        WriteLog(elError, TEXT("  %s"), TEXT("送信データの生成に失敗"));
+        return;
     }
 
+    PluginMsg msg = PluginMsg::Unload;
+    plugin_data.Write(msg);
+
     // データを送信
+    ::Sleep(1); /// マルチプロセスの謎
     ::WaitForSingleObject(lock_downward, INFINITE);
 
     shrmem.Seek(0);
     shrmem.Write(uuid.data(), sizeof(wchar_t) * uuid.size());
 
     ::ResetEvent(downward_input_done);
-    ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, 0, 0);
+    ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, WPARAM(PluginMsg::Free), 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(downward_input_done, 100);
+    const auto ret = ::WaitForSingleObject(downward_input_done, 100);
+    if ( ret != WAIT_OBJECT_0 )
+    {
+        WriteLog(elError, TEXT("  %s"), TEXT("データの送信に失敗"));
+        ::ReleaseMutex(lock_downward);
+        return;
+    }
 
-    ::ReleaseMutex(lock_downward);
     SystemLog(TEXT("  %s"), TEXT("OK"));
+    ::ReleaseMutex(lock_downward);
     return;
 }
 
@@ -694,34 +754,43 @@ bool TTBBridgePlugin::Execute
         sizeof(PluginMsg) + sizeof(INT32) + sizeof(DWORD_PTR),
         uuid.data(), File::ACCESS::WRITE
     );
-    if ( result )
+    if ( ! result )
     {
-        PluginMsg msg = PluginMsg::Execute;
-        plugin_data.Write(&msg, sizeof(msg));
+        WriteLog(elError, TEXT("  %s"), TEXT("送信データの生成に失敗"));
+        return false;
     }
+
+    PluginMsg msg = PluginMsg::Execute;
+    plugin_data.Write(msg);
 
     // データの書き込み
     plugin_data.Write(CmdID);
     plugin_data.Write(hwnd);
 
     // データを送信
+    ::Sleep(1); /// マルチプロセスの謎
     ::WaitForSingleObject(lock_downward, INFINITE);
 
     shrmem.Seek(0);
     shrmem.Write(uuid.data(), sizeof(wchar_t) * uuid.size());
 
     ::ResetEvent(downward_input_done);
-    ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, 0, 0);
+    ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, WPARAM(PluginMsg::Execute), 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(downward_input_done, 100);
+    const auto ret = ::WaitForSingleObject(downward_input_done, 100);
+    if ( ret != WAIT_OBJECT_0 )
+    {
+        WriteLog(elError, TEXT("  %s"), TEXT("データの送信に失敗"));
+        ::ReleaseMutex(lock_downward);
+        return false;
+    }
 
-    PluginMsg msg;
     plugin_data.Seek(0);
     plugin_data.Read(&msg);
 
-    ::ReleaseMutex(lock_downward);
     SystemLog(TEXT("  %s"), PluginMsgTxt[uint8_t(msg)]);
+    ::ReleaseMutex(lock_downward);
     return true;
 }
 
@@ -756,11 +825,14 @@ void TTBBridgePlugin::Hook
         sizeof(PluginMsg) + sizeof(DWORD) + sizeof(WPARAM) + sizeof(LPARAM),
         uuid.data(), File::ACCESS::WRITE
     );
-    if ( result )
+    if ( ! result )
     {
-        PluginMsg msg = PluginMsg::Hook;
-        plugin_data.Write(&msg, sizeof(msg));
+        WriteLog(elError, TEXT("  %s"), TEXT("送信データの生成に失敗"));
+        return;
     }
+
+    PluginMsg msg = PluginMsg::Hook;
+    plugin_data.Write(msg);
 
     // データの書き込み
     plugin_data.Write(Msg);
@@ -768,19 +840,26 @@ void TTBBridgePlugin::Hook
     plugin_data.Write(lParam);
 
     // データを送信
+    ::Sleep(1); /// マルチプロセスの謎
     ::WaitForSingleObject(lock_downward, INFINITE);
 
     shrmem.Seek(0);
     shrmem.Write(uuid.data(), sizeof(wchar_t) * uuid.size());
 
     ::ResetEvent(downward_input_done);
-    ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, 0, 0);
+    ::PostThreadMessage(threadId, MSG_TTBBRIDGE_COMMAND, WPARAM(PluginMsg::Hook), 0);
 
     // 受信完了待ち
-    ::WaitForSingleObject(downward_input_done, 100);
+    const auto ret = ::WaitForSingleObject(downward_input_done, 100);
+    if ( ret != WAIT_OBJECT_0 )
+    {
+        WriteLog(elError, TEXT("  %s"), TEXT("データの送信に失敗"));
+        ::ReleaseMutex(lock_downward);
+        return;
+    }
 
-    ::ReleaseMutex(lock_downward);
     //SystemLog(TEXT("  %s"), TEXT("OK"));
+    ::ReleaseMutex(lock_downward);
     return;
 }
 
