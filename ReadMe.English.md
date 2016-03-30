@@ -3,56 +3,6 @@
 An application that is compatible with TTBase.  
 Compilable with: **Visual Studio Community 2015 (C++11, 32/64-bit)**
 
-##Contents
-
----
-
-- TTBaseHost.sln
-- TTBaseHost.vcxproj
-- TTBaseHost.vcxproj.filters
-- TTBaseHost.vcxproj.user
-- WinMain.cpp
-- PluginMgr.hpp
-- PluginMgr.cpp
-- Command.hpp
-- System.cpp
-- MainWnd.hpp
-- MainWnd.cpp
-- Settings.hpp
-- BridgeData.hpp
-- TTBBridgePlugin.hpp
-- TTBBridgePlugin.cpp
-- icon.ico
-- resource.h
-- TTBaseHost.rc
-- TTBaseHost.def
-- compatibility.manifest
-- dpiAware.manifest
-- NYSL.TXT
-- [include]
- - Font.hpp
- - File.hpp
- - UWnd.hpp
- - UWnd.cpp
- - CtrlWnd.hpp
- - Application.hpp
- - CollectFile.hpp 
-
----
-
-To compile, you also require files below
-
-- Plugin.hpp
-- Plugin.cpp
-- MessageDef.hpp
-- MessageDef.cpp
-- Utility.hpp
-- Utility.cpp
-- x86.manifest
-- amd64.manifest
-
-from the 'TTBase plugin template project'.
-
 ---
 
 ##Description
@@ -87,9 +37,9 @@ from the 'TTBase plugin template project'.
 　If you want to show the UI window when the icon is invisible, call the command with the hotkey of plugins or simply double-start the application.
 
 ###Screen Shots
-![System](./ss/System.png)  
-![Plugins](./ss/Plugins.png)  
-![Commands](./ss/Commands.png)  
+![System](https://raw.githubusercontent.com/tapetums/TTBase/master/TTBaseHost/ss/System.png)  
+![Plugins](https://raw.githubusercontent.com/tapetums/TTBase/master/TTBaseHost/ss/Plugins.png)  
+![Commands](https://raw.githubusercontent.com/tapetums/TTBase/master/TTBaseHost/ss/Commands.png)  
 ---
 
 ##License

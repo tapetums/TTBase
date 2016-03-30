@@ -3,57 +3,6 @@
 TTBase 互換アプリケーションです。  
 **Visual Studio Community 2015 (C++11, 32/64-bit)** でコンパイルを確認しています。
 
-##内容
-
----
-
-- TTBaseHost.sln
-- TTBaseHost.vcxproj
-- TTBaseHost.vcxproj.filters
-- TTBaseHost.vcxproj.user
-- WinMain.cpp
-- PluginMgr.hpp
-- PluginMgr.cpp
-- Command.hpp
-- System.cpp
-- MainWnd.hpp
-- MainWnd.cpp
-- Settings.hpp
-- BridgeData.hpp
-- TTBBridgePlugin.hpp
-- TTBBridgePlugin.cpp
-- icon.ico
-- resource.h
-- TTBaseHost.rc
-- TTBaseHost.def
-- compatibility.manifest
-- dpiAware.manifest
-- NYSL.TXT
-- [include]
- - Font.hpp
- - File.hpp
- - UWnd.hpp
- - UWnd.cpp
- - CtrlWnd.hpp
- - Application.hpp
- - CollectFile.hpp 
-
----
-
-コンパイルするためには、上記に加え  
-TTBase プラグインスケルトンプロジェクトから
-
-- Plugin.hpp
-- Plugin.cpp
-- MessageDef.hpp
-- MessageDef.cpp
-- Utility.hpp
-- Utility.cpp
-- x86.manifest
-- amd64.manifest
-
-が必要です。
-
 ---
 
 ##説明
@@ -90,9 +39,9 @@ TTBase プラグインスケルトンプロジェクトから
 　なお、タスクトレイアイコンが表示されていない状態で UI ウィンドウを表示させるには、プラグインによるホットキーからコマンドを呼び出すか、アプリケーションを二重起動させて下さい。
 
 ###スクリーンショット
-![システム](./ss/System.png)  
-![プラグイン](./ss/Plugins.png)  
-![コマンド](./ss/Commands.png)  
+![システム](https://raw.githubusercontent.com/tapetums/TTBase/master/TTBaseHost/ss/System.png)  
+![プラグイン](https://raw.githubusercontent.com/tapetums/TTBase/master/TTBaseHost/ss/Plugins.png)  
+![コマンド](https://raw.githubusercontent.com/tapetums/TTBase/master/TTBaseHost/ss/Commands.png)  
 
 ---
 
