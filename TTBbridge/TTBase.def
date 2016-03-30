@@ -1,0 +1,10 @@
+EXPORTS
+	TTBPlugin_GetPluginInfo       @1
+	TTBPlugin_SetPluginInfo       @2
+	TTBPlugin_FreePluginInfo      @3
+	TTBPlugin_SetMenuProperty     @4
+	TTBPlugin_GetAllPluginInfo    @5
+	TTBPlugin_FreePluginInfoArray @6
+	TTBPlugin_SetTaskTrayIcon     @7
+	TTBPlugin_WriteLog            @8
+	TTBPlugin_ExecuteCommand      @9
