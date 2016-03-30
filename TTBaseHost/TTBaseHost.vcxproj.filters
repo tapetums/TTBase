@@ -92,9 +92,6 @@
     <ClInclude Include="include\Font.hpp">
       <Filter>ヘッダー ファイル\include</Filter>
     </ClInclude>
-    <ClInclude Include="BridgeData.hpp">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="TTBBridgePlugin.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -102,6 +99,9 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="BridgeWnd.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\BridgeData.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

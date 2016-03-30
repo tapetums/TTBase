@@ -12,7 +12,7 @@
 #include "include/File.hpp"
 #include "include/GenerateUUIDString.hpp"
 #include "../Utility.hpp"
-#include "BridgeData.hpp"
+#include "../BridgeData.hpp"
 
 #include "BridgeWnd.hpp"
 
