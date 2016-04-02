@@ -85,32 +85,48 @@ INT32 APIENTRY _tWinMain
         return 0;
     }
 
-    // プロセス間通信用ウィンドウの生成
-  #if INTPTR_MAX == INT64_MAX
-    BridgeWnd bdgwnd;
-  #endif
-
-    // プラグインマネージャの初期化
-    auto&& mgr = PluginMgr::GetInstance();
-    mgr.LoadAll();
-
-    // メインウィンドウの生成
-    MainWnd wnd;
-    g_hwnd = wnd.handle();
-
-    // ウィンドウハンドルを共有メモリに保存
-    shared.Write(&g_hwnd, sizeof(HWND));
-
-    // フックの開始
-    HookDll hook;
-    hook.InstallHook(g_hwnd);
-
-    // メッセージループ
     MSG msg { };
-    while ( ::GetMessage(&msg, nullptr, 0, 0) > 0 )
+    try
     {
-        ::TranslateMessage(&msg);
-        ::DispatchMessage(&msg);
+        // プロセス間通信用ウィンドウの生成
+      #if INTPTR_MAX == INT64_MAX
+        BridgeWnd bdgwnd;
+      #endif
+
+        // プラグインマネージャの初期化
+        auto&& mgr = PluginMgr::GetInstance();
+        mgr.LoadAll();
+
+        // メインウィンドウの生成
+        MainWnd wnd;
+        g_hwnd = wnd.handle();
+
+        // ウィンドウハンドルを共有メモリに保存
+        shared.Write(&g_hwnd, sizeof(HWND));
+
+        // フックの開始
+        HookDll hook;
+        hook.InstallHook(g_hwnd);
+
+        // メッセージループ
+        while ( ::GetMessage(&msg, nullptr, 0, 0) > 0 )
+        {
+            ::TranslateMessage(&msg);
+            ::DispatchMessage(&msg);
+        }
+
+        // プラグインマネージャの終了処理
+        mgr.FreeAll();
+    }
+    catch (...)
+    {
+        ::MessageBox
+        (
+            nullptr,
+            TEXT("例外が発生したため、プログラムを終了します。\n")
+            TEXT("ご不便をお掛けして申し訳ありません。"),
+            TEXT("hako"), MB_OK
+        );
     }
 
     // COM の終了処理

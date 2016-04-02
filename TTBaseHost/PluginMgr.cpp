@@ -283,15 +283,18 @@ bool TTBasePlugin::Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
         return true;
     }
 
-    const auto result = TTBEvent_Init(PluginFilename, hPlugin);
-    if ( ! result )
+    BOOL result { FALSE };
+    try
     {
-        SystemLog(TEXT("  %s"), TEXT("NG"));
-        return false;
+        result = TTBEvent_Init(PluginFilename, hPlugin);
+        SystemLog(TEXT("  %s"), result ? TEXT("OK") : TEXT("NG"));
+    }
+    catch (...)
+    {
+        WriteLog(elWarning, TEXT("  %s"), TEXT("Init: 例外が発生しました"));
     }
 
-    SystemLog(TEXT("  %s"), TEXT("OK"));
-    return true;
+    return result ? true : false;
 }
 
 //---------------------------------------------------------------------------//
@@ -307,8 +310,15 @@ void TTBasePlugin::Unload()
         return;
     }
 
-    TTBEvent_Unload();
-    SystemLog(TEXT("  %s"), TEXT("OK"));
+    try
+    {
+        TTBEvent_Unload();
+        SystemLog(TEXT("  %s"), TEXT("OK"));
+    }
+    catch (...)
+    {
+        WriteLog(elWarning, TEXT("  %s"), TEXT("Unload: 例外が発生しました"));
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -324,15 +334,18 @@ bool TTBasePlugin::Execute(INT32 CmdID, HWND hwnd)
         return true;
     }
 
-    const auto result = TTBEvent_Execute(CmdID, hwnd);
-    if ( ! result )
+    BOOL result { FALSE };
+    try
     {
-        SystemLog(TEXT("  %s"), TEXT("NG"));
-        return false;
+        result = TTBEvent_Execute(CmdID, hwnd);
+        SystemLog(TEXT("  %s"), result ? TEXT("OK") : TEXT("NG"));
+    }
+    catch (...)
+    {
+        WriteLog(elWarning, TEXT("  %s"), TEXT("Execute: 例外が発生しました"));
     }
 
-    SystemLog(TEXT("  %s"), TEXT("OK"));
-    return true;
+    return result ? true : false;
 }
 
 //---------------------------------------------------------------------------//
@@ -349,8 +362,15 @@ void TTBasePlugin::Hook(UINT Msg, WPARAM wParam, LPARAM lParam)
         return;
     }
 
-    TTBEvent_WindowsHook(Msg, wParam, lParam);
-    //SystemLog(TEXT("  %s"), TEXT("OK"));
+    try
+    {
+        TTBEvent_WindowsHook(Msg, wParam, lParam);
+        //SystemLog(TEXT("  %s"), TEXT("OK"));
+    }
+    catch (...)
+    {
+        WriteLog(elWarning, TEXT("  %s"), TEXT("Hook: 例外が発生しました"));
+    }
 }
 
 //---------------------------------------------------------------------------//
