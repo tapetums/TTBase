@@ -186,6 +186,7 @@ TTBBridgePlugin::~TTBBridgePlugin()
     }
 
     SystemLog(TEXT("%s"), TEXT("ブリッヂプラグインを解放"));
+    SystemLog(TEXT("  %s"), m_path);
 
     // 子プロセスの終了
     ::PostThreadMessage(threadId, WM_QUIT, 0, 0);
