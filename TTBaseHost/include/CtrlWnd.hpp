@@ -19,6 +19,13 @@
 
 #include "UWnd.hpp"
 
+#ifdef min
+  #undef min
+#endif
+#ifdef max
+  #undef max
+#endif
+
 //---------------------------------------------------------------------------//
 
 namespace tapetums
@@ -31,6 +38,7 @@ namespace tapetums
     class ListWnd;
     class TreeWnd;
     class TrackbarWnd;
+    class DateTimeWnd;
 }
 
 //---------------------------------------------------------------------------//
@@ -40,6 +48,15 @@ namespace tapetums
 class tapetums::CtrlWnd : public tapetums::UWnd
 {
     using super = UWnd;
+
+protected:
+    INT16 m_id { 0 };
+
+public:
+    CtrlWnd() { static Init init; }
+    ~CtrlWnd() = default;
+
+private:
     struct Init
     {
         Init()
@@ -51,13 +68,6 @@ class tapetums::CtrlWnd : public tapetums::UWnd
             ::InitCommonControlsEx(&icex);
         }
     };
-
-protected:
-    INT16 m_id { 0 };
-
-public:
-    CtrlWnd() { static Init init; }
-    ~CtrlWnd() = default;
 
 public:
     INT16 id() const noexcept { return m_id; }
@@ -202,7 +212,7 @@ public:
 
     bool WINAPI IsChecked()
     {
-        Send(BM_GETCHECK, 0, 0) ? true : false;
+        return Send(BM_GETCHECK, 0, 0) ? true : false;
     }
 
     void WINAPI Check(bool checked)
@@ -277,6 +287,14 @@ public:
     {
         return (INT32)Send(CB_GETCOUNT, 0, 0);
     }
+
+    void Clear()
+    {
+        while ( Send(CB_GETCOUNT, 0, 0 ) )
+        {
+            Send(CB_DELETESTRING, 0, 0);
+        }
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -344,6 +362,11 @@ public:
         return ListView_SetItem(m_hwnd, &item) ? true : false;
     }
 
+    void WINAPI DeleteItem(INT32 index)
+    {
+        ListView_DeleteItem(m_hwnd, index);
+    }
+
     void WINAPI DeleteAllItems()
     {
         ListView_DeleteAllItems(m_hwnd);
@@ -365,6 +388,14 @@ public:
         (
             m_hwnd, index,
             LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED
+        );
+    }
+
+    void WINAPI ClearSelect()
+    {
+        ListView_SetItemState
+        (
+            m_hwnd, SelectedIndex(), 0, LVIS_SELECTED
         );
     }
 
@@ -506,13 +537,6 @@ public:
 
 //---------------------------------------------------------------------------//
 
-#ifdef min
-  #undef min
-#endif
-#ifdef max
-  #undef max
-#endif
-
 class tapetums::TrackbarWnd : public tapetums::CtrlWnd
 {
     using super = CtrlWnd;
@@ -581,11 +605,66 @@ public:
             {
                 return ::SendMessage(GetParent(), uMsg, wp, lp);
             }
+            case WM_NOTIFY:
+            {
+                return OnNotify(hwnd, uMsg, wp, lp);
+            }
             default:
             {
                 return super::WndProc(hwnd, uMsg, wp, lp);
             }
         }
+    }
+
+protected:
+    LRESULT CALLBACK OnNotify(HWND hwnd, UINT uMsg, WPARAM wp, LPARAM lp)
+    {
+        /*if ( ! IsCompositionEnabled() )
+        {
+            return super::WndProc(hwnd, uMsg, wp, lp);
+        }*/
+        const auto hdr = LPNMHDR(lp);
+        if ( hdr->code != NM_CUSTOMDRAW )
+        {
+            return super::WndProc(hwnd, uMsg, wp, lp);
+        }
+
+        return super::WndProc(hwnd, uMsg, wp, lp);
+    }
+};
+
+//---------------------------------------------------------------------------//
+
+class tapetums::DateTimeWnd : public tapetums::CtrlWnd
+{
+    using super = CtrlWnd;
+
+public:
+    DateTimeWnd() { m_class_name = DATETIMEPICK_CLASS; }
+    ~DateTimeWnd() = default;
+
+public:
+    HWND WINAPI Create(DWORD style, HWND hwndParent, INT16 id)
+    {
+        style |= WS_CHILD | WS_VISIBLE;
+
+        return super::Create(style, hwndParent, id);
+    }
+
+public:
+    void WINAPI GetDateTime(SYSTEMTIME* p_st)
+    {
+        ::SendMessage(m_hwnd, DTM_GETSYSTEMTIME, 0, LPARAM(p_st));
+    }
+
+    void WINAPI SetDateTime(const SYSTEMTIME& st)
+    {
+        ::SendMessage(m_hwnd, DTM_SETSYSTEMTIME, 0, LPARAM(&st));
+    }
+
+    void WINAPI SetFormat(LPCTSTR format)
+    {
+        ::SendMessage(m_hwnd, DTM_SETFORMAT, 0, LPARAM(format));
     }
 };
 

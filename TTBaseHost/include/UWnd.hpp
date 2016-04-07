@@ -16,12 +16,16 @@
 
 #pragma comment(lib, "shell32.lib") // Shell_NotifyIcon
 
+#ifndef WM_DPICHANGED
+  #define WM_DPICHANGED 0x02E0
+#endif
+
 //---------------------------------------------------------------------------//
 // グローバル変数
 //---------------------------------------------------------------------------//
 
-extern UINT WM_NOTIFYICON;     // 使用の際は実体定義が必要
-extern UINT WM_TASKBARCREATED; // 使用の際は実体定義が必要
+extern UINT WM_NOTIFYICON;     // 使用の際は実体定義が必要 (WinMain.cpp 内を推奨)
+extern UINT WM_TASKBARCREATED; // 使用の際は実体定義が必要 (WinMain.cpp 内を推奨)
 
 //---------------------------------------------------------------------------//
 // 前方宣言
@@ -31,10 +35,12 @@ namespace tapetums
 {
     class UWnd;
 
-    inline void ShowLastError(LPCTSTR window_title);
-    inline void AdjustRect(HWND hwnd, INT32* w, INT32* h);
-    inline void GetRectForMonitorUnderCursor(RECT* rect);
-    inline void GetDpiForMonitorUnderCursor(POINT* dpi);
+    inline void ShowLastError    (LPCTSTR window_title);
+    inline void AdjustRect       (HWND hwnd, INT32* w, INT32* h);
+    inline void GetRectForMonitor(HWND hwnd, RECT* rect);
+    inline void GetRectForMonitor(const POINT& pt, RECT* rect);
+    inline void GetDpiForMonitor (HWND hwnd, POINT* dpi);
+    inline void GetDpiForMonitor (const POINT& pt,POINT* dpi);
 }
 
 //---------------------------------------------------------------------------//
@@ -179,14 +185,27 @@ inline void tapetums::AdjustRect
 
 //---------------------------------------------------------------------------//
 
-// カーソルのあるモニタのサイズを取得する
-inline void tapetums::GetRectForMonitorUnderCursor
+// ウィンドウのあるモニタのサイズを取得する
+inline void tapetums::GetRectForMonitor
 (
-    RECT* rect
+    HWND hwnd, RECT* rect
 )
 {
-    POINT pt;
-    ::GetCursorPos(&pt);
+    const auto hMonitor = ::MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+
+    MONITORINFOEX miex{ };
+    miex.cbSize = (DWORD)sizeof(MONITORINFOEX);
+    ::GetMonitorInfo(hMonitor, &miex);
+
+    *rect = miex.rcMonitor;
+}
+
+// 画面上のある点におけるモニタのサイズを取得する
+inline void tapetums::GetRectForMonitor
+(
+    const POINT& pt, RECT* rect
+)
+{
     const auto hMonitor = ::MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
 
     MONITORINFOEX miex{ };
@@ -200,10 +219,10 @@ inline void tapetums::GetRectForMonitorUnderCursor
 
 #include <ShellScalingApi.h>
 
-// カーソルのあるモニタの解像度を取得する
-inline void tapetums::GetDpiForMonitorUnderCursor
+// ウィンドウのあるモニタの解像度を取得する
+inline void tapetums::GetDpiForMonitor
 (
-    POINT* dpi
+    HWND hwnd, POINT* dpi
 )
 {
     static const auto Shcore = ::LoadLibraryEx
@@ -219,8 +238,46 @@ inline void tapetums::GetDpiForMonitorUnderCursor
 
     if ( GetDpiForMonitor )
     {
-        POINT pt;
-        ::GetCursorPos(&pt);
+        const auto hMonitor = ::MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+
+        GetDpiForMonitor
+        (
+            hMonitor, MONITOR_DPI_TYPE::MDT_EFFECTIVE_DPI,
+            (UINT*)&dpi->x, (UINT*)&dpi->y
+        );
+    }
+    else
+    {
+        const auto hDC = ::GetDC(nullptr);
+        if ( hDC )
+        {
+            dpi->x = ::GetDeviceCaps(hDC, LOGPIXELSX);
+            dpi->y = ::GetDeviceCaps(hDC, LOGPIXELSY);
+
+            ::ReleaseDC(nullptr, hDC);
+        }
+    }
+}
+
+// 画面上のある点におけるモニタの解像度を取得する
+inline void tapetums::GetDpiForMonitor
+(
+    const POINT& pt, POINT* dpi
+)
+{
+    static const auto Shcore = ::LoadLibraryEx
+    (
+        TEXT("Shcore.dll"), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH
+    );
+
+    using F = HRESULT (__stdcall*)(HMONITOR, MONITOR_DPI_TYPE, UINT*, UINT*);
+    static const auto GetDpiForMonitor = (F)::GetProcAddress
+    (
+        Shcore, "GetDpiForMonitor"
+    );
+
+    if ( GetDpiForMonitor )
+    {
         const auto hMonitor = ::MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
 
         GetDpiForMonitor
@@ -446,7 +503,10 @@ inline void WINAPI tapetums::UWnd::ToCenter()
     }
     else
     {
-        GetRectForMonitorUnderCursor(&rc);
+        POINT pt;
+        ::GetCursorPos(&pt);
+
+        GetRectForMonitor(pt, &rc);
         mx = rc.left;
         my = rc.top;
         mw = rc.right  - rc.left;
@@ -480,8 +540,11 @@ inline void WINAPI tapetums::UWnd::ToggleFullScreen()
         ::GetWindowRect(m_hwnd, &m_rc_old);
 
         // モニタのサイズを取得
+        POINT pt;
+        ::GetCursorPos(&pt);
+
         RECT rc;
-        GetRectForMonitorUnderCursor(&rc);
+        GetRectForMonitor(pt, &rc);
         const auto cx = rc.left;
         const auto cy = rc.top;
         const auto cw = rc.right  - rc.left;
