@@ -204,6 +204,10 @@ LRESULT CALLBACK MainWnd::WndProc
     {
         return (LRESULT)GetStockBrush(WHITE_BRUSH); // 背景を白に
     }
+    if ( uMsg == WM_TASKBARCREATED )
+    {
+        OnRegisterIcon(); return 0;
+    }
     if ( uMsg == WM_NOTIFYICON )
     {
         OnNotifyIcon(hwnd, (UINT)lParam); return 0;
@@ -281,20 +285,7 @@ BOOL CALLBACK MainWnd::OnCreate
     HWND hwnd, LPCREATESTRUCT
 )
 {
-    // ウィンドウにアイコンを登録
-    icon = (HICON)::LoadImage
-    (
-        g_hInst, MAKEINTRESOURCE(IDI_ICON),
-        IMAGE_ICON, LR_DEFAULTSIZE, LR_DEFAULTSIZE, LR_DEFAULTCOLOR | LR_SHARED
-    );
-    SetWindowIcon(icon);
-
-    // タスクトレイにアイコンを登録
-    if ( settings::get().ShowTaskTrayIcon )
-    {
-        AddNotifyIcon(ID_TRAYICON, icon);
-        SetNotifyIconTip(ID_TRAYICON, PLUGIN_NAME);
-    }
+    OnRegisterIcon();
 
     // コントロールの生成
     tree.Create(hwnd, CTRL::TREEVIEW);
@@ -670,6 +661,26 @@ void CALLBACK MainWnd::OnNotifyIcon
     else if ( uMsg == WM_MBUTTONUP )
     {
         ::PostMessage(hwnd, WM_SHOWWINDOW, SW_SHOWNORMAL, 0);
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+void CALLBACK MainWnd::OnRegisterIcon()
+{
+    // ウィンドウにアイコンを登録
+    icon = (HICON)::LoadImage
+    (
+        g_hInst, MAKEINTRESOURCE(IDI_ICON),
+        IMAGE_ICON, LR_DEFAULTSIZE, LR_DEFAULTSIZE, LR_DEFAULTCOLOR | LR_SHARED
+    );
+    SetWindowIcon(icon);
+
+    // タスクトレイにアイコンを登録
+    if ( settings::get().ShowTaskTrayIcon )
+    {
+        AddNotifyIcon(ID_TRAYICON, icon);
+        SetNotifyIconTip(ID_TRAYICON, PLUGIN_NAME);
     }
 }
 

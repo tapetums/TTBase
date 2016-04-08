@@ -59,6 +59,7 @@ private:
     LRESULT CALLBACK OnNotify         (HWND hwnd, INT32 idCtrl, LPNMHDR pNMHdr);
     void    CALLBACK OnCommand        (HWND hwnd, UINT id, HWND hwndCtrl, UINT codeNotify);
     void    CALLBACK OnNotifyIcon     (HWND hwnd, UINT uMsg);
+    void    CALLBACK OnRegisterIcon   ();
     void    CALLBACK OnShowSettings   (HWND hwnd);
     void    CALLBACK OmShowVerInfo    (HWND hwnd);
     void    CALLBACK OnSetTaskTrayIcon(HICON hIcon, LPCTSTR Tips);
