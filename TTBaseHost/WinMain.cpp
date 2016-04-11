@@ -88,6 +88,9 @@ INT32 APIENTRY _tWinMain
     MSG msg { };
     try
     {
+        // セッション終了時の優先順位を上げる
+        ::SetProcessShutdownParameters(0x4FF, 0);
+
       #if INTPTR_MAX == INT64_MAX
         // プロセス間通信用ウィンドウの生成
         BridgeWnd bdgwnd;

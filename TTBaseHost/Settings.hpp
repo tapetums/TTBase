@@ -42,16 +42,20 @@ public:
 
     tapetums::File file;
 
+public:
+    void load();
+    void save();
+
 private:
-    settings();
-    ~settings();
+    settings() { load(); }
+    ~settings() = default;
 };
 
 //---------------------------------------------------------------------------//
 // Methods
 //---------------------------------------------------------------------------//
 
-inline settings::settings()
+inline void settings::load()
 {
     std::array<wchar_t, MAX_PATH> path;
 
@@ -141,7 +145,7 @@ inline settings::settings()
 
 //---------------------------------------------------------------------------//
 
-inline settings::~settings()
+inline void settings::save()
 {
     std::array<wchar_t, MAX_PATH> path;
     std::array<wchar_t, 16>       buf;

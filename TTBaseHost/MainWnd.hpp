@@ -51,11 +51,13 @@ public:
     LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 
 private:
+
     BOOL    CALLBACK OnCreate         (HWND hwnd, LPCREATESTRUCT lpCreateStruct);
     void    CALLBACK OnDestroy        (HWND hwnd);
     void    CALLBACK OnSize           (HWND hwnd, UINT state, INT32 cx, INT32 cy);
     void    CALLBACK OnPaint          (HWND hwnd);
     void    CALLBACK OnClose          (HWND hwnd);
+    void    CALLBACK OnEndSession     (HWND hwnd, BOOL fEnding);
     LRESULT CALLBACK OnNotify         (HWND hwnd, INT32 idCtrl, LPNMHDR pNMHdr);
     void    CALLBACK OnCommand        (HWND hwnd, UINT id, HWND hwndCtrl, UINT codeNotify);
     void    CALLBACK OnNotifyIcon     (HWND hwnd, UINT uMsg);

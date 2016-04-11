@@ -204,6 +204,10 @@ LRESULT CALLBACK MainWnd::WndProc
     {
         return (LRESULT)GetStockBrush(WHITE_BRUSH); // 背景を白に
     }
+    if ( uMsg == WM_QUERYENDSESSION )
+    {
+        return TRUE;
+    }
     if ( uMsg == WM_TASKBARCREATED )
     {
         OnRegisterIcon(); return 0;
@@ -267,13 +271,14 @@ LRESULT CALLBACK MainWnd::WndProc
 
     switch ( uMsg )
     {
-        HANDLE_MSG(hwnd, WM_CREATE,  OnCreate);
-        HANDLE_MSG(hwnd, WM_DESTROY, OnDestroy);
-        HANDLE_MSG(hwnd, WM_SIZE,    OnSize);
-        HANDLE_MSG(hwnd, WM_PAINT,   OnPaint);
-        HANDLE_MSG(hwnd, WM_CLOSE,   OnClose);
-        HANDLE_MSG(hwnd, WM_NOTIFY,  OnNotify);
-        HANDLE_MSG(hwnd, WM_COMMAND, OnCommand);
+        HANDLE_MSG(hwnd, WM_CREATE,     OnCreate);
+        HANDLE_MSG(hwnd, WM_DESTROY,    OnDestroy);
+        HANDLE_MSG(hwnd, WM_SIZE,       OnSize);
+        HANDLE_MSG(hwnd, WM_PAINT,      OnPaint);
+        HANDLE_MSG(hwnd, WM_CLOSE,      OnClose);
+        HANDLE_MSG(hwnd, WM_ENDSESSION, OnEndSession);
+        HANDLE_MSG(hwnd, WM_NOTIFY,     OnNotify);
+        HANDLE_MSG(hwnd, WM_COMMAND,    OnCommand);
         default: return super::WndProc(hwnd, uMsg, wParam, lParam);
     }
 }
@@ -382,6 +387,9 @@ void CALLBACK MainWnd::OnDestroy
     HWND
 )
 {
+    // 設定ファイルを保存
+    settings::get().save();
+
     // イメージリストを破棄
     ::ImageList_Destroy(il);
 
@@ -454,7 +462,36 @@ void CALLBACK MainWnd::OnClose
     HWND
 )
 {
+    // 設定ファイルを保存
+    settings::get().save();
+
     Hide();
+}
+
+//---------------------------------------------------------------------------//
+
+void CALLBACK MainWnd::OnEndSession
+(
+    HWND hwnd, BOOL fEnding
+)
+{
+    if ( fEnding )
+    {
+        SystemLog(TEXT("%s"), TEXT("セッションを終了しています..."));
+
+        ::ShutdownBlockReasonCreate(hwnd, L"プラグインを解放しています...");
+
+        // プラグインマネージャの終了処理
+        auto&& mgr = PluginMgr::GetInstance();
+        mgr.FreeAll();
+
+        // メインウィンドウの破棄
+        OnDestroy(hwnd);
+
+        ::ShutdownBlockReasonDestroy(hwnd);
+
+        SystemLog(TEXT("%s"), TEXT("OK"));
+    }
 }
 
 //---------------------------------------------------------------------------//
