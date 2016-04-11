@@ -88,8 +88,8 @@ INT32 APIENTRY _tWinMain
     MSG msg { };
     try
     {
-        // プロセス間通信用ウィンドウの生成
       #if INTPTR_MAX == INT64_MAX
+        // プロセス間通信用ウィンドウの生成
         BridgeWnd bdgwnd;
       #endif
 

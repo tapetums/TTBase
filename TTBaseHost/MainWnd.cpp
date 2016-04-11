@@ -581,7 +581,7 @@ void CALLBACK MainWnd::OnCommand
         // アプリケーションを終了
         Destroy();
     }
-    else if ( id == CTRL::BTN_OPEN_INST_FOLDER)
+    else if ( id == CTRL::BTN_OPEN_INST_FOLDER )
     {
         // 本体のインストールフォルダを開く
         std::array<TCHAR, MAX_PATH> path;
