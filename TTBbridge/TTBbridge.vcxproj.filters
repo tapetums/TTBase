@@ -16,6 +16,9 @@
     <Filter Include="ヘッダー ファイル\include">
       <UniqueIdentifier>{78d7173a-eb88-44fd-b447-93a48fcce599}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\TTBase">
+      <UniqueIdentifier>{adb93941-267b-4062-a34c-502580a1065c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinMain.cpp">
@@ -54,7 +57,7 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\Plugin.hpp">
-      <Filter>ヘッダー ファイル</Filter>
+      <Filter>ヘッダー ファイル\TTBase</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
